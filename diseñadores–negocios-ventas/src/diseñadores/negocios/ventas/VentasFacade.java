@@ -1,8 +1,8 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.negocios.ventas.dominio.Producto;
-import diseñadores.negocios.ventas.dominio.Ticket;
-import diseñadores.negocios.ventas.dominio.Venta;
+import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.Ticket;
+import diseñadores.negocios.dto.Venta;
 
 public class VentasFacade implements IVentas {
 

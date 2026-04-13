@@ -1,4 +1,4 @@
-package diseñadores.negocios.ventas.dominio;
+package diseñadores.negocios.dto;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,9 +1,9 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.negocios.ventas.dominio.Producto;
-import diseñadores.negocios.ventas.dominio.Proveedor;
-import diseñadores.negocios.ventas.dominio.Ticket;
-import diseñadores.negocios.ventas.dominio.Venta;
+import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.Proveedor;
+import diseñadores.negocios.dto.Ticket;
+import diseñadores.negocios.dto.Venta;
 import diseñadores.negocios.ventas.notificacion.IServicioNotificacion;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class VentasControl {
   public VentasControl() {
     this.inventarioMock = new ArrayList<>();
 
-    Proveedor provGranos = new Proveedor("Abarrotes del Mayo", "ventas@mayo.com");
+      Proveedor provGranos = new Proveedor("Abarrotes del Mayo", "ventas@mayo.com");
     Proveedor provAceites = new Proveedor("Distribuidora Sonora", "contacto@distsonora.com");
 
     inventarioMock.add(new Producto("PROD-8342-2323", "Arroz", 28.00, 50, provGranos));

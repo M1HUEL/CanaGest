@@ -1,4 +1,4 @@
-package diseñadores.negocios.ventas.dominio;
+package diseñadores.negocios.dto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

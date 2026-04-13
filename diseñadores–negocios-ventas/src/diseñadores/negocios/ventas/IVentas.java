@@ -1,14 +1,14 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.negocios.ventas.dominio.Producto;
-import diseñadores.negocios.ventas.dominio.Ticket;
-import diseñadores.negocios.ventas.dominio.Venta;
+import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.Ticket;
+import diseñadores.negocios.dto.Venta;
 
 public interface IVentas {
 
   void nuevaVenta();
 
-  Producto procesarProducto(String codigo);
+    Producto procesarProducto(String codigo);
 
   double procesarPagoEfectivo(double montoRecibido);
 
@@ -18,6 +18,6 @@ public interface IVentas {
 
   Venta obtenerVentaActual();
 
-  Ticket generarTicket();
+    Ticket generarTicket();
 
 }

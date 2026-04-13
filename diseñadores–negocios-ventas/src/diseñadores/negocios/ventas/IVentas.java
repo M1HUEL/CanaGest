@@ -8,7 +8,7 @@ public interface IVentas {
 
   void nuevaVenta();
 
-    Producto procesarProducto(String codigo);
+  Producto procesarProducto(String codigo);
 
   double procesarPagoEfectivo(double montoRecibido);
 
@@ -18,6 +18,6 @@ public interface IVentas {
 
   Venta obtenerVentaActual();
 
-    Ticket generarTicket();
+  Ticket generarTicket();
 
 }

@@ -12,8 +12,6 @@ public interface IProductos {
 
   boolean tieneStock(EscanearProductoDTO dto);
 
-  void reducirStock(String codigo);
-
   List<ProductoDTO> obtenerCatalogo();
 
 }

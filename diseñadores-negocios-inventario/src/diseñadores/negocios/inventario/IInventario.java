@@ -1,6 +1,6 @@
 package diseñadores.negocios.inventario;
 
-import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.ProductoDTO;
 
 public interface IInventario {
 
@@ -8,8 +8,8 @@ public interface IInventario {
 
   void reducirStock(String codigo, int cantidad);
 
-  Producto obtenerProducto(String codigo);
-
   void actualizarStock(String codigo, int nuevaCantidad);
+
+  ProductoDTO obtenerProducto(String codigo);
 
 }

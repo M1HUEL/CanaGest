@@ -19,7 +19,12 @@ public class ProductosFacade implements IProductos {
 
   @Override
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return control.buscar(dto) != null;
+    return control.existe(dto);
+  }
+
+  @Override
+  public boolean tieneStock(EscanearProductoDTO dto) {
+    return control.tieneStock(dto);
   }
 
   @Override
@@ -27,10 +32,8 @@ public class ProductosFacade implements IProductos {
     return control.obtenerCatalogo();
   }
 
-  @Override
-  public boolean tieneStock(EscanearProductoDTO dto) {
-    ProductoDTO p = control.buscar(dto);
-    return p != null && p.getStock() > 0;
+  public ProductosControl getControl() {
+    return control;
   }
 
 }

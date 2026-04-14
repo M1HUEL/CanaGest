@@ -1,17 +1,23 @@
 package diseñadores.negocios.ventas;
 
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.productos.ProductosControl;
+import diseñadores.negocios.inventario.InventarioFacade;
+import diseñadores.negocios.productos.ProductosFacade;
 import java.util.List;
 
 public class VentasFacade implements IVentas {
 
-  private final ProductosControl productosControl;
+  private final ProductosFacade productosSubsistema;
+  private final InventarioFacade inventarioSubsistema;
   private final VentasControl ventasControl;
 
   public VentasFacade() {
-    this.productosControl = new ProductosControl();
-    this.ventasControl = new VentasControl(productosControl);
+    this.productosSubsistema = new ProductosFacade();
+    this.inventarioSubsistema = new InventarioFacade();
+    this.ventasControl = new VentasControl(
+      productosSubsistema.getControl(),
+      inventarioSubsistema
+    );
   }
 
   @Override
@@ -21,7 +27,12 @@ public class VentasFacade implements IVentas {
 
   @Override
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return productosControl.existeProducto(dto);
+    return productosSubsistema.existeProducto(dto);
+  }
+
+  @Override
+  public boolean tieneStock(EscanearProductoDTO dto) {
+    return productosSubsistema.tieneStock(dto);
   }
 
   @Override
@@ -36,6 +47,9 @@ public class VentasFacade implements IVentas {
 
   @Override
   public double calcularCambio(Venta ventaActual, double efectivo) {
+    if (ventaActual == null) {
+      return 0;
+    }
     double total = ventaActual.getSubtotalVenta();
     return efectivo >= total ? efectivo - total : 0;
   }
@@ -57,7 +71,7 @@ public class VentasFacade implements IVentas {
 
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
-    return productosControl.obtenerCatalogo();
+    return productosSubsistema.obtenerCatalogo();
   }
 
 }

@@ -1,15 +1,26 @@
 package diseñadores.negocios.productos;
 
-import diseñadores.negocios.dto.*;
+import diseñadores.negocios.dto.EscanearProductoDTO;
+import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.inventario.InventarioRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProductosControl {
 
+  public boolean existe(EscanearProductoDTO dto) {
+    return encontrar(dto.getCodigo()) != null;
+  }
+
+  public boolean tieneStock(EscanearProductoDTO dto) {
+    Producto p = encontrar(dto.getCodigo());
+    return p != null && p.getStock() > 0;
+  }
+
   public ProductoDTO buscar(EscanearProductoDTO dto) {
-    Producto p = encontrarEnRepo(dto.getCodigo());
-    return (p != null) ? toDTO(p) : null;
+    Producto p = encontrar(dto.getCodigo());
+    return p != null ? toDTO(p) : null;
   }
 
   public List<ProductoDTO> obtenerCatalogo() {
@@ -18,11 +29,16 @@ public class ProductosControl {
       .collect(Collectors.toList());
   }
 
-  private Producto encontrarEnRepo(String criterio) {
+  public Producto encontrarEntidad(String criterio) {
+    return encontrar(criterio);
+  }
+
+  private Producto encontrar(String criterio) {
     return InventarioRepository.getInstancia().getDatos().stream()
       .filter(p -> p.getCodigo().equalsIgnoreCase(criterio)
       || p.getNombre().equalsIgnoreCase(criterio))
-      .findFirst().orElse(null);
+      .findFirst()
+      .orElse(null);
   }
 
   private ProductoDTO toDTO(Producto p) {

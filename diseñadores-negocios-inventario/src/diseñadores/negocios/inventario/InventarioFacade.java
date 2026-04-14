@@ -1,6 +1,6 @@
 package diseñadores.negocios.inventario;
 
-import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.ProductoDTO;
 
 public class InventarioFacade implements IInventario {
 
@@ -12,8 +12,7 @@ public class InventarioFacade implements IInventario {
 
   @Override
   public boolean verificarStock(String codigo, int cantidad) {
-    Producto p = control.obtenerEntidad(codigo);
-    return p != null && p.getStock() >= cantidad;
+    return control.verificarStock(codigo, cantidad);
   }
 
   @Override
@@ -22,16 +21,17 @@ public class InventarioFacade implements IInventario {
   }
 
   @Override
-  public Producto obtenerProducto(String codigo) {
-    return control.obtenerEntidad(codigo);
+  public void actualizarStock(String codigo, int nuevaCantidad) {
+    control.actualizarStock(codigo, nuevaCantidad);
   }
 
   @Override
-  public void actualizarStock(String codigo, int nuevaCantidad) {
-    Producto p = control.obtenerEntidad(codigo);
-    if (p != null) {
-      p.setStock(nuevaCantidad);
-    }
+  public ProductoDTO obtenerProducto(String codigo) {
+    return control.obtenerProductoDTO(codigo);
+  }
+
+  public InventarioControl getControl() {
+    return control;
   }
 
 }

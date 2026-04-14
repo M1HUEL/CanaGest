@@ -13,9 +13,11 @@ public interface IVentas {
 
   Venta iniciarNuevaVenta();
 
-  ProductoDTO procesarProducto(Venta ventaActual, EscanearProductoDTO dto);
-
   boolean existeProducto(EscanearProductoDTO dto);
+
+  boolean tieneStock(EscanearProductoDTO dto);
+
+  ProductoDTO procesarProducto(Venta ventaActual, EscanearProductoDTO dto);
 
   ResultadoPagoDTO procesarPagoEfectivo(Venta ventaActual, PagoEfectivoDTO dto);
 

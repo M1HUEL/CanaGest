@@ -1,36 +1,40 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.negocios.dto.EscanearProductoDTO;
+import diseñadores.negocios.dto.ItemVentaDTO;
+import diseñadores.negocios.dto.PagoEfectivoDTO;
 import diseñadores.negocios.dto.Producto;
+import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.Proveedor;
-import diseñadores.negocios.dto.Ticket;
+import diseñadores.negocios.dto.ResultadoPagoDTO;
+import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.negocios.dto.Venta;
+import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.productos.ProductosControl;
 import diseñadores.negocios.ventas.notificacion.IServicioNotificacion;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class VentasControl {
 
   private Venta ventaActual;
-  private final List<Producto> inventarioMock;
   private double ultimoEfectivo;
   private IServicioNotificacion servicioCorreo;
+
+  private final ProductosControl productosControl;
   private final int STOCK_MINIMO = 3;
 
-  public VentasControl() {
-    this.inventarioMock = new ArrayList<>();
+  private static final String NOMBRE_TIENDA = "La Canasta";
+  private static final String RFC = "LCA123456ABC";
+  private static final String DIRECCION = "Av. Principal #123, Col. Centro";
+  private static final String TELEFONO = "Tel: (555) 123-4567";
+  private static final String CAJERO = "Juan Pérez - Caja #1";
 
-      Proveedor provGranos = new Proveedor("Abarrotes del Mayo", "ventas@mayo.com");
-    Proveedor provAceites = new Proveedor("Distribuidora Sonora", "contacto@distsonora.com");
-
-    inventarioMock.add(new Producto("PROD-8342-2323", "Arroz", 28.00, 50, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2324", "Frijol", 32.00, 30, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2325", "Azúcar", 26.00, 20, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2326", "Aceite", 48.00, 15, provAceites));
-    inventarioMock.add(new Producto("PROD-8342-2327", "Atún", 18.00, 40, provAceites));
-    inventarioMock.add(new Producto("PROD-8342-2328", "Leche", 30.00, 35, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2329", "Sal", 8.00, 60, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2330", "Café", 55.00, 25, provGranos));
-    inventarioMock.add(new Producto("PROD-8342-2331", "Jabón", 22.00, 45, provAceites));
+  public VentasControl(ProductosControl productosControl) {
+    this.productosControl = productosControl;
   }
 
   public void setServicioCorreo(IServicioNotificacion servicio) {
@@ -42,56 +46,48 @@ public class VentasControl {
     this.ultimoEfectivo = 0.0;
   }
 
-  public Producto procesarProducto(String codigo) {
-    Producto p = inventarioMock.stream()
-      .filter(prod -> prod.getCodigo().equalsIgnoreCase(codigo)
-      || prod.getNombre().equalsIgnoreCase(codigo))
-      .findFirst()
-      .orElse(null);
-
-    if (p != null && p.getStock() > 0) {
-      ventaActual.agregarProducto(p);
-      p.setStock(p.getStock() - 1);
-      return p;
-    }
-    return null;
-  }
-
-  public double procesarPagoEfectivo(double efectivo) {
-    double total = ventaActual.getSubtotalVenta();
-    if (efectivo >= total) {
-      this.ultimoEfectivo = efectivo;
-      double cambio = efectivo - total;
-      ventaActual.setPagada(true);
-      return cambio;
-    }
-    return -1;
-  }
-
-  public double procesarCalculoCambio(double efectivo) {
-    double total = ventaActual.getSubtotalVenta();
-    if (efectivo < total) {
-      return -1;
-    }
-    return efectivo - total;
-  }
-
-  public void cerrarVenta() {
-    ventaActual.setPagada(true);
-  }
-
-  public Venta getVentaActual() {
-    return ventaActual;
-  }
-
-  public Ticket generarTicket() {
-    if (ventaActual == null) {
+  public ProductoDTO procesarProducto(EscanearProductoDTO dto) {
+    ProductoDTO productoDTO = productosControl.buscarProducto(dto);
+    if (productoDTO == null) {
       return null;
     }
+
+    Producto entidad = productosControl.obtenerEntidadPorCodigo(dto.getCodigo());
+    if (entidad == null) {
+      return null;
+    }
+
+    ventaActual.agregarProducto(entidad);
+    productosControl.reducirStock(dto.getCodigo());
+
+    return productoDTO;
+  }
+
+  public boolean existeProducto(EscanearProductoDTO dto) {
+    return productosControl.existeProducto(dto);
+  }
+
+  public ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO dto) {
     double total = ventaActual.getSubtotalVenta();
-    double cambio = ultimoEfectivo - total;
-    String folio = "TK-" + System.currentTimeMillis();
-    return new Ticket(folio, ventaActual.getListaProductos(), total, ultimoEfectivo, cambio);
+    double recibido = dto.getMontoRecibido();
+
+    if (recibido < total) {
+      double faltante = total - recibido;
+      return ResultadoPagoDTO.rechazado(
+        String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
+    }
+
+    this.ultimoEfectivo = recibido;
+    ventaActual.setPagada(true);
+    return ResultadoPagoDTO.aprobado(recibido - total);
+  }
+
+  public double calcularCambio(double efectivo) {
+    if (ventaActual == null) {
+      return 0;
+    }
+    double total = ventaActual.getSubtotalVenta();
+    return efectivo >= total ? efectivo - total : 0;
   }
 
   public void procesarFinalizarVenta() {
@@ -103,18 +99,67 @@ public class VentasControl {
     }
   }
 
+  public VentaDTO obtenerVentaDTO() {
+    if (ventaActual == null) {
+      return null;
+    }
+
+    List<ItemVentaDTO> items = new ArrayList<>();
+    for (Producto p : ventaActual.getListaProductos()) {
+      long cantidadVendida = ventaActual.getListaProductos().stream()
+        .filter(x -> x.getCodigo().equals(p.getCodigo()))
+        .count();
+      items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(),
+        p.getPrecio(), (int) cantidadVendida));
+    }
+
+    double total = ventaActual.getSubtotalVenta();
+    double subtotalSinIVA = total / 1.16;
+    double iva = total - subtotalSinIVA;
+    int totalUnidades = items.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
+
+    return new VentaDTO(items, subtotalSinIVA, iva, total, totalUnidades);
+  }
+
+  public TicketDTO generarTicket() {
+    if (ventaActual == null) {
+      return null;
+    }
+
+    double total = ventaActual.getSubtotalVenta();
+    double subtotalSinIVA = total / 1.16;
+    double iva = total - subtotalSinIVA;
+    double cambio = ultimoEfectivo - total;
+    String folio = "TK-" + System.currentTimeMillis();
+
+    LocalDateTime ahora = LocalDateTime.now();
+    String fecha = ahora.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("es", "MX")));
+    String hora = ahora.format(DateTimeFormatter.ofPattern("hh:mm a"));
+
+    List<ItemVentaDTO> items = new ArrayList<>();
+    for (Producto p : ventaActual.getListaProductos()) {
+      items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), 1));
+    }
+
+    return new TicketDTO(
+      folio, items, subtotalSinIVA, iva, total,
+      ultimoEfectivo, cambio,
+      fecha, hora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
+    );
+  }
+
   private void ejecutarProtocoloReabastecimiento(Producto p) {
     if (servicioCorreo == null) {
-      System.out.println("[REABASTECIMIENTO] Sin servicio de correo configurado. "
-        + "Producto con stock bajo: " + p.getNombre() + " (" + p.getStock() + " unidades)");
+      System.out.println("[REABASTECIMIENTO] Producto con stock bajo: "
+        + p.getNombre() + " (" + p.getStock() + " unidades) — sin servicio de correo.");
       return;
     }
     Proveedor prov = p.getProveedor();
-    String mensaje = "ALERTA DE STOCK: El producto " + p.getNombre()
+    String mensaje = "ALERTA DE STOCK: " + p.getNombre()
       + " tiene solo " + p.getStock() + " unidades.";
     boolean enviado = servicioCorreo.enviarNotificacionStock(prov.getEmail(), mensaje);
     if (enviado) {
-      System.out.println("Notificación enviada con éxito a: " + prov.getNombre());
+      System.out.println("Notificación enviada a: " + prov.getNombre());
     }
   }
 

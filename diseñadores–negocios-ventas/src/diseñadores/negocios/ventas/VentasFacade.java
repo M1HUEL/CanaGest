@@ -1,46 +1,67 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.negocios.dto.Producto;
-import diseñadores.negocios.dto.Ticket;
-import diseñadores.negocios.dto.Venta;
+import diseñadores.negocios.dto.EscanearProductoDTO;
+import diseñadores.negocios.dto.PagoEfectivoDTO;
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.dto.ResultadoPagoDTO;
+import diseñadores.negocios.dto.TicketDTO;
+import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.productos.ProductosControl;
+import java.util.List;
 
 public class VentasFacade implements IVentas {
 
-  private VentasControl control = new VentasControl();
+  private final ProductosControl productosControl;
+  private final VentasControl ventasControl;
+
+  public VentasFacade() {
+    this.productosControl = new ProductosControl();
+    this.ventasControl = new VentasControl(productosControl);
+  }
 
   @Override
   public void nuevaVenta() {
-    control.iniciarNuevaVenta();
+    ventasControl.iniciarNuevaVenta();
   }
 
   @Override
-  public Producto procesarProducto(String codigo) {
-    return control.procesarProducto(codigo);
+  public boolean existeProducto(EscanearProductoDTO dto) {
+    return productosControl.existeProducto(dto);
   }
 
   @Override
-  public double procesarPagoEfectivo(double montoRecibido) {
-    return control.procesarPagoEfectivo(montoRecibido);
+  public ProductoDTO procesarProducto(EscanearProductoDTO dto) {
+    return ventasControl.procesarProducto(dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO dto) {
+    return ventasControl.procesarPagoEfectivo(dto);
   }
 
   @Override
   public double calcularCambio(double efectivo) {
-    return control.procesarCalculoCambio(efectivo);
+    return ventasControl.calcularCambio(efectivo);
   }
 
   @Override
   public void procesarFinalizarVenta() {
-    control.procesarFinalizarVenta();
+    ventasControl.procesarFinalizarVenta();
   }
 
   @Override
-  public Venta obtenerVentaActual() {
-    return control.getVentaActual();
+  public VentaDTO obtenerVentaActual() {
+    return ventasControl.obtenerVentaDTO();
   }
 
   @Override
-  public Ticket generarTicket() {
-    return control.generarTicket();
+  public TicketDTO generarTicket() {
+    return ventasControl.generarTicket();
+  }
+
+  @Override
+  public List<ProductoDTO> obtenerCatalogo() {
+    return productosControl.obtenerCatalogo();
   }
 
 }

@@ -1,23 +1,31 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.negocios.dto.Producto;
-import diseñadores.negocios.dto.Ticket;
-import diseñadores.negocios.dto.Venta;
+import diseñadores.negocios.dto.EscanearProductoDTO;
+import diseñadores.negocios.dto.PagoEfectivoDTO;
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.dto.ResultadoPagoDTO;
+import diseñadores.negocios.dto.TicketDTO;
+import diseñadores.negocios.dto.VentaDTO;
+import java.util.List;
 
 public interface IVentas {
 
   void nuevaVenta();
 
-  Producto procesarProducto(String codigo);
+  ProductoDTO procesarProducto(EscanearProductoDTO dto);
 
-  double procesarPagoEfectivo(double montoRecibido);
+  boolean existeProducto(EscanearProductoDTO dto);
+
+  ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO dto);
 
   double calcularCambio(double efectivo);
 
   void procesarFinalizarVenta();
 
-  Venta obtenerVentaActual();
+  VentaDTO obtenerVentaActual();
 
-  Ticket generarTicket();
+  TicketDTO generarTicket();
+
+  List<ProductoDTO> obtenerCatalogo();
 
 }

@@ -2,8 +2,8 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.negocios.ventas.IVentas;
-import diseñadores.presentacion.util.Colores;
-import diseñadores.presentacion.util.Fuentes;
+import diseñadores.presentacion.utilidad.Colores;
+import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;

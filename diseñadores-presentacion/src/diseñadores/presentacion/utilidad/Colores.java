@@ -1,4 +1,4 @@
-package diseñadores.presentacion.util;
+package diseñadores.presentacion.utilidad;
 
 import java.awt.Color;
 

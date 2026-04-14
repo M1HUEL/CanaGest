@@ -1,7 +1,7 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.negocios.ventas.IVentas;
-import diseñadores.negocios.ventas.dominio.Ticket;
 import diseñadores.presentacion.util.Colores;
 import diseñadores.presentacion.util.Fuentes;
 import javax.swing.*;
@@ -150,7 +150,7 @@ public class SeleccionarMetodoPago extends JFrame {
 //                total, carritoItems, onConfirmado);
             } else {
               facade.procesarFinalizarVenta();
-              Ticket ticket = facade.generarTicket();
+              TicketDTO ticket = facade.generarTicket();
               String folio = ticket != null ? ticket.getFolio() : "N/A";
               JOptionPane.showMessageDialog(SeleccionarMetodoPago.this,
                 String.format("Venta procesada via %s\nFolio: %s\nTotal: $%.2f",

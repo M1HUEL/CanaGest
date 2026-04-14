@@ -1,6 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.ventas.dominio.Ticket;
+import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.presentacion.util.Colores;
 import diseñadores.presentacion.util.Fuentes;
 import javax.swing.*;
@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PantallaTicket extends JFrame {
 
-  PantallaTicket(JFrame mainFrame, Ticket ticket,
+  PantallaTicket(JFrame mainFrame, TicketDTO ticket,
     List<ItemCarrito> items,
     double recibido, double cambio,
     Runnable onConfirmado) {

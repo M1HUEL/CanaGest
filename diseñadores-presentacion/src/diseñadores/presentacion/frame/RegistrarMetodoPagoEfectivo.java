@@ -1,7 +1,9 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.PagoEfectivoDTO;
+import diseñadores.negocios.dto.ResultadoPagoDTO;
+import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.negocios.ventas.IVentas;
-import diseñadores.negocios.ventas.dominio.Ticket;
 import diseñadores.presentacion.util.Colores;
 import diseñadores.presentacion.util.Fuentes;
 import javax.swing.*;
@@ -346,7 +348,10 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
           return;
         }
 
-        double cambio = facade.procesarPagoEfectivo(recibido);
+        PagoEfectivoDTO pagoEfectivoDto = new PagoEfectivoDTO(recibido);
+
+        ResultadoPagoDTO resultadoCambio = facade.procesarPagoEfectivo(pagoEfectivoDto);
+        double cambio = resultadoCambio.getCambio();
         if (cambio < 0) {
           JOptionPane.showMessageDialog(RegistrarMetodoPagoEfectivo.this,
             "El monto recibido es insuficiente para cubrir el total.",
@@ -356,7 +361,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
         facade.procesarFinalizarVenta();
 
-        Ticket ticket = facade.generarTicket();
+        TicketDTO ticket = facade.generarTicket();
 
         RegistrarMetodoPagoEfectivo.this.setVisible(false);
         new PantallaTicket(mainFrame, ticket, carritoItems, recibido, cambio, onConfirmado);

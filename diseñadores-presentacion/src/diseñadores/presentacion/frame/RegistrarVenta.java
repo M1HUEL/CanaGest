@@ -1,8 +1,10 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.EscanearProductoDTO;
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.dto.VentaDTO;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.negocios.ventas.VentasFacade;
-import diseñadores.negocios.ventas.dominio.Producto;
 import diseñadores.presentacion.util.Colores;
 import diseñadores.presentacion.util.Fuentes;
 import javax.swing.*;
@@ -11,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
+
 import java.util.List;
 
 public class RegistrarVenta extends JFrame {
@@ -21,16 +24,7 @@ public class RegistrarVenta extends JFrame {
   JPanel panelCarritoItems;
   JLabel lblTotal, lblCantItems, lblProductosCount;
 
-  String[][] productos = {
-    {"PROD-8342-2323", "Arroz", "28.00"},
-    {"PROD-8342-2324", "Frijol", "32.00"},
-    {"PROD-8342-2325", "Azúcar", "26.00"},
-    {"PROD-8342-2326", "Aceite", "48.00"},
-    {"PROD-8342-2327", "Atún", "18.00"},
-    {"PROD-8342-2328", "Leche", "30.00"},
-    {"PROD-8342-2329", "Sal", "8.00"},
-    {"PROD-8342-2330", "Café", "55.00"},
-    {"PROD-8342-2331", "Jabón", "22.00"},};
+  List<ProductoDTO> catalogoProductos;
 
   JTextField campoBusqueda, campoEscanear;
   JPanel panelGrid;
@@ -44,6 +38,7 @@ public class RegistrarVenta extends JFrame {
 
     facade = new VentasFacade();
     facade.nuevaVenta();
+    catalogoProductos = facade.obtenerCatalogo();
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -146,7 +141,7 @@ public class RegistrarVenta extends JFrame {
     panelGrid = new JPanel(new GridLayout(0, 3, 10, 10));
     panelGrid.setOpaque(false);
     panelGrid.setAlignmentX(LEFT_ALIGNMENT);
-    construirGrid(productos);
+    construirGrid(catalogoProductos);
 
     card.add(titulo);
     card.add(Box.createVerticalStrut(12));
@@ -158,10 +153,10 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
-  void construirGrid(String[][] lista) {
+  void construirGrid(List<ProductoDTO> lista) {
     panelGrid.removeAll();
-    for (String[] p : lista) {
-      panelGrid.add(botonProducto(p[0], p[1], p[2]));
+    for (ProductoDTO p : lista) {
+      panelGrid.add(botonProducto(p));
     }
     panelGrid.revalidate();
     panelGrid.repaint();
@@ -169,19 +164,23 @@ public class RegistrarVenta extends JFrame {
 
   void filtrarGrid(String query) {
     if (query.isEmpty()) {
-      construirGrid(productos);
+      construirGrid(catalogoProductos);
       return;
     }
-    List<String[]> filtrados = new ArrayList<>();
-    for (String[] p : productos) {
-      if (p[1].toLowerCase().contains(query.toLowerCase()) || p[0].toLowerCase().contains(query.toLowerCase())) {
+    List<ProductoDTO> filtrados = new ArrayList<>();
+    for (ProductoDTO p : catalogoProductos) {
+      if (p.getNombre().toLowerCase().contains(query.toLowerCase())
+        || p.getCodigo().toLowerCase().contains(query.toLowerCase())) {
         filtrados.add(p);
       }
     }
-    construirGrid(filtrados.toArray(new String[0][]));
+    construirGrid(filtrados);
   }
 
-  JPanel botonProducto(String codigo, String nombre, String precio) {
+  JPanel botonProducto(ProductoDTO prod) {
+    String codigo = prod.getCodigo();
+    String nombre = prod.getNombre();
+    String precio = String.format("%.2f", prod.getPrecio());
     JPanel btn = new JPanel() {
       boolean hover = false;
 
@@ -421,7 +420,8 @@ public class RegistrarVenta extends JFrame {
         JOptionPane.showMessageDialog(this, "El carrito está vacío.", "Sin productos", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      double total = facade.obtenerVentaActual().getSubtotalVenta();
+      VentaDTO ventaDTO = facade.obtenerVentaActual();
+      double total = ventaDTO != null ? ventaDTO.getTotal() : carrito.stream().mapToDouble(ItemCarrito::subtotal).sum();
       int totalItems = carrito.stream().mapToInt(i -> i.cantidad).sum();
       this.setVisible(false);
       new SeleccionarMetodoPago(this, facade, total, totalItems, new ArrayList<>(carrito), () -> {
@@ -438,15 +438,10 @@ public class RegistrarVenta extends JFrame {
   }
 
   void agregarAlCarrito(String codigo) {
-    // 1. Verificar si el producto existe en el catálogo local
-    boolean existeEnCatalogo = false;
-    for (String[] prod : productos) {
-      if (prod[0].equalsIgnoreCase(codigo) || prod[1].equalsIgnoreCase(codigo)) {
-        existeEnCatalogo = true;
-        break;
-      }
-    }
-    if (!existeEnCatalogo) {
+    EscanearProductoDTO escanearDTO = new EscanearProductoDTO(codigo);
+
+    // 1. Verificar existencia en el subsistema de productos
+    if (!facade.existeProducto(escanearDTO)) {
       JOptionPane.showMessageDialog(this,
         "<html>El producto <b>" + codigo + "</b> no existe en el catálogo.</html>",
         "Producto no encontrado",
@@ -454,9 +449,9 @@ public class RegistrarVenta extends JFrame {
       return;
     }
 
-    // 2. Delegar al subsistema de ventas (valida stock y agrega a la entidad Venta)
-    Producto p = facade.procesarProducto(codigo);
-    if (p == null) {
+    // 2. Delegar al subsistema de ventas (valida stock, reduce inventario y agrega a la Venta)
+    ProductoDTO productoDTO = facade.procesarProducto(escanearDTO);
+    if (productoDTO == null) {
       JOptionPane.showMessageDialog(this,
         "<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles en inventario.</html>",
         "Sin stock disponible",
@@ -466,13 +461,13 @@ public class RegistrarVenta extends JFrame {
 
     // 3. Actualizar carrito visual
     for (ItemCarrito it : carrito) {
-      if (it.nombre.equalsIgnoreCase(p.getNombre())) {
+      if (it.nombre.equalsIgnoreCase(productoDTO.getNombre())) {
         it.cantidad++;
         actualizarTotal();
         return;
       }
     }
-    carrito.add(new ItemCarrito(p.getNombre(), p.getPrecio(), 1));
+    carrito.add(new ItemCarrito(productoDTO.getNombre(), productoDTO.getPrecio(), 1));
     actualizarTotal();
   }
 
@@ -559,7 +554,8 @@ public class RegistrarVenta extends JFrame {
     });
     btnMas.addActionListener(e -> {
       String cod = codigoParaNombre(it.nombre);
-      Producto extra = facade.procesarProducto(cod);
+      EscanearProductoDTO escanearDTO = new EscanearProductoDTO(cod);
+      ProductoDTO extra = facade.procesarProducto(escanearDTO);
       if (extra != null) {
         it.cantidad++;
         actualizarTotal();
@@ -599,9 +595,9 @@ public class RegistrarVenta extends JFrame {
   }
 
   String codigoParaNombre(String nombre) {
-    for (String[] p : productos) {
-      if (p[1].equalsIgnoreCase(nombre)) {
-        return p[0];
+    for (ProductoDTO p : catalogoProductos) {
+      if (p.getNombre().equalsIgnoreCase(nombre)) {
+        return p.getCodigo();
       }
     }
     return nombre;

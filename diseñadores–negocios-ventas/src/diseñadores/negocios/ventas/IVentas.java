@@ -5,26 +5,27 @@ import diseñadores.negocios.dto.PagoEfectivoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ResultadoPagoDTO;
 import diseñadores.negocios.dto.TicketDTO;
+import diseñadores.negocios.dto.Venta;
 import diseñadores.negocios.dto.VentaDTO;
 import java.util.List;
 
 public interface IVentas {
 
-  void nuevaVenta();
+  Venta iniciarNuevaVenta();
 
-  ProductoDTO procesarProducto(EscanearProductoDTO dto);
+  ProductoDTO procesarProducto(Venta ventaActual, EscanearProductoDTO dto);
 
   boolean existeProducto(EscanearProductoDTO dto);
 
-  ResultadoPagoDTO procesarPagoEfectivo(PagoEfectivoDTO dto);
+  ResultadoPagoDTO procesarPagoEfectivo(Venta ventaActual, PagoEfectivoDTO dto);
 
-  double calcularCambio(double efectivo);
+  double calcularCambio(Venta ventaActual, double efectivo);
 
-  void procesarFinalizarVenta();
+  void procesarFinalizarVenta(Venta ventaActual);
 
-  VentaDTO obtenerVentaActual();
+  VentaDTO obtenerResumenVenta(Venta ventaActual);
 
-  TicketDTO generarTicket();
+  TicketDTO generarTicket(Venta ventaActual, double montoRecibido);
 
   List<ProductoDTO> obtenerCatalogo();
 

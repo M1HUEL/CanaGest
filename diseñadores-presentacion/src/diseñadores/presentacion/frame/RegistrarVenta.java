@@ -346,7 +346,7 @@ public class RegistrarVenta extends JFrame {
       }
     });
 
-    JButton btnContinuar = botonAccion("Continuar", Colores.VERDE, Colores.VERDE_OSCURO);
+    JButton btnContinuar = botonAccion("Pagar", Colores.VERDE, Colores.VERDE_OSCURO);
     btnContinuar.addActionListener(e -> {
       if (carritoDisplay.isEmpty()) {
         JOptionPane.showMessageDialog(this, "El carrito esta vacio.",

@@ -1,60 +1,28 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.ItemVentaDTO;
 import diseñadores.negocios.dto.TicketDTO;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 
 public class PantallaTicket extends JFrame {
 
-  PantallaTicket(JFrame mainFrame, TicketDTO ticket,
-    List<ItemCarrito> items,
-    double recibido, double cambio,
-    Runnable onConfirmado) {
+  public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado) {
     super("Ticket de Venta");
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
 
-    double total = ticket != null ? ticket.getTotal() : items.stream().mapToDouble(ItemCarrito::subtotal).sum();
-    String folio = ticket != null ? ticket.getFolio() : generarFolio();
+    JPanel root = fondoAmarillo();
+    root.add(topBar(), BorderLayout.NORTH);
 
-    JPanel root = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Colores.FONDO_AMARILLO);
-        g.fillRect(0, 0, getWidth(), getHeight());
-      }
-
-    };
-    root.setOpaque(false);
-
-    JPanel topBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
-    topBar.setBackground(Colores.BLANCO);
-    topBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    JButton btnCS = topBarBtn("Cerrar sesión");
-    btnCS.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesión?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        System.exit(0);
-      }
-    });
-    topBar.add(btnCS);
-    root.add(topBar, BorderLayout.NORTH);
-
-    String fechaStr = ticket != null ? ticket.getFechaFormateada() : generarFechaHoy();
-    String horaStr = ticket != null ? ticket.getHoraFormateada() : "";
-    String cajeroStr = ticket != null ? ticket.getCajero() : "Cajero";
-    String tiendaStr = ticket != null ? ticket.getNombreTienda() : "La Canasta";
-    String rfcStr = ticket != null ? ticket.getRfc() : "";
-    String dirStr = ticket != null ? ticket.getDireccion() : "";
-    String telStr = ticket != null ? ticket.getTelefono() : "";
-
-    JPanel ticketPanel = buildTicket(items, total, recibido, cambio, folio,
-      fechaStr, horaStr, cajeroStr, tiendaStr, rfcStr, dirStr, telStr);
+    JPanel ticketPanel = buildTicket(ticket);
     JScrollPane scroll = new JScrollPane(ticketPanel);
     scroll.setBorder(BorderFactory.createEmptyBorder());
     scroll.setOpaque(false);
@@ -64,7 +32,7 @@ public class PantallaTicket extends JFrame {
 
     JPanel centrado = new JPanel(new GridBagLayout());
     centrado.setOpaque(false);
-    centrado.setBorder(BorderFactory.createEmptyBorder(20, 0, 6, 0));
+    centrado.setBorder(new EmptyBorder(20, 0, 6, 0));
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 1;
     gbc.weighty = 1;
@@ -75,12 +43,12 @@ public class PantallaTicket extends JFrame {
 
     JPanel barraInf = new JPanel(new GridLayout(1, 2, 12, 0));
     barraInf.setOpaque(false);
-    barraInf.setBorder(BorderFactory.createEmptyBorder(8, 340, 16, 340));
+    barraInf.setBorder(new EmptyBorder(8, 340, 16, 340));
     barraInf.setPreferredSize(new Dimension(0, 66));
 
     JButton btnDescargar = accionBtn("Descargar Ticket", Colores.AZUL, Colores.AZUL_HOVER);
     btnDescargar.addActionListener(e
-      -> JOptionPane.showMessageDialog(this, "Función de descarga pendiente de implementar.",
+      -> JOptionPane.showMessageDialog(this, "Funcion de descarga pendiente de implementar.",
         "Descargar", JOptionPane.INFORMATION_MESSAGE));
 
     JButton btnFinalizar = accionBtn("Finalizar Venta", Colores.VERDE, Colores.VERDE_HOVER);
@@ -98,25 +66,23 @@ public class PantallaTicket extends JFrame {
     setVisible(true);
   }
 
-  JPanel buildTicket(List<ItemCarrito> items, double total,
-    double recibido, double cambio, String folio,
-    String fechaStr, String horaStr, String cajero,
-    String tienda, String rfc, String direccion, String telefono) {
+  private JPanel buildTicket(TicketDTO t) {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Colores.SOMBRA);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
+        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
         g.setColor(Colores.BLANCO);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
         super.paintComponent(g2d);
       }
 
     };
     p.setOpaque(false);
 
+    // ── Cabecera azul ─────────────────────────────────────
     JPanel cab = new JPanel(new GridLayout(2, 1, 0, 6)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -129,21 +95,22 @@ public class PantallaTicket extends JFrame {
 
     };
     cab.setOpaque(false);
-    cab.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    cab.setBorder(new EmptyBorder(20, 20, 20, 20));
     cab.setPreferredSize(new Dimension(0, 112));
-    JLabel icoLbl = new JLabel("TICKET DE VENTA", SwingConstants.CENTER);
-    icoLbl.setFont(Fuentes.b(20));
-    icoLbl.setForeground(Colores.BLANCO);
-    JLabel subLbl = new JLabel("Sistema de Punto de Venta", SwingConstants.CENTER);
-    subLbl.setFont(Fuentes.r(12));
-    subLbl.setForeground(new Color(180, 210, 255));
-    cab.add(icoLbl);
-    cab.add(subLbl);
+    JLabel lblTit = new JLabel("TICKET DE VENTA", SwingConstants.CENTER);
+    lblTit.setFont(Fuentes.b(20));
+    lblTit.setForeground(Colores.BLANCO);
+    JLabel lblSub = new JLabel("Sistema de Punto de Venta", SwingConstants.CENTER);
+    lblSub.setFont(Fuentes.r(12));
+    lblSub.setForeground(new Color(180, 210, 255));
+    cab.add(lblTit);
+    cab.add(lblSub);
     p.add(cab, BorderLayout.NORTH);
 
+    // ── Cuerpo ────────────────────────────────────────────
     JPanel body = new JPanel(new GridBagLayout());
     body.setOpaque(false);
-    body.setBorder(BorderFactory.createEmptyBorder(20, 28, 24, 28));
+    body.setBorder(new EmptyBorder(20, 28, 24, 28));
 
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
@@ -152,28 +119,31 @@ public class PantallaTicket extends JFrame {
     c.anchor = GridBagConstraints.WEST;
     int row = 0;
 
+    // Datos de la tienda — desde TicketDTO
     c.gridy = row++;
     c.insets = new Insets(0, 0, 2, 0);
-    body.add(fullLabel(tienda, 17, Font.BOLD, Colores.TEXTO_OSCURO, SwingConstants.CENTER), c);
+    body.add(fullLabel(t.getNombreTienda(), 17, true, Colores.TEXTO_OSCURO, SwingConstants.CENTER), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 1, 0);
-    body.add(fullLabel("RFC: " + rfc, 11, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel("RFC: " + t.getRfc(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 1, 0);
-    body.add(fullLabel(direccion, 11, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel(t.getDireccion(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 0, 0);
-    body.add(fullLabel(telefono, 11, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel(t.getTelefono(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+
     c.gridy = row++;
     c.insets = new Insets(14, 0, 12, 0);
     body.add(sepLine(), c);
 
+    // Fecha y hora — desde TicketDTO
     JPanel metaRow = new JPanel(new BorderLayout());
     metaRow.setOpaque(false);
-    JLabel lFecha = new JLabel("Fecha: " + fechaStr);
+    JLabel lFecha = new JLabel("Fecha: " + t.getFechaFormateada());
     lFecha.setFont(Fuentes.r(12));
     lFecha.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lHora = new JLabel("Hora: " + horaStr);
+    JLabel lHora = new JLabel("Hora: " + t.getHoraFormateada());
     lHora.setFont(Fuentes.r(12));
     lHora.setForeground(Colores.TEXTO_OSCURO);
     metaRow.add(lFecha, BorderLayout.WEST);
@@ -182,30 +152,32 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 6, 0);
     body.add(metaRow, c);
 
-    JLabel lCajero = new JLabel("Cajero: " + cajero);
+    // Cajero — desde TicketDTO
+    JLabel lCajero = new JLabel("Cajero: " + t.getCajero());
     lCajero.setFont(Fuentes.r(12));
     lCajero.setForeground(Colores.TEXTO_OSCURO);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 12, 0);
     body.add(lCajero, c);
 
+    // Folio — desde TicketDTO
     JPanel folioBox = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Colores.FONDO_FOLIO);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
 
     };
     folioBox.setOpaque(false);
-    folioBox.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+    folioBox.setBorder(new EmptyBorder(10, 14, 10, 14));
     JLabel fTxt = new JLabel("Folio de venta");
     fTxt.setFont(Fuentes.r(11));
     fTxt.setForeground(Colores.GRIS_TEXTO);
-    JLabel fVal = new JLabel(folio);
+    JLabel fVal = new JLabel(t.getFolio());
     fVal.setFont(Fuentes.b(15));
     fVal.setForeground(Colores.TEXTO_OSCURO);
     folioBox.add(fTxt);
@@ -218,85 +190,88 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 14, 0);
     body.add(sepLine(), c);
 
-    JLabel lblP = new JLabel("Productos");
-    lblP.setFont(Fuentes.b(15));
-    lblP.setForeground(Colores.TEXTO_OSCURO);
+    // Productos — desde TicketDTO como ItemVentaDTO
+    JLabel lblProd = new JLabel("Productos");
+    lblProd.setFont(Fuentes.b(15));
+    lblProd.setForeground(Colores.TEXTO_OSCURO);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 10, 0);
-    body.add(lblP, c);
+    body.add(lblProd, c);
 
-    for (ItemCarrito it : items) {
+    for (ItemVentaDTO item : t.getItems()) {
       c.gridy = row++;
       c.insets = new Insets(0, 0, 8, 0);
-      body.add(filaProducto(it), c);
+      body.add(filaProducto(item), c);
     }
 
     c.gridy = row++;
     c.insets = new Insets(4, 0, 12, 0);
     body.add(sepLine(), c);
 
-    double subtotal = total / 1.16;
-    double iva = total - subtotal;
+    // Subtotal, IVA, TOTAL — desde TicketDTO
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
-    body.add(filaResumen("Subtotal", subtotal, false), c);
+    body.add(filaResumen("Subtotal", t.getSubtotal(), false), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 8, 0);
-    body.add(filaResumen("IVA (16%)", iva, false), c);
+    body.add(filaResumen("IVA (16%)", t.getIva(), false), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
-    body.add(filaResumen("TOTAL", total, true), c);
+    body.add(filaResumen("TOTAL", t.getTotal(), true), c);
 
-    if (recibido > 0) {
+    // Efectivo y cambio — solo si aplica
+    if (t.getEfectivoRecibido() > 0) {
       c.gridy = row++;
       c.insets = new Insets(0, 0, 6, 0);
-      body.add(filaResumen("Efectivo recibido", recibido, false), c);
+      body.add(filaResumen("Efectivo recibido", t.getEfectivoRecibido(), false), c);
       c.gridy = row++;
       c.insets = new Insets(0, 0, 8, 0);
-      body.add(filaResumen("Cambio", cambio, false), c);
+      body.add(filaResumen("Cambio", t.getCambio(), false), c);
     }
 
     c.gridy = row++;
     c.insets = new Insets(0, 0, 16, 0);
     body.add(sepLine(), c);
 
+    // Pie
     c.gridy = row++;
     c.insets = new Insets(0, 0, 3, 0);
-    body.add(fullLabel("¡Gracias por su compra!", 12, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel("¡Gracias por su compra!", 12, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 3, 0);
-    body.add(fullLabel("Conserve este ticket para cualquier aclaración", 11, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel("Conserve este ticket para cualquier aclaracion", 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
-    body.add(fullLabel("*** TICKET VÁLIDO ***", 10, Font.PLAIN, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    body.add(fullLabel("*** TICKET VALIDO ***", 10, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
 
     p.add(body, BorderLayout.CENTER);
     return p;
   }
 
-  JPanel filaProducto(ItemCarrito it) {
+  private JPanel filaProducto(ItemVentaDTO item) {
     JPanel row = new JPanel(new GridBagLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Colores.FONDO_ITEM);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
 
     };
     row.setOpaque(false);
-    row.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+    row.setBorder(new EmptyBorder(10, 12, 10, 12));
 
     GridBagConstraints c = new GridBagConstraints();
     c.gridy = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
+
     c.gridx = 0;
     c.weightx = 1;
     c.anchor = GridBagConstraints.WEST;
     c.insets = new Insets(0, 0, 0, 0);
-    JLabel lNom = new JLabel(it.nombre);
+    JLabel lNom = new JLabel(item.getNombre());
     lNom.setFont(Fuentes.b(13));
     lNom.setForeground(Colores.TEXTO_OSCURO);
     row.add(lNom, c);
@@ -304,33 +279,32 @@ public class PantallaTicket extends JFrame {
     c.gridx = 1;
     c.weightx = 0;
     c.anchor = GridBagConstraints.EAST;
-    JLabel lSub = new JLabel(String.format("$%.2f", it.subtotal()));
+    JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal()));
     lSub.setFont(Fuentes.b(13));
     lSub.setForeground(Colores.TEXTO_OSCURO);
     row.add(lSub, c);
 
-    int hash = Math.abs(it.nombre.hashCode()) % 9000 + 1000;
-    JLabel lCod = new JLabel("PROD-8342-" + hash);
-    lCod.setFont(Fuentes.r(10));
-    lCod.setForeground(Colores.GRIS_TEXTO);
     c.gridx = 0;
     c.gridy = 1;
     c.weightx = 1;
     c.gridwidth = 2;
     c.insets = new Insets(3, 0, 0, 0);
+    JLabel lCod = new JLabel(item.getCodigo());
+    lCod.setFont(Fuentes.r(10));
+    lCod.setForeground(Colores.GRIS_TEXTO);
     row.add(lCod, c);
 
-    JLabel lCant = new JLabel(it.cantidad + " x $" + String.format("%.2f", it.precio));
-    lCant.setFont(Fuentes.r(11));
-    lCant.setForeground(Colores.GRIS_TEXTO);
     c.gridy = 2;
     c.insets = new Insets(2, 0, 0, 0);
+    JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario()));
+    lCant.setFont(Fuentes.r(11));
+    lCant.setForeground(Colores.GRIS_TEXTO);
     row.add(lCant, c);
 
     return row;
   }
 
-  JPanel filaResumen(String etiqueta, double valor, boolean esTotal) {
+  private JPanel filaResumen(String etiqueta, double valor, boolean esTotal) {
     JPanel row = new JPanel(new BorderLayout());
     row.setOpaque(false);
     JLabel lE = new JLabel(etiqueta);
@@ -344,14 +318,44 @@ public class PantallaTicket extends JFrame {
     return row;
   }
 
-  JLabel fullLabel(String txt, int size, int style, Color color, int halign) {
+  // ── Helpers ───────────────────────────────────────────────
+  private JPanel fondoAmarillo() {
+    JPanel p = new JPanel(new BorderLayout()) {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.FONDO_AMARILLO);
+        g.fillRect(0, 0, getWidth(), getHeight());
+      }
+
+    };
+    p.setOpaque(false);
+    return p;
+  }
+
+  private JPanel topBar() {
+    JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
+    bar.setBackground(Colores.BLANCO);
+    bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+    JButton btnCS = topBarBtn("Cerrar sesion");
+    btnCS.addActionListener(e -> {
+      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesion?", "Confirmar", JOptionPane.YES_NO_OPTION);
+      if (op == JOptionPane.YES_OPTION) {
+        System.exit(0);
+      }
+    });
+    bar.add(btnCS);
+    return bar;
+  }
+
+  private JLabel fullLabel(String txt, int size, boolean bold, Color color, int halign) {
     JLabel l = new JLabel(txt, halign);
-    l.setFont(style == Font.BOLD ? Fuentes.b(size) : Fuentes.r(size));
+    l.setFont(bold ? Fuentes.b(size) : Fuentes.r(size));
     l.setForeground(color);
     return l;
   }
 
-  JPanel sepLine() {
+  private JPanel sepLine() {
     JPanel s = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -369,19 +373,7 @@ public class PantallaTicket extends JFrame {
     return s;
   }
 
-  String generarFolio() {
-    java.time.LocalDate hoy = java.time.LocalDate.now();
-    int r = (int) (Math.random() * 9000) + 1000;
-    return String.format("VTA-%d-%02d%02d-%d", hoy.getYear(), hoy.getMonthValue(), hoy.getDayOfMonth(), r);
-  }
-
-  String generarFechaHoy() {
-    return java.time.LocalDate.now().format(
-      java.time.format.DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy",
-        new java.util.Locale("es", "MX")));
-  }
-
-  JButton accionBtn(String texto, Color base, Color hov) {
+  private JButton accionBtn(String texto, Color base, Color hover) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 
@@ -390,13 +382,13 @@ public class PantallaTicket extends JFrame {
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
-          public void mouseExited(java.awt.event.MouseEvent e) {
+          public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
@@ -408,8 +400,8 @@ public class PantallaTicket extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? hov : base);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        g.setColor(ov ? hover : base);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
 
@@ -420,7 +412,7 @@ public class PantallaTicket extends JFrame {
     return b;
   }
 
-  JButton topBarBtn(String texto) {
+  private JButton topBarBtn(String texto) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 
@@ -429,13 +421,13 @@ public class PantallaTicket extends JFrame {
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
-          public void mouseExited(java.awt.event.MouseEvent e) {
+          public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
@@ -448,7 +440,7 @@ public class PantallaTicket extends JFrame {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
 

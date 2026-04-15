@@ -1,64 +1,45 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.PagoEfectivoDTO;
-import diseñadores.negocios.dto.ResultadoPagoDTO;
-import diseñadores.negocios.dto.TicketDTO;
+import diseñadores.negocios.dto.*;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List;
+import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 
 public class RegistrarMetodoPagoEfectivo extends JFrame {
 
-  double recibido = 0.0;
-  final double totalAPagar;
-  final IVentas facade;
-  final List<ItemCarrito> carritoItems;
-  JLabel lblRecibido, lblCambio;
-  JButton btnCompletar;
+  private double recibido = 0.0;
+  private final double totalAPagar;
+  private final IVentas facade;
+  private final Venta ventaActual;
 
-  RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
-    IVentas facade, double total, int productos,
-    List<ItemCarrito> carritoItems, Runnable onConfirmado) {
+  private JLabel lblRecibido, lblCambio;
+  private JButton btnCompletar;
+
+  public RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
+    IVentas facade, Venta ventaActual,
+    double total, Runnable onConfirmado) {
     super("Pago en Efectivo");
     this.totalAPagar = total;
     this.facade = facade;
-    this.carritoItems = carritoItems;
+    this.ventaActual = ventaActual;
+
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
 
-    JPanel root = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Colores.FONDO_AMARILLO);
-        g.fillRect(0, 0, getWidth(), getHeight());
-      }
-
-    };
-    root.setOpaque(false);
-
-    JPanel topBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
-    topBar.setBackground(Colores.BLANCO);
-    topBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    JButton btnCS = topBarBtn("Cerrar sesión");
-    btnCS.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesión?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        System.exit(0);
-      }
-    });
-    topBar.add(btnCS);
-    root.add(topBar, BorderLayout.NORTH);
+    JPanel root = pantallaPago.fondoAmarillo();
+    root.add(pantallaPago.topBar(), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);
-    cuerpo.setBorder(BorderFactory.createEmptyBorder(16, 40, 20, 40));
+    cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
 
-    JButton btnVolver = new JButton("Volver a métodos de pago");
+    JButton btnVolver = new JButton("Volver a metodos de pago");
     btnVolver.setContentAreaFilled(false);
     btnVolver.setBorderPainted(false);
     btnVolver.setFocusPainted(false);
@@ -74,52 +55,39 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     volverRow.add(btnVolver);
     cuerpo.add(volverRow, BorderLayout.NORTH);
 
+    JPanel card = buildCard(total, pantallaPago, mainFrame, onConfirmado);
+    JPanel centrado = pantallaPago.centrado(card, 240, 12);
+    cuerpo.add(centrado, BorderLayout.CENTER);
+
+    root.add(cuerpo, BorderLayout.CENTER);
+    setContentPane(root);
+    setVisible(true);
+  }
+
+  private JPanel buildCard(double total, SeleccionarMetodoPago pantallaPago,
+    JFrame mainFrame, Runnable onConfirmado) {
     JPanel card = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(Colores.SOMBRA);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
+        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
         g.setColor(Colores.BLANCO);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
         super.paintComponent(g2d);
       }
 
     };
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setOpaque(false);
-    card.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
+    card.setBorder(new EmptyBorder(28, 32, 28, 32));
 
-    JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
-    header.setOpaque(false);
-    header.setAlignmentX(LEFT_ALIGNMENT);
-
-    JPanel icoBox = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.VERDE);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
-        super.paintComponent(g2d);
-      }
-
-    };
-    icoBox.setOpaque(false);
-    icoBox.setPreferredSize(new Dimension(52, 52));
-    JLabel icoLbl = new JLabel("$", SwingConstants.CENTER);
-    icoLbl.setFont(Fuentes.b(22));
-    icoLbl.setForeground(Colores.BLANCO);
-    icoBox.add(icoLbl);
-
-    JLabel tituloLbl = new JLabel("Pago en Efectivo");
-    tituloLbl.setFont(Fuentes.b(24));
-    tituloLbl.setForeground(Colores.TEXTO_OSCURO);
-
-    header.add(icoBox);
-    header.add(tituloLbl);
-    card.add(header);
+    JLabel titulo = new JLabel("Pago en Efectivo");
+    titulo.setFont(Fuentes.b(24));
+    titulo.setForeground(Colores.TEXTO_OSCURO);
+    titulo.setAlignmentX(LEFT_ALIGNMENT);
+    card.add(titulo);
     card.add(Box.createVerticalStrut(22));
 
     JPanel cajasRow = new JPanel(new GridLayout(1, 3, 12, 0));
@@ -127,22 +95,22 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     cajasRow.setAlignmentX(LEFT_ALIGNMENT);
     cajasRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
 
-    cajasRow.add(cajaInfo("Total a pagar", String.format("$%.2f", total), Colores.TEXTO_OSCURO, Colores.BLANCO, Colores.BORDE_GRIS));
+    cajasRow.add(cajaInfo("Total a pagar", String.format("$%.2f", total), Colores.TEXTO_OSCURO, Colores.BLANCO));
 
     lblRecibido = new JLabel(String.format("$%.2f", recibido), SwingConstants.CENTER);
     lblRecibido.setFont(Fuentes.b(22));
     lblRecibido.setForeground(Colores.AZUL);
-    cajasRow.add(cajaInfoConLabel("Recibido", lblRecibido, Colores.AZUL_CLARO, Colores.BORDE_GRIS));
+    cajasRow.add(cajaInfoConLabel("Recibido", lblRecibido, Colores.AZUL_CLARO));
 
     lblCambio = new JLabel("$0.00", SwingConstants.CENTER);
     lblCambio.setFont(Fuentes.b(22));
     lblCambio.setForeground(Colores.GRIS_TEXTO);
-    cajasRow.add(cajaInfoConLabel("Cambio", lblCambio, Colores.BLANCO, Colores.BORDE_GRIS));
+    cajasRow.add(cajaInfoConLabel("Cambio", lblCambio, Colores.BLANCO));
 
     card.add(cajasRow);
     card.add(Box.createVerticalStrut(22));
 
-    JLabel lblDenom = new JLabel("Denominaciones rápidas");
+    JLabel lblDenom = new JLabel("Denominaciones rapidas");
     lblDenom.setFont(Fuentes.b(14));
     lblDenom.setForeground(Colores.TEXTO_OSCURO);
     lblDenom.setAlignmentX(LEFT_ALIGNMENT);
@@ -171,88 +139,22 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     customRow.setAlignmentX(LEFT_ALIGNMENT);
     customRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
-    JTextField campoCustom = new JTextField() {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_INPUT);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    campoCustom.setOpaque(false);
-    campoCustom.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
-    campoCustom.setFont(Fuentes.r(14));
-    campoCustom.setText("Ingrese cantidad");
-    campoCustom.setForeground(Colores.GRIS_TEXTO);
-    campoCustom.addFocusListener(new java.awt.event.FocusAdapter() {
-      public void focusGained(java.awt.event.FocusEvent e) {
-        if (campoCustom.getText().equals("Ingrese cantidad")) {
-          campoCustom.setText("");
-          campoCustom.setForeground(Colores.TEXTO_OSCURO);
-        }
-      }
-
-      public void focusLost(java.awt.event.FocusEvent e) {
-        if (campoCustom.getText().isEmpty()) {
-          campoCustom.setText("Ingrese cantidad");
-          campoCustom.setForeground(Colores.GRIS_TEXTO);
-        }
-      }
-
-    });
-
-    JButton btnAgregar = new JButton("Agregar") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(java.awt.event.MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.VERDE_HOVER : Colores.VERDE);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnAgregar.setForeground(Colores.BLANCO);
-    btnAgregar.setFont(Fuentes.b(14));
+    JTextField campoCustom = campoPill("Ingrese cantidad");
+    JButton btnAgregar = botonVerde("Agregar");
     btnAgregar.setPreferredSize(new Dimension(110, 44));
     btnAgregar.addActionListener(e -> {
       try {
-        String txt = campoCustom.getText().trim().replace(",", ".");
-        double val = Double.parseDouble(txt);
+        double val = Double.parseDouble(campoCustom.getText().trim().replace(",", "."));
         if (val > 0) {
-          agregarRecibido(val);
+          recibido += val;
+          actualizarUI();
           campoCustom.setText("");
         }
       } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Ingrese un número válido.", "Error", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Ingrese un numero valido.", "Error", JOptionPane.WARNING_MESSAGE);
       }
     });
     campoCustom.addActionListener(e -> btnAgregar.doClick());
-
     customRow.add(campoCustom, BorderLayout.CENTER);
     customRow.add(btnAgregar, BorderLayout.EAST);
     card.add(customRow);
@@ -263,40 +165,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     accionesRow.setAlignmentX(LEFT_ALIGNMENT);
     accionesRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
 
-    JButton btnLimpiar = new JButton("Limpiar") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(java.awt.event.MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.GRIS_BTN_HOVER : Colores.GRIS_BTN);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnLimpiar.setForeground(Colores.BLANCO);
-    btnLimpiar.setFont(Fuentes.b(15));
+    JButton btnLimpiar = pantallaPago.accionBtn("Limpiar", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
     btnLimpiar.addActionListener(e -> {
       recibido = 0;
       actualizarUI();
@@ -309,150 +178,81 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+          public void mouseClicked(MouseEvent e) {
+            if (recibido < totalAPagar) {
+              return;
+            }
+
+            PagoEfectivoDTO pagoDTO = new PagoEfectivoDTO(recibido);
+            ResultadoPagoDTO resultado = facade.procesarPagoEfectivo(ventaActual, pagoDTO);
+
+            if (!resultado.isAprobado()) {
+              JOptionPane.showMessageDialog(RegistrarMetodoPagoEfectivo.this,
+                resultado.getMensaje(), "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+              return;
+            }
+
+            facade.procesarFinalizarVenta(ventaActual);
+
+            TicketDTO ticketDTO = facade.generarTicket(ventaActual, recibido);
+
+            RegistrarMetodoPagoEfectivo.this.setVisible(false);
+            new PantallaTicket(mainFrame, ticketDTO, onConfirmado);
+          }
+
+        });
       }
 
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        boolean habilitado = recibido >= totalAPagar;
-        if (habilitado) {
-          g.setColor(ov ? Colores.VERDE_HOVER : Colores.VERDE);
-          setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        } else {
-          g.setColor(Colores.GRIS_DISABLED);
-          setCursor(Cursor.getDefaultCursor());
-        }
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        boolean hab = recibido >= totalAPagar;
+        g.setColor(hab ? (ov ? Colores.VERDE_HOVER : Colores.VERDE) : Colores.GRIS_DISABLED);
+        setCursor(Cursor.getPredefinedCursor(hab ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
 
     };
     btnCompletar.setForeground(Colores.BLANCO);
     btnCompletar.setFont(Fuentes.b(15));
-    btnCompletar.addMouseListener(new java.awt.event.MouseAdapter() {
-      boolean ov = false;
-
-      public void mouseEntered(java.awt.event.MouseEvent e) {
-        ov = true;
-        btnCompletar.repaint();
-      }
-
-      public void mouseExited(java.awt.event.MouseEvent e) {
-        ov = false;
-        btnCompletar.repaint();
-      }
-
-      public void mouseClicked(java.awt.event.MouseEvent e) {
-        if (recibido < totalAPagar) {
-          return;
-        }
-
-        PagoEfectivoDTO pagoEfectivoDto = new PagoEfectivoDTO(recibido);
-
-        ResultadoPagoDTO resultadoCambio = facade.procesarPagoEfectivo(pagoEfectivoDto);
-        double cambio = resultadoCambio.getCambio();
-        if (cambio < 0) {
-          JOptionPane.showMessageDialog(RegistrarMetodoPagoEfectivo.this,
-            "El monto recibido es insuficiente para cubrir el total.",
-            "Monto insuficiente", JOptionPane.WARNING_MESSAGE);
-          return;
-        }
-
-        facade.procesarFinalizarVenta();
-
-        TicketDTO ticket = facade.generarTicket();
-
-        RegistrarMetodoPagoEfectivo.this.setVisible(false);
-        new PantallaTicket(mainFrame, ticket, carritoItems, recibido, cambio, onConfirmado);
-      }
-
-    });
 
     accionesRow.add(btnLimpiar);
     accionesRow.add(btnCompletar);
     card.add(accionesRow);
-
-    JPanel centrado = new JPanel(new GridBagLayout());
-    centrado.setOpaque(false);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.insets = new Insets(12, 240, 12, 240);
-    centrado.add(card, gbc);
-
-    cuerpo.add(centrado, BorderLayout.CENTER);
-    root.add(cuerpo, BorderLayout.CENTER);
-    setContentPane(root);
-    setVisible(true);
+    return card;
   }
 
-  void agregarRecibido(double val) {
-    recibido += val;
-    actualizarUI();
-  }
-
-  void actualizarUI() {
+  private void actualizarUI() {
     lblRecibido.setText(String.format("$%.2f", recibido));
-    double cambio = facade.calcularCambio(recibido);
+    double cambio = facade.calcularCambio(ventaActual, recibido);
     lblCambio.setText(String.format("$%.2f", Math.max(cambio, 0)));
-    lblCambio.setForeground(cambio >= 0 ? Colores.VERDE : Colores.GRIS_TEXTO);
+    lblCambio.setForeground(recibido >= totalAPagar ? Colores.VERDE : Colores.GRIS_TEXTO);
     btnCompletar.repaint();
   }
 
-  JPanel cajaInfo(String etiqueta, String valor, Color colorVal, Color bg, Color borde) {
-    JPanel p = new JPanel(new GridLayout(2, 1, 0, 4)) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(bg);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        g.setColor(borde);
-        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        super.paintComponent(g2d);
-      }
-
-    };
-    p.setOpaque(false);
-    p.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
-    JLabel lEtq = new JLabel(etiqueta, SwingConstants.CENTER);
-    lEtq.setFont(Fuentes.r(12));
-    lEtq.setForeground(Colores.GRIS_TEXTO);
-    JLabel lVal = new JLabel(valor, SwingConstants.CENTER);
-    lVal.setFont(Fuentes.b(22));
-    lVal.setForeground(colorVal);
-    p.add(lEtq);
-    p.add(lVal);
-    return p;
+  private JButton botonDenom(String texto, int valor) {
+    JButton b = botonVerde(texto);
+    b.addActionListener(e -> {
+      recibido += valor;
+      actualizarUI();
+    });
+    return b;
   }
 
-  JPanel cajaInfoConLabel(String etiqueta, JLabel valorLabel, Color bg, Color borde) {
-    JPanel p = new JPanel(new GridLayout(2, 1, 0, 4)) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(bg);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        g.setColor(borde);
-        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-        super.paintComponent(g2d);
-      }
-
-    };
-    p.setOpaque(false);
-    p.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
-    JLabel lEtq = new JLabel(etiqueta, SwingConstants.CENTER);
-    lEtq.setFont(Fuentes.r(12));
-    lEtq.setForeground(Colores.GRIS_TEXTO);
-    p.add(lEtq);
-    p.add(valorLabel);
-    return p;
-  }
-
-  JButton botonDenom(String texto, int valor) {
+  private JButton botonVerde(String texto) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 
@@ -461,13 +261,13 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
-          public void mouseExited(java.awt.event.MouseEvent e) {
+          public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
@@ -480,54 +280,101 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(ov ? Colores.VERDE_HOVER : Colores.VERDE);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
 
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(16));
-    b.addActionListener(e -> agregarRecibido(valor));
     return b;
   }
 
-  JButton topBarBtn(String texto) {
-    JButton b = new JButton(texto) {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-          public void mouseEntered(java.awt.event.MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(java.awt.event.MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
+  private JPanel cajaInfo(String etiqueta, String valor, Color colorVal, Color bg) {
+    JPanel p = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.setColor(bg);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        g.setColor(Colores.BORDE_GRIS);
+        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
         super.paintComponent(g2d);
       }
 
     };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(13));
-    b.setPreferredSize(new Dimension(160, 38));
-    return b;
+    p.setOpaque(false);
+    p.setBorder(new EmptyBorder(10, 14, 10, 14));
+    JLabel lE = new JLabel(etiqueta, SwingConstants.CENTER);
+    lE.setFont(Fuentes.r(12));
+    lE.setForeground(Colores.GRIS_TEXTO);
+    JLabel lV = new JLabel(valor, SwingConstants.CENTER);
+    lV.setFont(Fuentes.b(22));
+    lV.setForeground(colorVal);
+    p.add(lE);
+    p.add(lV);
+    return p;
+  }
+
+  private JPanel cajaInfoConLabel(String etiqueta, JLabel valorLabel, Color bg) {
+    JPanel p = new JPanel(new GridLayout(2, 1, 0, 4)) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(bg);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        g.setColor(Colores.BORDE_GRIS);
+        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+        super.paintComponent(g2d);
+      }
+
+    };
+    p.setOpaque(false);
+    p.setBorder(new EmptyBorder(10, 14, 10, 14));
+    JLabel lE = new JLabel(etiqueta, SwingConstants.CENTER);
+    lE.setFont(Fuentes.r(12));
+    lE.setForeground(Colores.GRIS_TEXTO);
+    p.add(lE);
+    p.add(valorLabel);
+    return p;
+  }
+
+  private JTextField campoPill(String placeholder) {
+    JTextField tf = new JTextField() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.FONDO_INPUT);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    tf.setOpaque(false);
+    tf.setBorder(new EmptyBorder(8, 14, 8, 14));
+    tf.setFont(Fuentes.r(14));
+    tf.setText(placeholder);
+    tf.setForeground(Colores.GRIS_TEXTO);
+    tf.addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) {
+        if (tf.getText().equals(placeholder)) {
+          tf.setText("");
+          tf.setForeground(Colores.TEXTO_OSCURO);
+        }
+      }
+
+      public void focusLost(FocusEvent e) {
+        if (tf.getText().isEmpty()) {
+          tf.setText(placeholder);
+          tf.setForeground(Colores.GRIS_TEXTO);
+        }
+      }
+
+    });
+    return tf;
   }
 
 }

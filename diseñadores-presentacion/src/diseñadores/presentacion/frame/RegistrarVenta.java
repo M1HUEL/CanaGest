@@ -1,10 +1,7 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.EscanearProductoDTO;
-import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.dto.*;
 import diseñadores.negocios.ventas.IVentas;
-import diseñadores.negocios.ventas.VentasFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -13,31 +10,33 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
-
 import java.util.List;
 
 public class RegistrarVenta extends JFrame {
 
-  private IVentas facade;
+  private final IVentas facade;
+  private Venta ventaActual;
+  private final List<ItemVentaDTO> carritoDisplay = new ArrayList<>();
+  private List<ProductoDTO> catalogoProductos;
 
-  List<ItemCarrito> carrito = new ArrayList<>();
-  JPanel panelCarritoItems;
-  JLabel lblTotal, lblCantItems, lblProductosCount;
+  private JPanel panelCarritoItems;
+  private JLabel lblTotal, lblCantItems, lblProductosCount;
+  private JTextField campoBusqueda, campoEscanear;
+  private JPanel panelGrid;
 
-  List<ProductoDTO> catalogoProductos;
+  public RegistrarVenta(IVentas facade) {
+    super("Punto de Venta");
+    this.facade = facade;
+    inicializar();
+  }
 
-  JTextField campoBusqueda, campoEscanear;
-  JPanel panelGrid;
-
-  public RegistrarVenta() {
-    setTitle("Punto de Venta");
+  private void inicializar() {
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    facade = new VentasFacade();
-    facade.nuevaVenta();
+    ventaActual = facade.iniciarNuevaVenta();
     catalogoProductos = facade.obtenerCatalogo();
 
     JPanel root = new JPanel(new BorderLayout()) {
@@ -60,17 +59,14 @@ public class RegistrarVenta extends JFrame {
     JPanel centro = new JPanel(new GridBagLayout());
     centro.setOpaque(false);
     centro.setBorder(new EmptyBorder(20, 20, 20, 20));
-
     GridBagConstraints g = new GridBagConstraints();
     g.fill = GridBagConstraints.BOTH;
-    g.insets = new Insets(0, 0, 0, 16);
     g.gridy = 0;
     g.weighty = 1.0;
-
     g.gridx = 0;
     g.weightx = 0.65;
+    g.insets = new Insets(0, 0, 0, 16);
     centro.add(panelIzquierdo(), g);
-
     g.gridx = 1;
     g.weightx = 0.35;
     g.insets = new Insets(0, 0, 0, 0);
@@ -78,10 +74,11 @@ public class RegistrarVenta extends JFrame {
 
     root.add(centro, BorderLayout.CENTER);
     setContentPane(root);
-    actualizarTotal();
+    actualizarVista();
   }
 
-  JPanel panelIzquierdo() {
+  // ── Panel izquierdo ───────────────────────────────────────
+  private JPanel panelIzquierdo() {
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
     p.setOpaque(false);
@@ -91,7 +88,7 @@ public class RegistrarVenta extends JFrame {
     return p;
   }
 
-  JPanel tarjetaEscanear() {
+  private JPanel tarjetaEscanear() {
     JPanel card = tarjeta();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 145));
@@ -104,7 +101,6 @@ public class RegistrarVenta extends JFrame {
     campoEscanear = campoPill("Escanear código del producto");
     campoEscanear.setAlignmentX(LEFT_ALIGNMENT);
     campoEscanear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-
     campoEscanear.addActionListener(e -> {
       String code = campoEscanear.getText().trim();
       if (!code.isEmpty()) {
@@ -119,11 +115,11 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
-  JPanel tarjetaBusqueda() {
+  private JPanel tarjetaBusqueda() {
     JPanel card = tarjeta();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-    JLabel titulo = new JLabel("Búsqueda Rápida");
+    JLabel titulo = new JLabel("Busqueda Rapida");
     titulo.setFont(Fuentes.b(17));
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
@@ -153,7 +149,7 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
-  void construirGrid(List<ProductoDTO> lista) {
+  private void construirGrid(List<ProductoDTO> lista) {
     panelGrid.removeAll();
     for (ProductoDTO p : lista) {
       panelGrid.add(botonProducto(p));
@@ -162,7 +158,7 @@ public class RegistrarVenta extends JFrame {
     panelGrid.repaint();
   }
 
-  void filtrarGrid(String query) {
+  private void filtrarGrid(String query) {
     if (query.isEmpty()) {
       construirGrid(catalogoProductos);
       return;
@@ -177,10 +173,11 @@ public class RegistrarVenta extends JFrame {
     construirGrid(filtrados);
   }
 
-  JPanel botonProducto(ProductoDTO prod) {
+  private JPanel botonProducto(ProductoDTO prod) {
     String codigo = prod.getCodigo();
     String nombre = prod.getNombre();
     String precio = String.format("%.2f", prod.getPrecio());
+
     JPanel btn = new JPanel() {
       boolean hover = false;
 
@@ -219,9 +216,9 @@ public class RegistrarVenta extends JFrame {
     btn.setBorder(new EmptyBorder(12, 10, 12, 10));
     btn.setPreferredSize(new Dimension(0, 80));
 
-    JLabel lCod = label(codigo, 10, Font.PLAIN, Colores.AZUL_MUY_SUTIL);
-    JLabel lNom = label(nombre, 16, Font.BOLD, Colores.BLANCO);
-    JLabel lPre = label("$" + precio, 13, Font.PLAIN, Colores.AZUL_MUY_SUTIL);
+    JLabel lCod = etiqueta(codigo, 10, false, Colores.AZUL_MUY_SUTIL);
+    JLabel lNom = etiqueta(nombre, 16, true, Colores.BLANCO);
+    JLabel lPre = etiqueta("$" + precio, 13, false, Colores.AZUL_MUY_SUTIL);
 
     for (JLabel l : new JLabel[]{lCod, lNom, lPre}) {
       l.setAlignmentX(CENTER_ALIGNMENT);
@@ -236,7 +233,8 @@ public class RegistrarVenta extends JFrame {
     return btn;
   }
 
-  JPanel panelDerecho() {
+  // ── Panel derecho ─────────────────────────────────────────
+  private JPanel panelDerecho() {
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
     p.setOpaque(false);
@@ -246,7 +244,7 @@ public class RegistrarVenta extends JFrame {
     return p;
   }
 
-  JPanel tarjetaCarrito() {
+  private JPanel tarjetaCarrito() {
     JPanel card = tarjeta();
     card.setLayout(new BorderLayout(0, 12));
 
@@ -262,7 +260,6 @@ public class RegistrarVenta extends JFrame {
     lblCantItems.setOpaque(true);
     lblCantItems.setBackground(Colores.AZUL_CLARO);
     lblCantItems.setBorder(new EmptyBorder(3, 10, 3, 10));
-
     header.add(titulo, BorderLayout.WEST);
     header.add(lblCantItems, BorderLayout.EAST);
 
@@ -282,7 +279,7 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
-  JPanel tarjetaTotal() {
+  private JPanel tarjetaTotal() {
     JPanel card = new JPanel(new BorderLayout(0, 12)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -334,100 +331,34 @@ public class RegistrarVenta extends JFrame {
     botonesRow.setOpaque(false);
     botonesRow.setPreferredSize(new Dimension(0, 58));
 
-    JButton btnCancelar = new JButton("<html><center><br>Cancelar</center></html>") {
-      boolean hover = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            hover = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            hover = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.ROJO_HOVER : Colores.ROJO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnCancelar.setForeground(Colores.BLANCO);
-    btnCancelar.setFont(Fuentes.b(13));
-    btnCancelar.setHorizontalAlignment(SwingConstants.CENTER);
+    JButton btnCancelar = botonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
     btnCancelar.addActionListener(e -> {
+      if (carritoDisplay.isEmpty()) {
+        return;
+      }
       int op = JOptionPane.showConfirmDialog(this,
         "¿Cancelar la venta y vaciar el carrito?", "Cancelar venta",
         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
       if (op == JOptionPane.YES_OPTION) {
-        carrito.clear();
-        facade.nuevaVenta();
-        actualizarTotal();
+        carritoDisplay.clear();
+        ventaActual = facade.iniciarNuevaVenta();
+        actualizarVista();
       }
     });
 
-    JButton btnContinuar = new JButton("<html><center><br>Continuar</center></html>") {
-      boolean hover = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            hover = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            hover = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.VERDE_OSCURO : Colores.VERDE);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnContinuar.setForeground(Colores.BLANCO);
-    btnContinuar.setFont(Fuentes.b(13));
-    btnContinuar.setHorizontalAlignment(SwingConstants.CENTER);
+    JButton btnContinuar = botonAccion("Continuar", Colores.VERDE, Colores.VERDE_OSCURO);
     btnContinuar.addActionListener(e -> {
-      if (carrito.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "El carrito está vacío.", "Sin productos", JOptionPane.WARNING_MESSAGE);
+      if (carritoDisplay.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "El carrito esta vacio.",
+          "Sin productos", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      VentaDTO ventaDTO = facade.obtenerVentaActual();
-      double total = ventaDTO != null ? ventaDTO.getTotal() : carrito.stream().mapToDouble(ItemCarrito::subtotal).sum();
-      int totalItems = carrito.stream().mapToInt(i -> i.cantidad).sum();
+      double total = carritoDisplay.stream().mapToDouble(ItemVentaDTO::getSubtotal).sum();
       this.setVisible(false);
-      new SeleccionarMetodoPago(this, facade, total, totalItems, new ArrayList<>(carrito), () -> {
-        carrito.clear();
-        facade.nuevaVenta();
-        actualizarTotal();
+      new SeleccionarMetodoPago(this, facade, ventaActual, total, () -> {
+        carritoDisplay.clear();
+        ventaActual = facade.iniciarNuevaVenta();
+        actualizarVista();
       });
     });
 
@@ -437,72 +368,72 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
-  void agregarAlCarrito(String codigo) {
-    EscanearProductoDTO escanearDTO = new EscanearProductoDTO(codigo);
+  // ── Lógica de carrito ─────────────────────────────────────
+  private void agregarAlCarrito(String codigo) {
+    EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
 
-    // 1. Verificar existencia en el subsistema de productos
-    if (!facade.existeProducto(escanearDTO)) {
+    if (!facade.existeProducto(dto)) {
       JOptionPane.showMessageDialog(this,
-        "<html>El producto <b>" + codigo + "</b> no existe en el catálogo.</html>",
-        "Producto no encontrado",
-        JOptionPane.ERROR_MESSAGE);
+        "<html>El producto <b>" + codigo + "</b> no existe en el catalogo.</html>",
+        "Producto no encontrado", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+    if (!facade.tieneStock(dto)) {
+      JOptionPane.showMessageDialog(this,
+        "<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles.</html>",
+        "Sin stock", JOptionPane.WARNING_MESSAGE);
       return;
     }
 
-    // 2. Delegar al subsistema de ventas (valida stock, reduce inventario y agrega a la Venta)
-    ProductoDTO productoDTO = facade.procesarProducto(escanearDTO);
-    if (productoDTO == null) {
+    ProductoDTO p = facade.procesarProducto(ventaActual, dto);
+    if (p == null) {
       JOptionPane.showMessageDialog(this,
-        "<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles en inventario.</html>",
-        "Sin stock disponible",
-        JOptionPane.WARNING_MESSAGE);
+        "<html>No se pudo agregar <b>" + codigo + "</b>. Verifique el stock.</html>",
+        "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
-    // 3. Actualizar carrito visual
-    for (ItemCarrito it : carrito) {
-      if (it.nombre.equalsIgnoreCase(productoDTO.getNombre())) {
-        it.cantidad++;
-        actualizarTotal();
+    for (int i = 0; i < carritoDisplay.size(); i++) {
+      if (carritoDisplay.get(i).getCodigo().equalsIgnoreCase(p.getCodigo())) {
+        ItemVentaDTO actual = carritoDisplay.get(i);
+        carritoDisplay.set(i, actual.conCantidad(actual.getCantidad() + 1));
+        actualizarVista();
         return;
       }
     }
-    carrito.add(new ItemCarrito(productoDTO.getNombre(), productoDTO.getPrecio(), 1));
-    actualizarTotal();
+    carritoDisplay.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), 1));
+    actualizarVista();
   }
 
-  void actualizarTotal() {
+  private void actualizarVista() {
     panelCarritoItems.removeAll();
     double total = 0;
-    for (ItemCarrito it : new ArrayList<>(carrito)) {
-      panelCarritoItems.add(filaCarrito(it));
+    for (ItemVentaDTO item : new ArrayList<>(carritoDisplay)) {
+      panelCarritoItems.add(filaCarrito(item));
       panelCarritoItems.add(Box.createVerticalStrut(8));
-      total += it.subtotal();
+      total += item.getSubtotal();
     }
     panelCarritoItems.revalidate();
     panelCarritoItems.repaint();
 
     lblTotal.setText(String.format("$%.2f", total));
-    int totalItems = carrito.stream().mapToInt(i -> i.cantidad).sum();
-    lblCantItems.setText(totalItems + " items");
-    if (lblProductosCount != null) {
-      lblProductosCount.setText(totalItems + " productos");
-    }
+    int totalUnidades = carritoDisplay.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
+    lblCantItems.setText(totalUnidades + " items");
+    lblProductosCount.setText(totalUnidades + " productos");
   }
 
-  JPanel filaCarrito(ItemCarrito it) {
+  private JPanel filaCarrito(ItemVentaDTO item) {
     JPanel fila = new JPanel(new GridBagLayout());
     fila.setOpaque(true);
     fila.setBackground(Colores.BLANCO);
     fila.setBorder(BorderFactory.createCompoundBorder(
       new LineBorder(Colores.BORDE_GRIS, 1, true),
-      new EmptyBorder(10, 12, 10, 12)
-    ));
+      new EmptyBorder(10, 12, 10, 12)));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
 
     GridBagConstraints c = new GridBagConstraints();
 
-    JLabel lblNombre = label(it.nombre, 14, Font.BOLD, Colores.TEXTO_OSCURO);
+    JLabel lblNombre = etiqueta(item.getNombre(), 14, true, Colores.TEXTO_OSCURO);
     c.gridx = 0;
     c.gridy = 0;
     c.weightx = 1;
@@ -512,8 +443,9 @@ public class RegistrarVenta extends JFrame {
 
     JButton btnElim = botonEliminar();
     btnElim.addActionListener(e -> {
-      carrito.remove(it);
-      actualizarTotal();
+      ventaActual.removerTodas(item.getCodigo());
+      carritoDisplay.removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
+      actualizarVista();
     });
     c.gridx = 1;
     c.weightx = 0;
@@ -521,7 +453,7 @@ public class RegistrarVenta extends JFrame {
     c.anchor = GridBagConstraints.EAST;
     fila.add(btnElim, c);
 
-    JLabel lblPreU = label("Precio unitario: $" + String.format("%.2f", it.precio), 11, Font.PLAIN, Colores.GRIS_TEXTO);
+    JLabel lblPreU = etiqueta("Precio unitario: $" + String.format("%.2f", item.getPrecioUnitario()), 11, false, Colores.GRIS_TEXTO);
     c.gridx = 0;
     c.gridy = 1;
     c.weightx = 1;
@@ -532,12 +464,11 @@ public class RegistrarVenta extends JFrame {
 
     JPanel ctrlRow = new JPanel(new BorderLayout(8, 0));
     ctrlRow.setOpaque(false);
-
     JPanel ctrlCant = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
     ctrlCant.setOpaque(false);
 
     JButton btnMenos = botonCantidad("-");
-    JLabel lblCant = new JLabel(String.valueOf(it.cantidad));
+    JLabel lblCant = new JLabel(String.valueOf(item.getCantidad()));
     lblCant.setFont(Fuentes.b(15));
     lblCant.setForeground(Colores.TEXTO_OSCURO);
     lblCant.setPreferredSize(new Dimension(32, 32));
@@ -545,25 +476,34 @@ public class RegistrarVenta extends JFrame {
     JButton btnMas = botonCantidad("+");
 
     btnMenos.addActionListener(e -> {
-      if (it.cantidad > 1) {
-        it.cantidad--;
-      } else {
-        carrito.remove(it);
+      ventaActual.removerUnaUnidad(item.getCodigo());
+      int idx = indexEnCarrito(item.getCodigo());
+      if (idx < 0) {
+        return;
       }
-      actualizarTotal();
-    });
-    btnMas.addActionListener(e -> {
-      String cod = codigoParaNombre(it.nombre);
-      EscanearProductoDTO escanearDTO = new EscanearProductoDTO(cod);
-      ProductoDTO extra = facade.procesarProducto(escanearDTO);
-      if (extra != null) {
-        it.cantidad++;
-        actualizarTotal();
+      if (item.getCantidad() > 1) {
+        carritoDisplay.set(idx, item.conCantidad(item.getCantidad() - 1));
       } else {
+        carritoDisplay.remove(idx);
+      }
+      actualizarVista();
+    });
+
+    btnMas.addActionListener(e -> {
+      EscanearProductoDTO dto = new EscanearProductoDTO(item.getCodigo());
+      if (!facade.tieneStock(dto)) {
         JOptionPane.showMessageDialog(fila,
-          "<html>El producto <b>" + it.nombre + "</b> no tiene más unidades disponibles.</html>",
-          "Sin stock disponible",
-          JOptionPane.WARNING_MESSAGE);
+          "<html>No hay mas stock de <b>" + item.getNombre() + "</b>.</html>",
+          "Sin stock", JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+      ProductoDTO extra = facade.procesarProducto(ventaActual, dto);
+      if (extra != null) {
+        int idx = indexEnCarrito(item.getCodigo());
+        if (idx >= 0) {
+          carritoDisplay.set(idx, item.conCantidad(item.getCantidad() + 1));
+        }
+        actualizarVista();
       }
     });
 
@@ -573,9 +513,9 @@ public class RegistrarVenta extends JFrame {
 
     JPanel subPanel = new JPanel(new BorderLayout());
     subPanel.setOpaque(false);
-    JLabel lblSubTxt = label("Subtotal", 10, Font.PLAIN, Colores.GRIS_TEXTO);
+    JLabel lblSubTxt = etiqueta("Subtotal", 10, false, Colores.GRIS_TEXTO);
     lblSubTxt.setHorizontalAlignment(SwingConstants.RIGHT);
-    JLabel lblSub = label(String.format("$%.2f", it.subtotal()), 15, Font.BOLD, Colores.AZUL);
+    JLabel lblSub = etiqueta(String.format("$%.2f", item.getSubtotal()), 15, true, Colores.AZUL);
     lblSub.setHorizontalAlignment(SwingConstants.RIGHT);
     subPanel.add(lblSubTxt, BorderLayout.NORTH);
     subPanel.add(lblSub, BorderLayout.SOUTH);
@@ -590,20 +530,20 @@ public class RegistrarVenta extends JFrame {
     c.weightx = 1;
     c.insets = new Insets(6, 0, 0, 0);
     fila.add(ctrlRow, c);
-
     return fila;
   }
 
-  String codigoParaNombre(String nombre) {
-    for (ProductoDTO p : catalogoProductos) {
-      if (p.getNombre().equalsIgnoreCase(nombre)) {
-        return p.getCodigo();
+  private int indexEnCarrito(String codigo) {
+    for (int i = 0; i < carritoDisplay.size(); i++) {
+      if (carritoDisplay.get(i).getCodigo().equalsIgnoreCase(codigo)) {
+        return i;
       }
     }
-    return nombre;
+    return -1;
   }
 
-  JPanel tarjeta() {
+  // ── Helpers de UI ─────────────────────────────────────────
+  private JPanel tarjeta() {
     JPanel p = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -622,7 +562,7 @@ public class RegistrarVenta extends JFrame {
     return p;
   }
 
-  JTextField campoPill(String placeholder) {
+  private JTextField campoPill(String placeholder) {
     JTextField tf = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -637,7 +577,6 @@ public class RegistrarVenta extends JFrame {
     tf.setOpaque(false);
     tf.setBorder(new EmptyBorder(8, 14, 8, 14));
     tf.setFont(Fuentes.r(14));
-    tf.setForeground(Colores.TEXTO_OSCURO);
     tf.setText(placeholder);
     tf.setForeground(Colores.GRIS_TEXTO);
     tf.addFocusListener(new FocusAdapter() {
@@ -659,9 +598,13 @@ public class RegistrarVenta extends JFrame {
     return tf;
   }
 
-  JButton botonAzul(String texto) {
+  private JButton botonAzul(String texto) {
+    return botonAccion(texto, Colores.AZUL, Colores.AZUL_HOVER);
+  }
+
+  private JButton botonAccion(String texto, Color base, Color hover) {
     JButton b = new JButton(texto) {
-      boolean hover = false;
+      boolean ov = false;
 
       {
         setContentAreaFilled(false);
@@ -670,12 +613,12 @@ public class RegistrarVenta extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
-            hover = true;
+            ov = true;
             repaint();
           }
 
           public void mouseExited(MouseEvent e) {
-            hover = false;
+            ov = false;
             repaint();
           }
 
@@ -686,7 +629,7 @@ public class RegistrarVenta extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.setColor(ov ? hover : base);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
@@ -694,13 +637,12 @@ public class RegistrarVenta extends JFrame {
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(14));
-    b.setPreferredSize(new Dimension(200, 46));
     return b;
   }
 
-  JButton botonCantidad(String sym) {
+  private JButton botonCantidad(String sym) {
     JButton b = new JButton(sym) {
-      boolean hover = false;
+      boolean ov = false;
 
       {
         setContentAreaFilled(false);
@@ -709,12 +651,12 @@ public class RegistrarVenta extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
-            hover = true;
+            ov = true;
             repaint();
           }
 
           public void mouseExited(MouseEvent e) {
-            hover = false;
+            ov = false;
             repaint();
           }
 
@@ -725,7 +667,7 @@ public class RegistrarVenta extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
@@ -737,9 +679,9 @@ public class RegistrarVenta extends JFrame {
     return b;
   }
 
-  JButton botonEliminar() {
-    JButton b = new JButton("") {
-      boolean hover = false;
+  private JButton botonEliminar() {
+    JButton b = new JButton("X") {
+      boolean ov = false;
 
       {
         setContentAreaFilled(false);
@@ -748,12 +690,12 @@ public class RegistrarVenta extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
-            hover = true;
+            ov = true;
             repaint();
           }
 
           public void mouseExited(MouseEvent e) {
-            hover = false;
+            ov = false;
             repaint();
           }
 
@@ -764,21 +706,21 @@ public class RegistrarVenta extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.ROJO_BG_HOVER : Colores.ROJO_BG);
+        g.setColor(ov ? Colores.ROJO_BG_HOVER : Colores.ROJO_BG);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
 
     };
     b.setForeground(Colores.ROJO_ICONO);
-    b.setFont(Fuentes.r(14));
+    b.setFont(Fuentes.b(11));
     b.setPreferredSize(new Dimension(32, 32));
     return b;
   }
 
-  JButton botonCerrarSesion() {
-    JButton b = new JButton("Cerrar sesión") {
-      boolean hover = false;
+  private JButton botonCerrarSesion() {
+    JButton b = new JButton("Cerrar sesion") {
+      boolean ov = false;
 
       {
         setContentAreaFilled(false);
@@ -787,12 +729,12 @@ public class RegistrarVenta extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
-            hover = true;
+            ov = true;
             repaint();
           }
 
           public void mouseExited(MouseEvent e) {
-            hover = false;
+            ov = false;
             repaint();
           }
 
@@ -803,7 +745,7 @@ public class RegistrarVenta extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
@@ -813,7 +755,7 @@ public class RegistrarVenta extends JFrame {
     b.setFont(Fuentes.b(13));
     b.setPreferredSize(new Dimension(160, 38));
     b.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesión?", "Confirmar", JOptionPane.YES_NO_OPTION);
+      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesion?", "Confirmar", JOptionPane.YES_NO_OPTION);
       if (op == JOptionPane.YES_OPTION) {
         System.exit(0);
       }
@@ -821,16 +763,11 @@ public class RegistrarVenta extends JFrame {
     return b;
   }
 
-  JLabel label(String txt, int size, int style, Color color) {
+  private JLabel etiqueta(String txt, int size, boolean bold, Color color) {
     JLabel l = new JLabel(txt);
-    l.setFont((style == Font.BOLD ? Fuentes.b(size) : Fuentes.r(size)));
+    l.setFont(bold ? Fuentes.b(size) : Fuentes.r(size));
     l.setForeground(color);
     return l;
-  }
-
-  public static void main(String[] args) {
-    Fuentes.cargar();
-    SwingUtilities.invokeLater(() -> new RegistrarVenta().setVisible(true));
   }
 
 }

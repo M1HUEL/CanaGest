@@ -36,4 +36,8 @@ public class ItemVentaDTO {
     return subtotal;
   }
 
+  public ItemVentaDTO conCantidad(int nuevaCantidad) {
+    return new ItemVentaDTO(codigo, nombre, precioUnitario, nuevaCantidad);
+  }
+
 }

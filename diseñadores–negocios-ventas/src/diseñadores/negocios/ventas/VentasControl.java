@@ -44,9 +44,7 @@ public class VentasControl {
     }
 
     ventaActual.agregarProducto(entidad);
-
     inventario.reducirStock(dto.getCodigo(), 1);
-
     return productoDTO;
   }
 
@@ -78,23 +76,11 @@ public class VentasControl {
     if (ventaActual == null) {
       return null;
     }
-
-    List<ItemVentaDTO> items = new ArrayList<>();
-    for (Producto p : ventaActual.getListaProductos()) {
-      long cantidad = ventaActual.getListaProductos().stream()
-        .filter(x -> x.getCodigo().equals(p.getCodigo()))
-        .count();
-      if (items.stream().noneMatch(i -> i.getCodigo().equals(p.getCodigo()))) {
-        items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), (int) cantidad));
-      }
-    }
-
+    List<ItemVentaDTO> items = consolidarItems(ventaActual.getListaProductos());
     double total = ventaActual.getSubtotalVenta();
     double subtotal = total / 1.16;
     double iva = total - subtotal;
-    int unidades = ventaActual.getListaProductos().size();
-
-    return new VentaDTO(items, subtotal, iva, total, unidades);
+    return new VentaDTO(items, subtotal, iva, total, ventaActual.getListaProductos().size());
   }
 
   public TicketDTO generarTicket(Venta ventaActual, double ultimoEfectivo) {
@@ -112,27 +98,30 @@ public class VentasControl {
     String fecha = ahora.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("es", "MX")));
     String hora = ahora.format(DateTimeFormatter.ofPattern("hh:mm a"));
 
-    List<ItemVentaDTO> items = new ArrayList<>();
-    for (Producto p : ventaActual.getListaProductos()) {
-      long cantidad = ventaActual.getListaProductos().stream()
-        .filter(x -> x.getCodigo().equals(p.getCodigo()))
-        .count();
-      if (items.stream().noneMatch(i -> i.getCodigo().equals(p.getCodigo()))) {
-        items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), (int) cantidad));
-      }
-    }
-
     return new TicketDTO(
-      folio, items, subtotal, iva, total,
-      ultimoEfectivo, cambio,
+      folio, consolidarItems(ventaActual.getListaProductos()),
+      subtotal, iva, total, ultimoEfectivo, cambio,
       fecha, hora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
     );
   }
 
+  private List<ItemVentaDTO> consolidarItems(List<Producto> productos) {
+    List<ItemVentaDTO> items = new ArrayList<>();
+    for (Producto p : productos) {
+      if (items.stream().noneMatch(i -> i.getCodigo().equals(p.getCodigo()))) {
+        long cantidad = productos.stream()
+          .filter(x -> x.getCodigo().equals(p.getCodigo()))
+          .count();
+        items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), (int) cantidad));
+      }
+    }
+    return items;
+  }
+
   private void ejecutarProtocoloReabastecimiento(Producto p) {
     if (servicioCorreo == null) {
-      System.out.println("[REABASTECIMIENTO] Sin servicio de correo. Producto: "
-        + p.getNombre() + " — stock bajo.");
+      System.out.println("[REABASTECIMIENTO] Producto con stock bajo: "
+        + p.getNombre() + " (" + p.getStock() + " unidades).");
       return;
     }
     Proveedor prov = p.getProveedor();

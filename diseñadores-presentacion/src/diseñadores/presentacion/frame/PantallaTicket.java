@@ -82,7 +82,6 @@ public class PantallaTicket extends JFrame {
     };
     p.setOpaque(false);
 
-    // ── Cabecera azul ─────────────────────────────────────
     JPanel cab = new JPanel(new GridLayout(2, 1, 0, 6)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -107,7 +106,6 @@ public class PantallaTicket extends JFrame {
     cab.add(lblSub);
     p.add(cab, BorderLayout.NORTH);
 
-    // ── Cuerpo ────────────────────────────────────────────
     JPanel body = new JPanel(new GridBagLayout());
     body.setOpaque(false);
     body.setBorder(new EmptyBorder(20, 28, 24, 28));
@@ -119,7 +117,6 @@ public class PantallaTicket extends JFrame {
     c.anchor = GridBagConstraints.WEST;
     int row = 0;
 
-    // Datos de la tienda — desde TicketDTO
     c.gridy = row++;
     c.insets = new Insets(0, 0, 2, 0);
     body.add(fullLabel(t.getNombreTienda(), 17, true, Colores.TEXTO_OSCURO, SwingConstants.CENTER), c);
@@ -137,7 +134,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(14, 0, 12, 0);
     body.add(sepLine(), c);
 
-    // Fecha y hora — desde TicketDTO
     JPanel metaRow = new JPanel(new BorderLayout());
     metaRow.setOpaque(false);
     JLabel lFecha = new JLabel("Fecha: " + t.getFechaFormateada());
@@ -152,7 +148,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 6, 0);
     body.add(metaRow, c);
 
-    // Cajero — desde TicketDTO
     JLabel lCajero = new JLabel("Cajero: " + t.getCajero());
     lCajero.setFont(Fuentes.r(12));
     lCajero.setForeground(Colores.TEXTO_OSCURO);
@@ -190,7 +185,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 14, 0);
     body.add(sepLine(), c);
 
-    // Productos — desde TicketDTO como ItemVentaDTO
     JLabel lblProd = new JLabel("Productos");
     lblProd.setFont(Fuentes.b(15));
     lblProd.setForeground(Colores.TEXTO_OSCURO);
@@ -208,7 +202,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(4, 0, 12, 0);
     body.add(sepLine(), c);
 
-    // Subtotal, IVA, TOTAL — desde TicketDTO
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
     body.add(filaResumen("Subtotal", t.getSubtotal(), false), c);
@@ -219,7 +212,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 6, 0);
     body.add(filaResumen("TOTAL", t.getTotal(), true), c);
 
-    // Efectivo y cambio — solo si aplica
     if (t.getEfectivoRecibido() > 0) {
       c.gridy = row++;
       c.insets = new Insets(0, 0, 6, 0);
@@ -233,7 +225,6 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 16, 0);
     body.add(sepLine(), c);
 
-    // Pie
     c.gridy = row++;
     c.insets = new Insets(0, 0, 3, 0);
     body.add(fullLabel("¡Gracias por su compra!", 12, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
@@ -318,7 +309,6 @@ public class PantallaTicket extends JFrame {
     return row;
   }
 
-  // ── Helpers ───────────────────────────────────────────────
   private JPanel fondoAmarillo() {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override

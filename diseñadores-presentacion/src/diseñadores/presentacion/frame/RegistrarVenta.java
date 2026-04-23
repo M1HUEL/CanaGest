@@ -23,6 +23,7 @@ public class RegistrarVenta extends JFrame {
   private JLabel lblTotal, lblCantItems, lblProductosCount;
   private JTextField campoBusqueda, campoEscanear;
   private JPanel panelGrid;
+  private JScrollPane scrollGrid;
 
   public RegistrarVenta(IVentas facade) {
     super("Punto de Venta");
@@ -118,9 +119,31 @@ public class RegistrarVenta extends JFrame {
     btnBuscar.addActionListener(e -> buscar.run());
     campoBusqueda.addActionListener(e -> buscar.run());
 
-    panelGrid = new JPanel(new GridLayout(0, 3, 10, 10));
+    panelGrid = new JPanel(new GridLayout(0, 3, 10, 10)) {
+      @Override
+      public Dimension getPreferredSize() {
+        int cols = 3;
+        int count = getComponentCount();
+        int rows = (int) Math.ceil((double) count / cols);
+        int btnH = 90;
+        int gap = 10;
+        int height = rows * btnH + Math.max(0, rows - 1) * gap;
+        return new Dimension(getParent() != null ? getParent().getWidth() : 0, height);
+      }
+
+    };
     panelGrid.setOpaque(false);
     panelGrid.setAlignmentX(LEFT_ALIGNMENT);
+
+    scrollGrid = new JScrollPane(panelGrid);
+    scrollGrid.setAlignmentX(LEFT_ALIGNMENT);
+    scrollGrid.setBorder(BorderFactory.createEmptyBorder());
+    scrollGrid.setOpaque(false);
+    scrollGrid.getViewport().setOpaque(false);
+    scrollGrid.getVerticalScrollBar().setUnitIncrement(16);
+    scrollGrid.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollGrid.setPreferredSize(new Dimension(0, 380));
+
     construirGrid(catalogoProductos);
 
     card.add(titulo);
@@ -129,7 +152,7 @@ public class RegistrarVenta extends JFrame {
     card.add(Box.createVerticalStrut(10));
     card.add(btnBuscar);
     card.add(Box.createVerticalStrut(14));
-    card.add(panelGrid);
+    card.add(scrollGrid);
     return card;
   }
 
@@ -138,6 +161,14 @@ public class RegistrarVenta extends JFrame {
     lista.forEach(p -> panelGrid.add(botonProducto(p)));
     panelGrid.revalidate();
     panelGrid.repaint();
+    if (scrollGrid != null) {
+      scrollGrid.revalidate();
+    }
+  }
+
+  private void refrescarCatalogo() {
+    catalogoProductos = facade.obtenerCatalogo();
+    filtrarGrid(campoBusqueda != null ? campoBusqueda.getText().trim() : "");
   }
 
   private void filtrarGrid(String query) {
@@ -189,7 +220,7 @@ public class RegistrarVenta extends JFrame {
     };
     btn.setLayout(new BoxLayout(btn, BoxLayout.Y_AXIS));
     btn.setBorder(new EmptyBorder(12, 10, 12, 10));
-    btn.setPreferredSize(new Dimension(0, 80));
+    btn.setPreferredSize(new Dimension(0, 90));
 
     JLabel lCod = Componentes.etiqueta(prod.getCodigo(), 10, false, Colores.AZUL_MUY_SUTIL);
     JLabel lNom = Componentes.etiqueta(prod.getNombre(), 16, true, Colores.BLANCO);
@@ -296,7 +327,7 @@ public class RegistrarVenta extends JFrame {
       }
     });
 
-    JButton btnContinuar = Componentes.botonAccion("Continuar", Colores.VERDE, Colores.VERDE_OSCURO);
+    JButton btnContinuar = Componentes.botonAccion("Pagar", Colores.VERDE, Colores.VERDE_OSCURO);
     btnContinuar.addActionListener(e -> continuarAPago());
 
     row.add(btnCancelar);
@@ -383,6 +414,7 @@ public class RegistrarVenta extends JFrame {
       carritoDisplay.clear();
       ventaActual = facade.iniciarNuevaVenta();
       actualizarVista();
+      refrescarCatalogo();
     });
   }
 

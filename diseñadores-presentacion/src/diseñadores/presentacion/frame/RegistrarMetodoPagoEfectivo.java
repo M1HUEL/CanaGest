@@ -207,7 +207,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private void actualizarUI() {
     lblRecibido.setText(String.format("$%.2f", recibido));
-    double cambio = facade.calcularCambio(ventaActual, recibido);
+    double cambio = facade.procesarCalcularCambio(ventaActual, recibido);
     lblCambio.setText(String.format("$%.2f", Math.max(cambio, 0)));
     lblCambio.setForeground(recibido >= totalAPagar ? Colores.VERDE : Colores.GRIS_TEXTO);
     btnCompletar.repaint();

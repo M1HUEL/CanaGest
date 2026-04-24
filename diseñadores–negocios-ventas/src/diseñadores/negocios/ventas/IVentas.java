@@ -15,7 +15,7 @@ public interface IVentas {
 
   ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto);
 
-  double calcularCambio(VentaDTO ventaActual, double efectivo);
+  double procesarCalcularCambio(VentaDTO ventaActual, double efectivo);
 
   void procesarFinalizarVenta(VentaDTO ventaActual);
 

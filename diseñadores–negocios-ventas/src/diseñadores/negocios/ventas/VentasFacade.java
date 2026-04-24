@@ -46,7 +46,7 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public double calcularCambio(VentaDTO ventaActual, double efectivo) {
+  public double procesarCalcularCambio(VentaDTO ventaActual, double efectivo) {
     if (ventaActual == null) {
       return 0;
     }

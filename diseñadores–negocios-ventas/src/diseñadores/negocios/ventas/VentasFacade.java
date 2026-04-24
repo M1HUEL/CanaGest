@@ -21,8 +21,8 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public Venta iniciarNuevaVenta() {
-    return new Venta();
+  public VentaDTO iniciarNuevaVenta() {
+    return new VentaDTO();
   }
 
   @Override
@@ -36,36 +36,36 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public ProductoDTO procesarProducto(Venta ventaActual, EscanearProductoDTO dto) {
+  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
     return ventasControl.procesarProducto(ventaActual, dto);
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoEfectivo(Venta ventaActual, PagoEfectivoDTO dto) {
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
     return ventasControl.procesarPagoEfectivo(ventaActual, dto);
   }
 
   @Override
-  public double calcularCambio(Venta ventaActual, double efectivo) {
+  public double calcularCambio(VentaDTO ventaActual, double efectivo) {
     if (ventaActual == null) {
       return 0;
     }
-    double total = ventaActual.getSubtotalVenta();
+    double total = ventaActual.getTotal();
     return efectivo >= total ? efectivo - total : 0;
   }
 
   @Override
-  public void procesarFinalizarVenta(Venta ventaActual) {
+  public void procesarFinalizarVenta(VentaDTO ventaActual) {
     ventasControl.procesarFinalizarVenta(ventaActual);
   }
 
   @Override
-  public VentaDTO obtenerResumenVenta(Venta ventaActual) {
-    return ventasControl.crearVentaDTO(ventaActual);
+  public VentaDTO obtenerResumenVenta(VentaDTO ventaActual) {
+    return ventaActual;
   }
 
   @Override
-  public TicketDTO generarTicket(Venta ventaActual, double montoRecibido) {
+  public TicketDTO generarTicket(VentaDTO ventaActual, double montoRecibido) {
     return ventasControl.generarTicket(ventaActual, montoRecibido);
   }
 

@@ -1,14 +1,14 @@
 package diseñadores.negocios.dto;
 
-public class Proveedor {
+public class ProveedorDTO {
 
   private String nombre;
   private String email;
 
-  public Proveedor() {
+  public ProveedorDTO() {
   }
 
-  public Proveedor(String nombre, String email) {
+  public ProveedorDTO(String nombre, String email) {
     this.nombre = nombre;
     this.email = email;
   }
@@ -27,6 +27,11 @@ public class Proveedor {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  @Override
+  public String toString() {
+    return "ProveedorDTO{" + "nombre=" + nombre + ", email=" + email + '}';
   }
 
 }

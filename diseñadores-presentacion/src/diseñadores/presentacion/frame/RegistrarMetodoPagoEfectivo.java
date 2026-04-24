@@ -16,13 +16,13 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   private double recibido = 0.0;
   private final double totalAPagar;
   private final IVentas facade;
-  private final Venta ventaActual;
+  private final VentaDTO ventaActual;
 
   private JLabel lblRecibido, lblCambio;
   private JButton btnCompletar;
 
   public RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
-    IVentas facade, Venta ventaActual,
+    IVentas facade, VentaDTO ventaActual,
     double total, Runnable onConfirmado) {
     super("Pago en Efectivo");
     this.totalAPagar = total;

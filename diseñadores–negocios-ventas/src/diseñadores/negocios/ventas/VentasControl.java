@@ -6,8 +6,6 @@ import diseñadores.negocios.productos.ProductosControl;
 import diseñadores.negocios.ventas.notificacion.IServicioNotificacion;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class VentasControl {
@@ -32,24 +30,21 @@ public class VentasControl {
     this.servicioCorreo = servicio;
   }
 
-  public ProductoDTO procesarProducto(Venta ventaActual, EscanearProductoDTO dto) {
+  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
     ProductoDTO productoDTO = productosControl.buscar(dto);
+
     if (productoDTO == null) {
       return null;
     }
 
-    Producto entidad = productosControl.encontrarEntidad(dto.getCodigo());
-    if (entidad == null) {
-      return null;
-    }
-
-    ventaActual.agregarProducto(entidad);
+    ventaActual.agregarProducto(productoDTO);
     inventario.reducirStock(dto.getCodigo(), 1);
+
     return productoDTO;
   }
 
-  public ResultadoPagoDTO procesarPagoEfectivo(Venta ventaActual, PagoEfectivoDTO dto) {
-    double total = ventaActual.getSubtotalVenta();
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
+    double total = ventaActual.getTotal();
     double recibido = dto.getMontoRecibido();
 
     if (recibido < total) {
@@ -62,35 +57,25 @@ public class VentasControl {
     return ResultadoPagoDTO.aprobado(recibido - total);
   }
 
-  public void procesarFinalizarVenta(Venta ventaActual) {
+  public void procesarFinalizarVenta(VentaDTO ventaActual) {
     ventaActual.setPagada(true);
-    for (Producto p : ventaActual.getListaProductos()) {
-      ProductoDTO actual = inventario.obtenerProducto(p.getCodigo());
-      if (actual != null && actual.getStock() < STOCK_MINIMO) {
-        ejecutarProtocoloReabastecimiento(p);
+
+    for (ItemVentaDTO item : ventaActual.getItems()) {
+      ProductoDTO estadoActual = inventario.obtenerProductoPorCodigo(item.getCodigo());
+      if (estadoActual != null && estadoActual.getStock() < STOCK_MINIMO) {
+        ejecutarProtocoloReabastecimiento(estadoActual);
       }
     }
   }
 
-  public VentaDTO crearVentaDTO(Venta ventaActual) {
-    if (ventaActual == null) {
-      return null;
-    }
-    List<ItemVentaDTO> items = consolidarItems(ventaActual.getListaProductos());
-    double total = ventaActual.getSubtotalVenta();
-    double subtotal = total / 1.16;
-    double iva = total - subtotal;
-    return new VentaDTO(items, subtotal, iva, total, ventaActual.getListaProductos().size());
-  }
-
-  public TicketDTO generarTicket(Venta ventaActual, double ultimoEfectivo) {
+  public TicketDTO generarTicket(VentaDTO ventaActual, double ultimoEfectivo) {
     if (ventaActual == null) {
       return null;
     }
 
-    double total = ventaActual.getSubtotalVenta();
-    double subtotal = total / 1.16;
-    double iva = total - subtotal;
+    double total = ventaActual.getTotal();
+    double subtotal = ventaActual.getSubtotal();
+    double iva = ventaActual.getIva();
     double cambio = ultimoEfectivo - total;
     String folio = "TK-" + System.currentTimeMillis();
 
@@ -99,37 +84,26 @@ public class VentasControl {
     String hora = ahora.format(DateTimeFormatter.ofPattern("hh:mm a"));
 
     return new TicketDTO(
-      folio, consolidarItems(ventaActual.getListaProductos()),
+      folio,
+      ventaActual.getItems(),
       subtotal, iva, total, ultimoEfectivo, cambio,
       fecha, hora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
     );
   }
 
-  private List<ItemVentaDTO> consolidarItems(List<Producto> productos) {
-    List<ItemVentaDTO> items = new ArrayList<>();
-    for (Producto p : productos) {
-      if (items.stream().noneMatch(i -> i.getCodigo().equals(p.getCodigo()))) {
-        long cantidad = productos.stream()
-          .filter(x -> x.getCodigo().equals(p.getCodigo()))
-          .count();
-        items.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), (int) cantidad));
-      }
-    }
-    return items;
-  }
-
-  private void ejecutarProtocoloReabastecimiento(Producto p) {
+  private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
     if (servicioCorreo == null) {
-      System.out.println("[REABASTECIMIENTO] Producto con stock bajo: "
-        + p.getNombre() + " (" + p.getStock() + " unidades).");
+      System.out.println("El stock se encuentra bajo para el producto: " + p.getNombre()
+        + ". Cantidad actual: " + p.getStock() + " unidades.");
       return;
     }
-    Proveedor prov = p.getProveedor();
-    String mensaje = "ALERTA DE STOCK: " + p.getNombre()
-      + " tiene solo " + p.getStock() + " unidades.";
-    boolean enviado = servicioCorreo.enviarNotificacionStock(prov.getEmail(), mensaje);
+
+    String mensaje = "Alerta: El stock se encuentra bajo para el producto " + p.getNombre()
+      + ". Solo quedan " + p.getStock() + " unidades disponibles.";
+    boolean enviado = servicioCorreo.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);
+
     if (enviado) {
-      System.out.println("Notificación enviada a: " + prov.getNombre());
+      System.out.println("Notificación de stock bajo enviada satisfactoriamente para: " + p.getNombre());
     }
   }
 

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class RegistrarVenta extends JFrame {
 
   private final IVentas facade;
-  private Venta ventaActual;
+  private VentaDTO ventaActual;
   private final List<ItemVentaDTO> carritoDisplay = new ArrayList<>();
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
@@ -316,7 +316,7 @@ public class RegistrarVenta extends JFrame {
 
     JButton btnCancelar = Componentes.botonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
     btnCancelar.addActionListener(e -> {
-      if (carritoDisplay.isEmpty()) {
+      if (ventaActual.getItems().isEmpty()) {
         return;
       }
       int op = JOptionPane.showConfirmDialog(this,
@@ -354,12 +354,6 @@ public class RegistrarVenta extends JFrame {
       return;
     }
 
-    int idx = indexEnCarrito(p.getCodigo());
-    if (idx >= 0) {
-      carritoDisplay.set(idx, carritoDisplay.get(idx).conCantidad(carritoDisplay.get(idx).getCantidad() + 1));
-    } else {
-      carritoDisplay.add(new ItemVentaDTO(p.getCodigo(), p.getNombre(), p.getPrecio(), 1));
-    }
     actualizarVista();
   }
 
@@ -370,48 +364,43 @@ public class RegistrarVenta extends JFrame {
       return;
     }
     facade.procesarProducto(ventaActual, dto);
-    int idx = indexEnCarrito(item.getCodigo());
-    if (idx >= 0) {
-      carritoDisplay.set(idx, item.conCantidad(item.getCantidad() + 1));
-    }
     actualizarVista();
   }
 
   private void decrementarItem(ItemVentaDTO item) {
-    ventaActual.removerUnaUnidad(item.getCodigo());
-    int idx = indexEnCarrito(item.getCodigo());
-    if (idx < 0) {
-      return;
-    }
     if (item.getCantidad() > 1) {
-      carritoDisplay.set(idx, item.conCantidad(item.getCantidad() - 1));
+      ItemVentaDTO itemEnVenta = ventaActual.getItems().stream()
+        .filter(i -> i.getCodigo().equals(item.getCodigo()))
+        .findFirst().orElse(null);
+
+      if (itemEnVenta != null) {
+        int index = ventaActual.getItems().indexOf(itemEnVenta);
+        ventaActual.getItems().set(index, itemEnVenta.conCantidad(itemEnVenta.getCantidad() - 1));
+      }
     } else {
-      carritoDisplay.remove(idx);
+      ventaActual.getItems().removeIf(i -> i.getCodigo().equals(item.getCodigo()));
     }
     actualizarVista();
   }
 
   private void eliminarItem(ItemVentaDTO item) {
-    ventaActual.removerTodas(item.getCodigo());
-    carritoDisplay.removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
+    ventaActual.getItems().removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
     actualizarVista();
   }
 
   private void cancelarVenta() {
-    carritoDisplay.clear();
     ventaActual = facade.iniciarNuevaVenta();
     actualizarVista();
   }
 
   private void continuarAPago() {
-    if (carritoDisplay.isEmpty()) {
+    if (ventaActual.getItems().isEmpty()) {
       mostrarAviso("El carrito esta vacio.", "Sin productos");
       return;
     }
-    double total = carritoDisplay.stream().mapToDouble(ItemVentaDTO::getSubtotal).sum();
+    double total = ventaActual.getTotal();
     this.setVisible(false);
     new SeleccionarMetodoPago(this, facade, ventaActual, total, () -> {
-      carritoDisplay.clear();
       ventaActual = facade.iniciarNuevaVenta();
       actualizarVista();
       refrescarCatalogo();
@@ -420,19 +409,16 @@ public class RegistrarVenta extends JFrame {
 
   private void actualizarVista() {
     panelCarritoItems.removeAll();
-    double total = 0;
-    for (ItemVentaDTO item : new ArrayList<>(carritoDisplay)) {
+    for (ItemVentaDTO item : ventaActual.getItems()) {
       panelCarritoItems.add(filaCarrito(item));
       panelCarritoItems.add(Box.createVerticalStrut(8));
-      total += item.getSubtotal();
     }
     panelCarritoItems.revalidate();
     panelCarritoItems.repaint();
 
-    int totalUnidades = carritoDisplay.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
-    lblTotal.setText(String.format("$%.2f", total));
-    lblCantItems.setText(totalUnidades + " items");
-    lblProductosCount.setText(totalUnidades + " productos");
+    lblTotal.setText(String.format("$%.2f", ventaActual.getTotal()));
+    lblCantItems.setText(ventaActual.getTotalUnidades() + " items");
+    lblProductosCount.setText(ventaActual.getTotalUnidades() + " productos");
   }
 
   private JPanel filaCarrito(ItemVentaDTO item) {
@@ -505,15 +491,6 @@ public class RegistrarVenta extends JFrame {
     c.insets = new Insets(6, 0, 0, 0);
     fila.add(ctrlRow, c);
     return fila;
-  }
-
-  private int indexEnCarrito(String codigo) {
-    for (int i = 0; i < carritoDisplay.size(); i++) {
-      if (carritoDisplay.get(i).getCodigo().equalsIgnoreCase(codigo)) {
-        return i;
-      }
-    }
-    return -1;
   }
 
   private void mostrarError(String msg, String titulo) {

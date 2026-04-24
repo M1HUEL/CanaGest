@@ -11,23 +11,23 @@ public class InventarioFacade implements IInventario {
   }
 
   @Override
+  public ProductoDTO obtenerProductoPorCodigo(String codigo) {
+    return control.obtenerProductoPorCodigo(codigo);
+  }
+
+  @Override
   public boolean verificarStock(String codigo, int cantidad) {
     return control.verificarStock(codigo, cantidad);
   }
 
   @Override
   public void reducirStock(String codigo, int cantidad) {
-    control.descontar(codigo, cantidad);
+    control.descontarStock(codigo, cantidad);
   }
 
   @Override
   public void actualizarStock(String codigo, int nuevaCantidad) {
     control.actualizarStock(codigo, nuevaCantidad);
-  }
-
-  @Override
-  public ProductoDTO obtenerProducto(String codigo) {
-    return control.obtenerProductoDTO(codigo);
   }
 
   public InventarioControl getControl() {

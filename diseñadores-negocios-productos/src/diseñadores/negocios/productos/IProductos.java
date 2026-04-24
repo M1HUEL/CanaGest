@@ -6,12 +6,12 @@ import java.util.List;
 
 public interface IProductos {
 
-  ProductoDTO buscarProducto(EscanearProductoDTO dto);
+  List<ProductoDTO> obtenerCatalogo();
+
+  ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto);
 
   boolean existeProducto(EscanearProductoDTO dto);
 
   boolean tieneStock(EscanearProductoDTO dto);
-
-  List<ProductoDTO> obtenerCatalogo();
 
 }

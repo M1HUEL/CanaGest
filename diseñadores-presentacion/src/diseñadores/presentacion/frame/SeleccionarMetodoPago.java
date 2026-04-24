@@ -1,6 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.Venta;
+import diseñadores.negocios.dto.VentaDTO;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Componentes;
@@ -16,7 +16,7 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private final JFrame owner;
   private final IVentas facade;
-  private final Venta ventaActual;
+  private final VentaDTO ventaActual;
   private final double total;
   private final Runnable onVentaFinalizada;
 
@@ -30,7 +30,7 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   public SeleccionarMetodoPago(JFrame owner, IVentas facade,
-    Venta ventaActual, double total,
+    VentaDTO ventaActual, double total,
     Runnable onVentaFinalizada) {
     super("Metodo de pago");
     this.owner = owner;
@@ -137,20 +137,14 @@ public class SeleccionarMetodoPago extends JFrame {
   private void seleccionarMetodo(String nombre) {
     this.setVisible(false);
     switch (nombre) {
-      case "Efectivo":
+      case "Efectivo" ->
         new RegistrarMetodoPagoEfectivo(this, owner, facade, ventaActual, total, onVentaFinalizada);
-        break;
-      case "Tarjeta":
-//        new RegistrarMetodoPagoTarjeta(this, owner, facade, ventaActual, total, onVentaFinalizada);
-//        break;
-      case "Transferencia":
-//        new RegistrarMetodoPagoTransferencia(this, owner, facade, ventaActual, total, onVentaFinalizada);
-//        break;
-      default:
+      default -> {
         JOptionPane.showMessageDialog(owner,
           "El metodo '" + nombre + "' no esta disponible aun.",
           "No disponible", JOptionPane.INFORMATION_MESSAGE);
         this.setVisible(true);
+      }
     }
   }
 

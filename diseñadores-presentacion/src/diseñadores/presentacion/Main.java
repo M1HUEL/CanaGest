@@ -1,9 +1,10 @@
 package diseñadores.presentacion;
 
-import diseñadores.negocios.ventas.IVentas;
-import diseñadores.negocios.ventas.VentasFacade;
-import diseñadores.presentacion.frame.RegistrarVenta;
-import diseñadores.presentacion.utilidad.Fuentes;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.usuarios.UsuariosFacade;
+import diseñadores.negocios.ventas.*;
+import diseñadores.presentacion.frame.*;
+import diseñadores.presentacion.utilidad.*;
 import javax.swing.SwingUtilities;
 
 public class Main {
@@ -12,11 +13,11 @@ public class Main {
 
     Fuentes.cargar();
 
-    IVentas facade = new VentasFacade();
+    IVentas ventasFachada = new VentasFacade();
+    IUsuarios usuariosFachada = new UsuariosFacade();
 
     SwingUtilities.invokeLater(() -> {
-      RegistrarVenta ventana = new RegistrarVenta(facade);
-      ventana.setVisible(true);
+      new PantallaLogin(usuariosFachada).setVisible(true);
     });
   }
 

@@ -13,21 +13,25 @@ import java.awt.geom.RoundRectangle2D;
 
 public class RegistrarMetodoPagoEfectivo extends JFrame {
 
-  private double recibido = 0.0;
-  private final double totalAPagar;
-  private final IVentas facade;
   private final VentaDTO ventaActual;
+
+  private final IVentas fachada;
+
+  private final double totalAPagar;
+
+  private double recibido = 0.0;
 
   private JLabel lblRecibido, lblCambio;
   private JButton btnCompletar;
 
   public RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
-    IVentas facade, VentaDTO ventaActual,
+    IVentas fachada, VentaDTO ventaActual,
     double total, Runnable onConfirmado) {
     super("Pago en Efectivo");
-    this.totalAPagar = total;
-    this.facade = facade;
+
     this.ventaActual = ventaActual;
+    this.fachada = fachada;
+    this.totalAPagar = total;
 
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
@@ -143,16 +147,19 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
         setBorderPainted(false);
         setFocusPainted(false);
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
+          @Override
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
 
+          @Override
           public void mouseClicked(MouseEvent e) {
             confirmarPago(mainFrame, onConfirmado);
           }
@@ -190,7 +197,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     }
 
     PagoEfectivoDTO pagoDTO = new PagoEfectivoDTO(recibido);
-    ResultadoPagoDTO resultado = facade.procesarPagoEfectivo(ventaActual, pagoDTO);
+    ResultadoPagoDTO resultado = fachada.procesarPagoEfectivo(ventaActual, pagoDTO);
 
     if (!resultado.isAprobado()) {
       JOptionPane.showMessageDialog(this, resultado.getMensaje(),
@@ -198,16 +205,16 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
       return;
     }
 
-    facade.procesarFinalizarVenta(ventaActual);
-    TicketDTO ticketDTO = facade.generarTicket(ventaActual, recibido);
+    fachada.procesarFinalizarVenta(ventaActual);
+    TicketDTO ticketDTO = fachada.generarTicket(ventaActual, recibido);
 
     this.setVisible(false);
-    new PantallaTicket(mainFrame, ticketDTO, onConfirmado);
+    PantallaTicket pantallaTicket = new PantallaTicket(mainFrame, ticketDTO, onConfirmado);
   }
 
   private void actualizarUI() {
     lblRecibido.setText(String.format("$%.2f", recibido));
-    double cambio = facade.procesarCalcularCambio(ventaActual, recibido);
+    double cambio = fachada.procesarCalcularCambio(ventaActual, recibido);
     lblCambio.setText(String.format("$%.2f", Math.max(cambio, 0)));
     lblCambio.setForeground(recibido >= totalAPagar ? Colores.VERDE : Colores.GRIS_TEXTO);
     btnCompletar.repaint();

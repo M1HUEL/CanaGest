@@ -1,5 +1,6 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -12,25 +13,8 @@ import java.util.List;
 
 public class OrdenesCompras extends JFrame {
 
-  static class Orden {
-
-    String numero, fecha, proveedor, estado;
-    int productos;
-    double total;
-
-    Orden(String numero, String fecha, String proveedor, String estado, int productos, double total) {
-      this.numero = numero;
-      this.fecha = fecha;
-      this.proveedor = proveedor;
-      this.estado = estado;
-      this.productos = productos;
-      this.total = total;
-    }
-
-  }
-
   private final JFrame menuOrigen;
-  private final List<Orden> ordenes = new ArrayList<>();
+  private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
@@ -43,9 +27,9 @@ public class OrdenesCompras extends JFrame {
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ordenes.add(new Orden("OC-2026-001", "2026-04-20", "Distribuidora Central", "Pendiente", 15, 12500.00));
-    ordenes.add(new Orden("OC-2026-002", "2026-04-18", "Alimentos del Norte", "Aprobada", 23, 8750.50));
-    ordenes.add(new Orden("OC-2026-003", "2026-04-15", "Lácteos Premium", "Recibida", 10, 5200.00));
+    ordenes.add(new OrdenCompraDTO("OC-2026-001", "2026-04-20", "Distribuidora Central", "Pendiente", 15, 12500.00));
+    ordenes.add(new OrdenCompraDTO("OC-2026-002", "2026-04-18", "Alimentos del Norte", "Aprobada", 23, 8750.50));
+    ordenes.add(new OrdenCompraDTO("OC-2026-003", "2026-04-15", "Lácteos Premium", "Recibida", 10, 5200.00));
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -189,26 +173,26 @@ public class OrdenesCompras extends JFrame {
     }
   }
 
-  private List<Orden> filtrar() {
+  private List<OrdenCompraDTO> filtrar() {
     if (filtroActual.equals("Todas")) {
       return ordenes;
     }
-    List<Orden> r = new ArrayList<>();
-    for (Orden o : ordenes) {
-      if (filtroActual.equals("Pendientes") && o.estado.equals("Pendiente")) {
+    List<OrdenCompraDTO> r = new ArrayList<>();
+    for (OrdenCompraDTO o : ordenes) {
+      if (filtroActual.equals("Pendientes") && o.getEstado().equals("Pendiente")) {
         r.add(o);
-      } else if (filtroActual.equals("Aprobadas") && o.estado.equals("Aprobada")) {
+      } else if (filtroActual.equals("Aprobadas") && o.getEstado().equals("Aprobada")) {
         r.add(o);
-      } else if (filtroActual.equals("Recibidas") && o.estado.equals("Recibida")) {
+      } else if (filtroActual.equals("Recibidas") && o.getEstado().equals("Recibida")) {
         r.add(o);
       }
     }
     return r;
   }
 
-  private void construirOrdenes(List<Orden> lista) {
+  private void construirOrdenes(List<OrdenCompraDTO> lista) {
     panelOrdenes.removeAll();
-    for (Orden o : lista) {
+    for (OrdenCompraDTO o : lista) {
       panelOrdenes.add(cardOrden(o));
     }
     if (lista.isEmpty()) {
@@ -221,7 +205,7 @@ public class OrdenesCompras extends JFrame {
     panelOrdenes.repaint();
   }
 
-  private JPanel cardOrden(Orden o) {
+  private JPanel cardOrden(OrdenCompraDTO o) {
     JPanel card = new JPanel(new BorderLayout(0, 10)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -243,10 +227,10 @@ public class OrdenesCompras extends JFrame {
     JPanel numCol = new JPanel();
     numCol.setLayout(new BoxLayout(numCol, BoxLayout.Y_AXIS));
     numCol.setOpaque(false);
-    JLabel lblNum = new JLabel(o.numero);
+    JLabel lblNum = new JLabel(o.getNumero());
     lblNum.setFont(Fuentes.b(16));
     lblNum.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblFecha = new JLabel(o.fecha);
+    JLabel lblFecha = new JLabel(o.getFecha());
     lblFecha.setFont(Fuentes.r(12));
     lblFecha.setForeground(Colores.GRIS_TEXTO);
     numCol.add(lblNum);
@@ -254,17 +238,17 @@ public class OrdenesCompras extends JFrame {
     numCol.add(lblFecha);
 
     Color badgeColor, badgeBg;
-    if (o.estado.equals("Pendiente")) {
+    if (o.getEstado().equals("Pendiente")) {
       badgeColor = new Color(161, 110, 0);
       badgeBg = new Color(254, 243, 199);
-    } else if (o.estado.equals("Aprobada")) {
+    } else if (o.getEstado().equals("Aprobada")) {
       badgeColor = new Color(30, 80, 180);
       badgeBg = new Color(219, 234, 254);
     } else {
       badgeColor = new Color(21, 128, 61);
       badgeBg = new Color(220, 252, 231);
     }
-    JLabel badge = new JLabel(o.estado, SwingConstants.CENTER);
+    JLabel badge = new JLabel(o.getEstado(), SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
     badge.setForeground(badgeColor);
     badge.setOpaque(true);
@@ -286,7 +270,7 @@ public class OrdenesCompras extends JFrame {
     JLabel lP = new JLabel("Proveedor: ");
     lP.setFont(Fuentes.b(13));
     lP.setForeground(Colores.TEXTO_OSCURO);
-    JLabel vP = new JLabel(o.proveedor);
+    JLabel vP = new JLabel(o.getProveedor());
     vP.setFont(Fuentes.r(13));
     vP.setForeground(Colores.TEXTO_OSCURO);
     filaP.add(lP);
@@ -297,7 +281,7 @@ public class OrdenesCompras extends JFrame {
     JLabel lQ = new JLabel("Productos: ");
     lQ.setFont(Fuentes.b(13));
     lQ.setForeground(Colores.TEXTO_OSCURO);
-    JLabel vQ = new JLabel(o.productos + " items");
+    JLabel vQ = new JLabel(o.getProductos() + " items");
     vQ.setFont(Fuentes.r(13));
     vQ.setForeground(Colores.TEXTO_OSCURO);
     filaQ.add(lQ);
@@ -307,7 +291,7 @@ public class OrdenesCompras extends JFrame {
     datos.add(Box.createVerticalStrut(5));
     datos.add(filaQ);
 
-    JLabel lblTotal = new JLabel(String.format("$%.2f", o.total));
+    JLabel lblTotal = new JLabel(String.format("$%.2f", o.getTotal()));
     lblTotal.setFont(Fuentes.b(24));
     lblTotal.setForeground(Colores.AZUL);
     lblTotal.setBorder(new EmptyBorder(6, 0, 10, 0));
@@ -331,22 +315,22 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
     btnDetalle.addActionListener(e -> JOptionPane.showMessageDialog(this,
-      "Orden: " + o.numero + "\nProveedor: " + o.proveedor
-      + "\nProductos: " + o.productos + "\nTotal: $" + String.format("%.2f", o.total)
-      + "\nEstado: " + o.estado, "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
+      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedor()
+      + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal())
+      + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
     botonesRow.add(btnDetalle);
 
-    if (o.estado.equals("Pendiente")) {
+    if (o.getEstado().equals("Pendiente")) {
       JButton btnAprobar = crearBotonCardOrdenes("Aprobar", Colores.VERDE, Colores.VERDE_HOVER, true);
       btnAprobar.addActionListener(e -> {
-        o.estado = "Aprobada";
+        o.setEstado("Aprobada");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnAprobar);
-    } else if (o.estado.equals("Aprobada")) {
+    } else if (o.getEstado().equals("Aprobada")) {
       JButton btnRecibir = crearBotonCardOrdenes("Recibir", Colores.AZUL, Colores.AZUL_HOVER, true);
       btnRecibir.addActionListener(e -> {
-        o.estado = "Recibida";
+        o.setEstado("Recibida");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnRecibir);
@@ -423,7 +407,7 @@ public class OrdenesCompras extends JFrame {
           return;
         }
         String num = String.format("OC-%d-%03d", java.time.LocalDate.now().getYear(), ordenes.size() + 1);
-        ordenes.add(new Orden(num, fecha.isEmpty() ? java.time.LocalDate.now().toString() : fecha,
+        ordenes.add(new OrdenCompraDTO(num, fecha.isEmpty() ? java.time.LocalDate.now().toString() : fecha,
           prov, "Pendiente", prods, tot));
         construirOrdenes(filtrar());
         dlg.dispose();

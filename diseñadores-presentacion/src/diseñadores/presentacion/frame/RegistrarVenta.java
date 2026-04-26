@@ -14,9 +14,12 @@ import java.util.stream.Collectors;
 
 public class RegistrarVenta extends JFrame {
 
-  private final IVentas facade;
   private VentaDTO ventaActual;
+
+  private final IVentas fachada;
+
   private final List<ItemVentaDTO> carritoDisplay = new ArrayList<>();
+
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
   private JPanel panelCarritoItems;
@@ -27,18 +30,15 @@ public class RegistrarVenta extends JFrame {
 
   public RegistrarVenta(IVentas facade) {
     super("Punto de Venta");
-    this.facade = facade;
-    inicializar();
-  }
+    this.fachada = facade;
 
-  private void inicializar() {
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ventaActual = facade.iniciarNuevaVenta();
-    catalogoProductos = facade.obtenerCatalogo();
+    ventaActual = fachada.iniciarNuevaVenta();
+    catalogoProductos = fachada.obtenerCatalogo();
 
     JPanel root = Componentes.fondoAmarillo();
     root.add(Componentes.topBar(this), BorderLayout.NORTH);
@@ -167,7 +167,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void refrescarCatalogo() {
-    catalogoProductos = facade.obtenerCatalogo();
+    catalogoProductos = fachada.obtenerCatalogo();
     filtrarGrid(campoBusqueda != null ? campoBusqueda.getText().trim() : "");
   }
 
@@ -191,6 +191,7 @@ public class RegistrarVenta extends JFrame {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new java.awt.event.MouseAdapter() {
+          @Override
           public void mouseEntered(java.awt.event.MouseEvent e) {
             hover = true;
             repaint();
@@ -201,6 +202,7 @@ public class RegistrarVenta extends JFrame {
             repaint();
           }
 
+          @Override
           public void mouseClicked(java.awt.event.MouseEvent e) {
             agregarAlCarrito(prod.getCodigo());
           }
@@ -338,18 +340,18 @@ public class RegistrarVenta extends JFrame {
   private void agregarAlCarrito(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
 
-    if (!facade.existeProducto(dto)) {
+    if (!fachada.existeProducto(dto)) {
       mostrarError("<html>El producto <b>" + codigo + "</b> no existe en el catalogo.</html>",
         "Producto no encontrado");
       return;
     }
-    if (!facade.tieneStock(dto)) {
+    if (!fachada.tieneStock(dto)) {
       mostrarAviso("<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles.</html>",
         "Sin stock");
       return;
     }
 
-    ProductoDTO p = facade.procesarProducto(ventaActual, dto);
+    ProductoDTO p = fachada.procesarProducto(ventaActual, dto);
     if (p == null) {
       return;
     }
@@ -359,11 +361,11 @@ public class RegistrarVenta extends JFrame {
 
   private void incrementarItem(ItemVentaDTO item) {
     EscanearProductoDTO dto = new EscanearProductoDTO(item.getCodigo());
-    if (!facade.tieneStock(dto)) {
+    if (!fachada.tieneStock(dto)) {
       mostrarAviso("<html>No hay mas stock de <b>" + item.getNombre() + "</b>.</html>", "Sin stock");
       return;
     }
-    facade.procesarProducto(ventaActual, dto);
+    fachada.procesarProducto(ventaActual, dto);
     actualizarVista();
   }
 
@@ -389,7 +391,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void cancelarVenta() {
-    ventaActual = facade.iniciarNuevaVenta();
+    ventaActual = fachada.iniciarNuevaVenta();
     actualizarVista();
   }
 
@@ -400,8 +402,8 @@ public class RegistrarVenta extends JFrame {
     }
     double total = ventaActual.getTotal();
     this.setVisible(false);
-    new SeleccionarMetodoPago(this, facade, ventaActual, total, () -> {
-      ventaActual = facade.iniciarNuevaVenta();
+    SeleccionarMetodoPago seleccionarMetodoPago = new SeleccionarMetodoPago(this, fachada, ventaActual, total, () -> {
+      ventaActual = fachada.iniciarNuevaVenta();
       actualizarVista();
       refrescarCatalogo();
     });

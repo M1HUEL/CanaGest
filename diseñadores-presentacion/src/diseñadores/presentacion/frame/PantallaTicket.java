@@ -373,11 +373,13 @@ public class PantallaTicket extends JFrame {
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
+          @Override
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
@@ -412,11 +414,13 @@ public class PantallaTicket extends JFrame {
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
+          @Override
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();

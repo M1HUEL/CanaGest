@@ -14,10 +14,14 @@ import java.util.Map;
 
 public class SeleccionarMetodoPago extends JFrame {
 
-  private final JFrame owner;
-  private final IVentas facade;
   private final VentaDTO ventaActual;
+
+  private final JFrame frame;
+
+  private final IVentas fachada;
+
   private final double total;
+
   private final Runnable onVentaFinalizada;
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
@@ -29,28 +33,27 @@ public class SeleccionarMetodoPago extends JFrame {
     COLORES_METODO.put("Transferencia", new Color[]{Colores.NARANJA, Colores.NARANJA_HOVER});
   }
 
-  public SeleccionarMetodoPago(JFrame owner, IVentas facade,
+  public SeleccionarMetodoPago(JFrame frame, IVentas fachada,
     VentaDTO ventaActual, double total,
     Runnable onVentaFinalizada) {
     super("Metodo de pago");
-    this.owner = owner;
-    this.facade = facade;
+
     this.ventaActual = ventaActual;
+    this.frame = frame;
+    this.fachada = fachada;
     this.total = total;
     this.onVentaFinalizada = onVentaFinalizada;
 
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(owner.getWidth(), owner.getHeight());
-    setLocation(owner.getLocation());
-    construirUI();
-    setVisible(true);
-  }
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
 
-  private void construirUI() {
     JPanel root = Componentes.fondoAmarillo();
     root.add(Componentes.topBar(this), BorderLayout.NORTH);
     root.add(Componentes.centrado(buildCard(), 280, 30), BorderLayout.CENTER);
     setContentPane(root);
+
+    setVisible(true);
   }
 
   private JPanel buildCard() {
@@ -79,16 +82,19 @@ public class SeleccionarMetodoPago extends JFrame {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseEntered(MouseEvent e) {
             ov = true;
             repaint();
           }
 
+          @Override
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
 
+          @Override
           public void mouseClicked(MouseEvent e) {
             seleccionarMetodo(nombre);
           }
@@ -138,9 +144,9 @@ public class SeleccionarMetodoPago extends JFrame {
     this.setVisible(false);
     switch (nombre) {
       case "Efectivo" ->
-        new RegistrarMetodoPagoEfectivo(this, owner, facade, ventaActual, total, onVentaFinalizada);
+        new RegistrarMetodoPagoEfectivo(this, frame, fachada, ventaActual, total, onVentaFinalizada);
       default -> {
-        JOptionPane.showMessageDialog(owner,
+        JOptionPane.showMessageDialog(frame,
           "El metodo '" + nombre + "' no esta disponible aun.",
           "No disponible", JOptionPane.INFORMATION_MESSAGE);
         this.setVisible(true);
@@ -150,7 +156,7 @@ public class SeleccionarMetodoPago extends JFrame {
 
   void volver() {
     dispose();
-    owner.setVisible(true);
+    frame.setVisible(true);
   }
 
 }

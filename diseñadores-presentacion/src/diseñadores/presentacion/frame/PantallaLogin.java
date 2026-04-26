@@ -14,11 +14,12 @@ public class PantallaLogin extends JFrame {
 
   private IUsuarios fachada;
 
-  private static final String USUARIO_VALIDO = "admin";
-  private static final String CONTRASENA_VALIDA = "1234";
+  private static final String USUARIO = "admin";
+  private static final String CONTRASENA = "1234";
 
   public PantallaLogin(IUsuarios fachada) {
     this.fachada = fachada;
+
     setTitle("La Canasta - Iniciar Sesión");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1500, 900);
@@ -101,6 +102,7 @@ public class PantallaLogin extends JFrame {
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseEntered(MouseEvent e) {
             hover = true;
             repaint();
@@ -206,6 +208,7 @@ public class PantallaLogin extends JFrame {
       pf.setEchoChar((char) 0);
       pf.setText(placeholder);
       pf.addFocusListener(new FocusAdapter() {
+        @Override
         public void focusGained(FocusEvent e) {
           if (new String(pf.getPassword()).equals(placeholder)) {
             pf.setText("");
@@ -214,6 +217,7 @@ public class PantallaLogin extends JFrame {
           }
         }
 
+        @Override
         public void focusLost(FocusEvent e) {
           if (new String(pf.getPassword()).isEmpty()) {
             pf.setEchoChar((char) 0);
@@ -226,6 +230,7 @@ public class PantallaLogin extends JFrame {
     } else {
       tf.setText(placeholder);
       tf.addFocusListener(new FocusAdapter() {
+        @Override
         public void focusGained(FocusEvent e) {
           if (tf.getText().equals(placeholder)) {
             tf.setText("");
@@ -233,6 +238,7 @@ public class PantallaLogin extends JFrame {
           }
         }
 
+        @Override
         public void focusLost(FocusEvent e) {
           if (tf.getText().isEmpty()) {
             tf.setText(placeholder);

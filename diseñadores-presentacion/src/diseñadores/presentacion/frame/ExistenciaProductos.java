@@ -14,37 +14,9 @@ import java.util.List;
 
 public class ExistenciaProductos extends JFrame {
 
-  static class Producto {
-
-    String codigo, nombre, ultimaAct;
-    int stockActual, stockMin, stockMax;
-    ProductoDTO dto;
-
-    Producto(String codigo, String nombre, int stockActual, int stockMin, int stockMax, String ultimaAct, ProductoDTO dto) {
-      this.codigo = codigo;
-      this.nombre = nombre;
-      this.stockActual = stockActual;
-      this.stockMin = stockMin;
-      this.stockMax = stockMax;
-      this.ultimaAct = ultimaAct;
-      this.dto = dto;
-    }
-
-    String getEstado() {
-      if (stockActual <= stockMin) {
-        return "Bajo";
-      }
-      if (stockActual >= stockMax) {
-        return "Alto";
-      }
-      return "Normal";
-    }
-
-  }
-
   private final JFrame menuOrigen;
   private final InventarioFacade facade;
-  private final List<Producto> productos = new ArrayList<>();
+  private final List<ProductoDTO> productos = new ArrayList<>();
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
@@ -57,10 +29,7 @@ public class ExistenciaProductos extends JFrame {
     setLocationRelativeTo(null);
     setResizable(true);
 
-    for (ProductoDTO p : facade.obtenerTodos()) {
-      productos.add(new Producto(p.getCodigo(), p.getNombre(), p.getStock(), p.getStockMinimo(),
-        p.getStockMaximo(), p.getFechaModificacion(), p));
-    }
+    productos.addAll(facade.obtenerTodos());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -69,7 +38,6 @@ public class ExistenciaProductos extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
     };
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
@@ -126,30 +94,13 @@ public class ExistenciaProductos extends JFrame {
     JLabel lblTitulo = new JLabel("Existencia de Productos");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblDesc = new JLabel("Registra y actualiza el inventario de productos");
+    JLabel lblDesc = new JLabel("Control de inventario y niveles de stock");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
     header.add(tituloCol, BorderLayout.WEST);
-
-    JPanel barBusqueda = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.SOMBRA);
-        g.fill(new RoundRectangle2D.Float(3, 3, getWidth() - 3, getHeight() - 3, 14, 14));
-        g.setColor(Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
-        super.paintComponent(g2d);
-      }
-
-    };
-    barBusqueda.setOpaque(false);
-    barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
-    barBusqueda.setPreferredSize(new Dimension(0, 66));
 
     campoBusqueda = new JTextField() {
       @Override
@@ -160,7 +111,6 @@ public class ExistenciaProductos extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
-
     };
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
@@ -168,7 +118,7 @@ public class ExistenciaProductos extends JFrame {
       new EmptyBorder(8, 14, 8, 14)));
     campoBusqueda.setFont(Fuentes.r(14));
     campoBusqueda.setForeground(Colores.GRIS_TEXTO);
-    campoBusqueda.setText("Buscar por nombre o código del producto...");
+    campoBusqueda.setText("Buscar producto...");
     campoBusqueda.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
@@ -177,33 +127,31 @@ public class ExistenciaProductos extends JFrame {
           campoBusqueda.setForeground(Colores.TEXTO_OSCURO);
         }
       }
-
       @Override
       public void focusLost(FocusEvent e) {
         if (campoBusqueda.getText().isEmpty()) {
-          campoBusqueda.setText("Buscar por nombre o código del producto...");
+          campoBusqueda.setText("Buscar producto...");
           campoBusqueda.setForeground(Colores.GRIS_TEXTO);
         }
       }
-
     });
     campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
       @Override
-      public void insertUpdate(javax.swing.event.DocumentEvent e) {
-        filtrar();
-      }
-
+      public void insertUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
       @Override
-      public void removeUpdate(javax.swing.event.DocumentEvent e) {
-        filtrar();
-      }
-
+      public void removeUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
       @Override
-      public void changedUpdate(javax.swing.event.DocumentEvent e) {
-      }
-
+      public void changedUpdate(javax.swing.event.DocumentEvent e) {}
     });
-    barBusqueda.add(campoBusqueda, BorderLayout.CENTER);
+
+    JPanel busquedaWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
+    busquedaWrap.setOpaque(false);
+    busquedaWrap.add(campoBusqueda);
+
+    JPanel topRow = new JPanel(new BorderLayout());
+    topRow.setOpaque(false);
+    topRow.add(header, BorderLayout.WEST);
+    topRow.add(busquedaWrap, BorderLayout.EAST);
 
     JPanel wrapTabla = new JPanel(new BorderLayout()) {
       @Override
@@ -216,13 +164,12 @@ public class ExistenciaProductos extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
         super.paintComponent(g2d);
       }
-
     };
     wrapTabla.setOpaque(false);
 
     JPanel headerTabla = new JPanel(new GridLayout(1, 8));
     headerTabla.setOpaque(false);
-    headerTabla.setBorder(new EmptyBorder(14, 20, 14, 20));
+    headerTabla.setBorder(new EmptyBorder(16, 24, 16, 24));
     String[] cols = {"Código", "Producto", "Stock Actual", "Stock Mín", "Stock Máx", "Estado", "Última Act.", "Acciones"};
     for (String col : cols) {
       JLabel lbl = new JLabel(col);
@@ -230,6 +177,23 @@ public class ExistenciaProductos extends JFrame {
       lbl.setForeground(Colores.TEXTO_OSCURO);
       headerTabla.add(lbl);
     }
+
+    JPanel sepHeader = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.BORDE_GRIS);
+        g.drawLine(0, 0, getWidth(), 0);
+      }
+    };
+    sepHeader.setOpaque(false);
+    sepHeader.setPreferredSize(new Dimension(0, 1));
+    sepHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+
+    JPanel headerWrap = new JPanel(new BorderLayout());
+    headerWrap.setOpaque(false);
+    headerWrap.add(headerTabla, BorderLayout.CENTER);
+    headerWrap.add(sepHeader, BorderLayout.SOUTH);
 
     panelTabla = new JPanel();
     panelTabla.setLayout(new BoxLayout(panelTabla, BoxLayout.Y_AXIS));
@@ -243,16 +207,11 @@ public class ExistenciaProductos extends JFrame {
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-    wrapTabla.add(headerTabla, BorderLayout.NORTH);
+    wrapTabla.add(headerWrap, BorderLayout.NORTH);
     wrapTabla.add(scroll, BorderLayout.CENTER);
 
-    JPanel centro = new JPanel(new BorderLayout(0, 16));
-    centro.setOpaque(false);
-    centro.add(barBusqueda, BorderLayout.NORTH);
-    centro.add(wrapTabla, BorderLayout.CENTER);
-
-    contenido.add(header, BorderLayout.NORTH);
-    contenido.add(centro, BorderLayout.CENTER);
+    contenido.add(topRow, BorderLayout.NORTH);
+    contenido.add(wrapTabla, BorderLayout.CENTER);
     return contenido;
   }
 
@@ -262,10 +221,10 @@ public class ExistenciaProductos extends JFrame {
       construirTabla(productos);
       return;
     }
-    String ql = q.toLowerCase();
-List<ProductoDTO> f = new ArrayList<>();
+    q = q.toLowerCase();
+    List<ProductoDTO> f = new ArrayList<>();
     for (ProductoDTO p : productos) {
-      if (p.nombre.toLowerCase().contains(q) || p.codigo.toLowerCase().contains(q)) {
+      if (p.getNombre().toLowerCase().contains(q) || p.getCodigo().toLowerCase().contains(q)) {
         f.add(p);
       }
     }
@@ -276,15 +235,6 @@ List<ProductoDTO> f = new ArrayList<>();
     panelTabla.removeAll();
     for (ProductoDTO p : lista) {
       panelTabla.add(filaProducto(p));
-    }
-    }
-    construirTabla(f);
-  }
-
-  private void construirTabla(List<Producto> lista) {
-    panelTabla.removeAll();
-    for (Producto p : lista) {
-      panelTabla.add(filaProducto(p));
       JPanel sep = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -292,53 +242,45 @@ List<ProductoDTO> f = new ArrayList<>();
           g.setColor(Colores.BORDE_GRIS);
           g.drawLine(0, 0, getWidth(), 0);
         }
-
       };
       sep.setOpaque(false);
       sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
       sep.setPreferredSize(new Dimension(0, 1));
       panelTabla.add(sep);
     }
-    if (lista.isEmpty()) {
-      JLabel vacio = new JLabel("No se encontraron productos.", SwingConstants.CENTER);
-      vacio.setFont(Fuentes.r(14));
-      vacio.setForeground(Colores.GRIS_TEXTO);
-      vacio.setAlignmentX(CENTER_ALIGNMENT);
-      panelTabla.add(vacio);
-    }
     panelTabla.revalidate();
     panelTabla.repaint();
   }
 
-private JPanel filaProducto(ProductoDTO p) {
+  private JPanel filaProducto(ProductoDTO p) {
     JPanel fila = new JPanel(new GridLayout(1, 8));
     fila.setOpaque(false);
     fila.setBorder(new EmptyBorder(16, 24, 16, 24));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 
-    JLabel lblCodigo = new JLabel(p.codigo);
+    JLabel lblCodigo = new JLabel(p.getCodigo());
     lblCodigo.setFont(Fuentes.r(13));
     lblCodigo.setForeground(Colores.GRIS_TEXTO);
 
-    JLabel lblNombre = new JLabel(p.nombre);
+    JLabel lblNombre = new JLabel(p.getNombre());
     lblNombre.setFont(Fuentes.r(13));
     lblNombre.setForeground(Colores.TEXTO_OSCURO);
 
-    JLabel lblStock = new JLabel(String.valueOf(p.stockActual));
+    JLabel lblStock = new JLabel(String.valueOf(p.getStock()));
     lblStock.setFont(Fuentes.b(14));
     lblStock.setForeground(Colores.TEXTO_OSCURO);
 
-    JLabel lblMin = new JLabel(String.valueOf(p.stockMin));
+    JLabel lblMin = new JLabel(String.valueOf(p.getStockMinimo()));
     lblMin.setFont(Fuentes.r(13));
     lblMin.setForeground(Colores.TEXTO_OSCURO);
 
-    JLabel lblMax = new JLabel(String.valueOf(p.stockMax));
+    JLabel lblMax = new JLabel(String.valueOf(p.getStockMaximo()));
     lblMax.setFont(Fuentes.r(13));
     lblMax.setForeground(Colores.TEXTO_OSCURO);
 
-    String estado = p.getEstado();
-    Color estadoColor = "Bajo".equals(estado) ? new Color(185, 28, 28) : ("Alto".equals(estado) ? new Color(161, 110, 0) : new Color(21, 128, 61));
-    Color estadoBg = "Bajo".equals(estado) ? new Color(254, 226, 226) : ("Alto".equals(estado) ? new Color(254, 243, 199) : new Color(220, 252, 231));
+    String estado = p.estaBajoMinimo() ? "Bajo" : (p.estaSobreMaximo() ? "Alto" : "Normal");
+    Color estadoColor = p.estaBajoMinimo() ? new Color(185, 28, 28) : (p.estaSobreMaximo() ? new Color(161, 110, 0) : new Color(21, 128, 61));
+    Color estadoBg = p.estaBajoMinimo() ? new Color(254, 226, 226) : (p.estaSobreMaximo() ? new Color(254, 243, 199) : new Color(220, 252, 231));
     JLabel lblEstado = new JLabel(estado, SwingConstants.CENTER);
     lblEstado.setFont(Fuentes.b(11));
     lblEstado.setForeground(estadoColor);
@@ -349,7 +291,7 @@ private JPanel filaProducto(ProductoDTO p) {
     wrapEstado.setOpaque(false);
     wrapEstado.add(lblEstado);
 
-    JLabel lblUlt = new JLabel(p.ultimaAct != null ? p.ultimaAct : "-");
+    JLabel lblUlt = new JLabel(p.getFechaModificacion() != null ? p.getFechaModificacion() : "-");
     lblUlt.setFont(Fuentes.r(13));
     lblUlt.setForeground(Colores.TEXTO_OSCURO);
 
@@ -370,15 +312,21 @@ private JPanel filaProducto(ProductoDTO p) {
     return fila;
   }
 
+  private JButton crearBotonTabla(String texto) {
+    JButton b = new JButton(texto) {
+      boolean ov = false;
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
           @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
+          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
+          @Override
+          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
         });
       }
-
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -387,30 +335,15 @@ private JPanel filaProducto(ProductoDTO p) {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
-
     };
-    btnActualizar.setForeground(Colores.BLANCO);
-    btnActualizar.setFont(Fuentes.b(12));
-    btnActualizar.setPreferredSize(new Dimension(100, 34));
-    btnActualizar.addActionListener(e -> abrirDialogoActualizar(p));
-
-    JPanel wrapBtn = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    wrapBtn.setOpaque(false);
-    wrapBtn.add(btnActualizar);
-
-    fila.add(lblCodigo);
-    fila.add(lblNombre);
-    fila.add(lblStock);
-    fila.add(lblMin);
-    fila.add(lblMax);
-    fila.add(wrapEstado);
-    fila.add(lblUlt);
-    fila.add(wrapBtn);
-    return fila;
+    b.setForeground(Colores.BLANCO);
+    b.setFont(Fuentes.b(12));
+    b.setPreferredSize(new Dimension(100, 34));
+    return b;
   }
 
-  private void abrirDialogoActualizar(Producto p) {
-    JDialog dlg = new JDialog(this, "Actualizar Stock: " + p.nombre, true);
+  private void abrirDialogoActualizar(ProductoDTO p) {
+    JDialog dlg = new JDialog(this, "Actualizar Stock: " + p.getNombre(), true);
     dlg.setSize(400, 340);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
@@ -420,7 +353,7 @@ private JPanel filaProducto(ProductoDTO p) {
     panel.setBorder(new EmptyBorder(28, 32, 28, 32));
     panel.setBackground(Colores.BLANCO);
 
-    JLabel titulo = new JLabel("Actualizar: " + p.nombre);
+    JLabel titulo = new JLabel("Actualizar: " + p.getNombre());
     titulo.setFont(Fuentes.b(18));
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
@@ -428,7 +361,7 @@ private JPanel filaProducto(ProductoDTO p) {
     panel.add(Box.createVerticalStrut(20));
 
     String[] etqs = {"Stock Actual", "Stock Mínimo", "Stock Máximo"};
-    String[] vals = {String.valueOf(p.stockActual), String.valueOf(p.stockMin), String.valueOf(p.stockMax)};
+    String[] vals = {String.valueOf(p.getStock()), String.valueOf(p.getStockMinimo()), String.valueOf(p.getStockMaximo())};
     JTextField[] campos = new JTextField[3];
 
     for (int i = 0; i < etqs.length; i++) {
@@ -450,9 +383,32 @@ private JPanel filaProducto(ProductoDTO p) {
       panel.add(Box.createVerticalStrut(10));
     }
 
-    JButton btnGuardar = new JButton("Guardar") {
-      boolean ov = false;
+    JButton btnGuardar = crearBotonGuardar();
+    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
+    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+    btnGuardar.addActionListener(e -> {
+      try {
+        int nuevoStock = Integer.parseInt(campos[0].getText().trim());
+        int nuevoMin = Integer.parseInt(campos[1].getText().trim());
+        int nuevoMax = Integer.parseInt(campos[2].getText().trim());
+        facade.actualizarStockCompleto(p.getCodigo(), nuevoStock, nuevoMin, nuevoMax);
+        productos.clear();
+        productos.addAll(facade.obtenerTodos());
+        construirTabla(productos);
+        dlg.dispose();
+      } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(dlg, "Ingrese valores numéricos válidos.", "Error", JOptionPane.WARNING_MESSAGE);
+      }
+    });
+    panel.add(btnGuardar);
 
+    dlg.setContentPane(panel);
+    dlg.setVisible(true);
+  }
+
+  private JButton crearBotonGuardar() {
+    JButton b = new JButton("Guardar") {
+      boolean ov = false;
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
@@ -460,20 +416,11 @@ private JPanel filaProducto(ProductoDTO p) {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
+          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
           @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
+          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
         });
       }
-
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -482,37 +429,15 @@ private JPanel filaProducto(ProductoDTO p) {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
     };
-    btnGuardar.setForeground(Colores.BLANCO);
-    btnGuardar.setFont(Fuentes.b(14));
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-    btnGuardar.addActionListener(e -> {
-      try {
-        int nuevoStock = Integer.parseInt(campos[0].getText().trim());
-        int nuevoMin = Integer.parseInt(campos[1].getText().trim());
-        int nuevoMax = Integer.parseInt(campos[2].getText().trim());
-        facade.actualizarStockCompleto(p.codigo, nuevoStock, nuevoMin, nuevoMax);
-        p.stockActual = nuevoStock;
-        p.stockMin = nuevoMin;
-        p.stockMax = nuevoMax;
-        p.ultimaAct = java.time.LocalDate.now().toString();
-        construirTabla(productos);
-        dlg.dispose();
-      } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(dlg, "Ingrese valores numéricos válidos.", "Error", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-    panel.add(btnGuardar);
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
+    b.setForeground(Colores.BLANCO);
+    b.setFont(Fuentes.b(14));
+    return b;
   }
 
   private JButton btnAmarillo(String texto) {
     JButton b = new JButton(texto) {
       boolean ov = false;
-
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
@@ -520,20 +445,11 @@ private JPanel filaProducto(ProductoDTO p) {
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
           @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
+          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
           @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
+          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
         });
       }
-
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -542,7 +458,6 @@ private JPanel filaProducto(ProductoDTO p) {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
     };
     b.setForeground(new Color(30, 30, 30));
     b.setFont(Fuentes.b(13));

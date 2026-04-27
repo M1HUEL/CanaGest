@@ -1,6 +1,8 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
+import diseñadores.negocios.dto.ProveedorDTO;
+import diseñadores.negocios.proveedores.ProveedoresFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -14,6 +16,7 @@ import java.util.List;
 public class OrdenesCompras extends JFrame {
 
   private final JFrame menuOrigen;
+  private final ProveedoresFacade facade;
   private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
@@ -21,15 +24,14 @@ public class OrdenesCompras extends JFrame {
 
   public OrdenesCompras(JFrame menuOrigen) {
     this.menuOrigen = menuOrigen;
+    this.facade = new ProveedoresFacade();
     setTitle("La Canasta - Órdenes de Compra");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ordenes.add(new OrdenCompraDTO("OC-2026-001", "2026-04-20", "Distribuidora Central", "Pendiente", 15, 12500.00));
-    ordenes.add(new OrdenCompraDTO("OC-2026-002", "2026-04-18", "Alimentos del Norte", "Aprobada", 23, 8750.50));
-    ordenes.add(new OrdenCompraDTO("OC-2026-003", "2026-04-15", "Lácteos Premium", "Recibida", 10, 5200.00));
+    ordenes.addAll(facade.obtenerOrdenesCompra());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -270,7 +272,7 @@ public class OrdenesCompras extends JFrame {
     JLabel lP = new JLabel("Proveedor: ");
     lP.setFont(Fuentes.b(13));
     lP.setForeground(Colores.TEXTO_OSCURO);
-    JLabel vP = new JLabel(o.getProveedor());
+    JLabel vP = new JLabel(o.getProveedorNombre());
     vP.setFont(Fuentes.r(13));
     vP.setForeground(Colores.TEXTO_OSCURO);
     filaP.add(lP);
@@ -315,7 +317,7 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
     btnDetalle.addActionListener(e -> JOptionPane.showMessageDialog(this,
-      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedor()
+      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
       + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal())
       + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
     botonesRow.add(btnDetalle);
@@ -324,6 +326,7 @@ public class OrdenesCompras extends JFrame {
       JButton btnAprobar = crearBotonCardOrdenes("Aprobar", Colores.VERDE, Colores.VERDE_HOVER, true);
       btnAprobar.addActionListener(e -> {
         o.setEstado("Aprobada");
+        facade.cambiarEstadoOrden(o.getNumero(), "Aprobada");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnAprobar);
@@ -331,6 +334,7 @@ public class OrdenesCompras extends JFrame {
       JButton btnRecibir = crearBotonCardOrdenes("Recibir", Colores.AZUL, Colores.AZUL_HOVER, true);
       btnRecibir.addActionListener(e -> {
         o.setEstado("Recibida");
+        facade.cambiarEstadoOrden(o.getNumero(), "Recibida");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnRecibir);
@@ -356,7 +360,7 @@ public class OrdenesCompras extends JFrame {
 
   private void abrirFormularioNueva() {
     JDialog dlg = new JDialog(this, "Nueva Orden de Compra", true);
-    dlg.setSize(460, 400);
+    dlg.setSize(520, 520);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
 
@@ -372,7 +376,27 @@ public class OrdenesCompras extends JFrame {
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
 
-    String[] etqs = {"Proveedor", "Fecha (YYYY-MM-DD)", "Núm. productos", "Total ($)"};
+    List<ProveedorDTO> proveedores = facade.obtenerProveedores();
+    String[] nombresProveedores = proveedores.stream()
+      .filter(ProveedorDTO::isActivo)
+      .map(ProveedorDTO::getNombre)
+      .toArray(String[]::new);
+
+    JLabel lblProv = new JLabel("Proveedor");
+    lblProv.setFont(Fuentes.b(12));
+    lblProv.setForeground(Colores.TEXTO_OSCURO);
+    lblProv.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(lblProv);
+    panel.add(Box.createVerticalStrut(4));
+
+    JComboBox<String> comboProveedor = new JComboBox<>(nombresProveedores);
+    comboProveedor.setFont(Fuentes.r(13));
+    comboProveedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+    comboProveedor.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(comboProveedor);
+    panel.add(Box.createVerticalStrut(10));
+
+    String[] etqs = {"Cantidad de productos", "Total ($)"};
     JTextField[] campos = new JTextField[etqs.length];
     for (int i = 0; i < etqs.length; i++) {
       JLabel lbl = new JLabel(etqs[i]);
@@ -398,17 +422,25 @@ public class OrdenesCompras extends JFrame {
     btnCrear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     btnCrear.addActionListener(e -> {
       try {
-        String prov = campos[0].getText().trim();
-        String fecha = campos[1].getText().trim();
-        int prods = Integer.parseInt(campos[2].getText().trim());
-        double tot = Double.parseDouble(campos[3].getText().trim());
-        if (prov.isEmpty()) {
-          JOptionPane.showMessageDialog(dlg, "Ingrese el proveedor.", "Error", JOptionPane.WARNING_MESSAGE);
+        String nombreProvSeleccionado = (String) comboProveedor.getSelectedItem();
+        if (nombreProvSeleccionado == null) {
+          JOptionPane.showMessageDialog(dlg, "Seleccione un proveedor.", "Error", JOptionPane.WARNING_MESSAGE);
           return;
         }
-        String num = String.format("OC-%d-%03d", java.time.LocalDate.now().getYear(), ordenes.size() + 1);
-        ordenes.add(new OrdenCompraDTO(num, fecha.isEmpty() ? java.time.LocalDate.now().toString() : fecha,
-          prov, "Pendiente", prods, tot));
+        ProveedorDTO proveedorSeleccionado = facade.obtenerProveedores().stream()
+          .filter(p -> p.getNombre().equals(nombreProvSeleccionado))
+          .findFirst()
+          .orElse(null);
+        int cantidad = Integer.parseInt(campos[0].getText().trim());
+        double total = Double.parseDouble(campos[1].getText().trim());
+        if (cantidad <= 0 || total <= 0) {
+          JOptionPane.showMessageDialog(dlg, "Ingrese valores positivos.", "Error", JOptionPane.WARNING_MESSAGE);
+          return;
+        }
+        OrdenCompraDTO nuevaOrden = new OrdenCompraDTO(null, null, proveedorSeleccionado, "Pendiente", cantidad, total);
+        facade.guardarOrdenCompra(nuevaOrden);
+        ordenes.clear();
+        ordenes.addAll(facade.obtenerOrdenesCompra());
         construirOrdenes(filtrar());
         dlg.dispose();
       } catch (NumberFormatException ex) {
@@ -416,7 +448,11 @@ public class OrdenesCompras extends JFrame {
       }
     });
     panel.add(btnCrear);
-    dlg.setContentPane(panel);
+
+    JScrollPane sp = new JScrollPane(panel);
+    sp.setBorder(BorderFactory.createEmptyBorder());
+    sp.getVerticalScrollBar().setUnitIncrement(12);
+    dlg.setContentPane(sp);
     dlg.setVisible(true);
   }
 

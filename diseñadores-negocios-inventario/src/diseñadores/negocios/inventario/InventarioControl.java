@@ -1,6 +1,8 @@
 package diseñadores.negocios.inventario;
 
 import diseñadores.negocios.dto.ProductoDTO;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class InventarioControl {
 
@@ -11,6 +13,22 @@ public class InventarioControl {
       .orElse(null);
   }
 
+  public List<ProductoDTO> obtenerTodos() {
+    return InventarioRepository.getInstancia().getProductos();
+  }
+
+  public List<ProductoDTO> obtenerProductosBajoMinimo() {
+    return InventarioRepository.getInstancia().getProductos().stream()
+      .filter(ProductoDTO::estaBajoMinimo)
+      .collect(Collectors.toList());
+  }
+
+  public List<ProductoDTO> necesitanReorden() {
+    return InventarioRepository.getInstancia().getProductos().stream()
+      .filter(ProductoDTO::necesitaReorden)
+      .collect(Collectors.toList());
+  }
+
   public boolean verificarStock(String codigo, int cantidad) {
     ProductoDTO p = obtenerProductoPorCodigo(codigo);
     return p != null && p.getStock() >= cantidad;
@@ -19,15 +37,19 @@ public class InventarioControl {
   public void descontarStock(String codigo, int cantidad) {
     ProductoDTO p = obtenerProductoPorCodigo(codigo);
     if (p != null && p.getStock() >= cantidad) {
-      p.setStock(p.getStock() - cantidad);
+      p.setStockActual(p.getStock() - cantidad);
     }
   }
 
   public void actualizarStock(String codigo, int nuevaCantidad) {
     ProductoDTO p = obtenerProductoPorCodigo(codigo);
     if (p != null) {
-      p.setStock(nuevaCantidad);
+      p.setStockActual(nuevaCantidad);
     }
+  }
+
+  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+    InventarioRepository.getInstancia().actualizarStock(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
 }

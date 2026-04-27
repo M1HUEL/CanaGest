@@ -1,5 +1,6 @@
 package diseñadores.negocios.proveedores;
 
+import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import java.util.List;
 
@@ -38,6 +39,26 @@ public class ProveedoresFacade implements IProveedores {
   @Override
   public int contarProveedoresActivos() {
     return control.contarActivos();
+  }
+
+  @Override
+  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
+    return control.obtenerOrdenesCompra();
+  }
+
+  @Override
+  public void guardarOrdenCompra(OrdenCompraDTO orden) {
+    ProveedorDTO prov = orden.getProveedor();
+    control.guardarOrdenCompra(prov, orden.getCantidadProductos(), orden.getTotal());
+  }
+
+  @Override
+  public void actualizarOrdenCompra(OrdenCompraDTO orden) {
+    ProveedoresRepository.getInstancia().actualizarOrdenCompra(orden);
+  }
+
+  public void cambiarEstadoOrden(String numero, String nuevoEstado) {
+    control.actualizarEstadoOrden(numero, nuevoEstado);
   }
 
   public ProveedoresControl getControl() {

@@ -1,5 +1,6 @@
 package diseñadores.negocios.proveedores;
 
+import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import java.util.List;
 
@@ -14,5 +15,11 @@ public interface IProveedores {
   void actualizarProveedor(ProveedorDTO proveedor);
 
   int contarProveedoresActivos();
+
+  List<OrdenCompraDTO> obtenerOrdenesCompra();
+
+  void guardarOrdenCompra(OrdenCompraDTO orden);
+
+  void actualizarOrdenCompra(OrdenCompraDTO orden);
 
 }

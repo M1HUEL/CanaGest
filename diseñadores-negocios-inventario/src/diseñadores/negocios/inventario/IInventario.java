@@ -1,6 +1,7 @@
 package diseñadores.negocios.inventario;
 
 import diseñadores.negocios.dto.ProductoDTO;
+import java.util.List;
 
 public interface IInventario {
 
@@ -11,5 +12,13 @@ public interface IInventario {
   void reducirStock(String codigo, int cantidad);
 
   void actualizarStock(String codigo, int nuevaCantidad);
+
+  void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo);
+
+  List<ProductoDTO> obtenerTodos();
+
+  List<ProductoDTO> obtenerProductosBajoMinimo();
+
+  List<ProductoDTO> necesitanReorden();
 
 }

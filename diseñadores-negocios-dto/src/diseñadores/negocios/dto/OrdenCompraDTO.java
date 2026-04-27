@@ -4,20 +4,20 @@ public class OrdenCompraDTO {
 
   private String numero;
   private String fecha;
-  private String proveedor;
+  private ProveedorDTO proveedor;
   private String estado;
-  private int productos;
+  private int cantidadProductos;
   private double total;
 
   public OrdenCompraDTO() {
   }
 
-  public OrdenCompraDTO(String numero, String fecha, String proveedor, String estado, int productos, double total) {
+  public OrdenCompraDTO(String numero, String fecha, ProveedorDTO proveedor, String estado, int cantidadProductos, double total) {
     this.numero = numero;
     this.fecha = fecha;
     this.proveedor = proveedor;
     this.estado = estado;
-    this.productos = productos;
+    this.cantidadProductos = cantidadProductos;
     this.total = total;
   }
 
@@ -37,11 +37,11 @@ public class OrdenCompraDTO {
     this.fecha = fecha;
   }
 
-  public String getProveedor() {
+  public ProveedorDTO getProveedor() {
     return proveedor;
   }
 
-  public void setProveedor(String proveedor) {
+  public void setProveedor(ProveedorDTO proveedor) {
     this.proveedor = proveedor;
   }
 
@@ -53,12 +53,12 @@ public class OrdenCompraDTO {
     this.estado = estado;
   }
 
-  public int getProductos() {
-    return productos;
+  public int getCantidadProductos() {
+    return cantidadProductos;
   }
 
-  public void setProductos(int productos) {
-    this.productos = productos;
+  public void setCantidadProductos(int cantidadProductos) {
+    this.cantidadProductos = cantidadProductos;
   }
 
   public double getTotal() {
@@ -69,9 +69,21 @@ public class OrdenCompraDTO {
     this.total = total;
   }
 
+  public String getProveedorNombre() {
+    return proveedor != null ? proveedor.getNombre() : "";
+  }
+
+  public int getProductos() {
+    return cantidadProductos;
+  }
+
+  public void setProductos(int productos) {
+    this.cantidadProductos = productos;
+  }
+
   @Override
   public String toString() {
-    return "OrdenCompraDTO{" + "numero=" + numero + ", fecha=" + fecha + ", proveedor=" + proveedor + ", estado=" + estado + ", productos=" + productos + ", total=" + total + '}';
+    return "OrdenCompraDTO{" + "numero=" + numero + ", fecha=" + fecha + ", proveedor=" + proveedor + ", estado=" + estado + ", cantidadProductos=" + cantidadProductos + ", total=" + total + '}';
   }
 
 }

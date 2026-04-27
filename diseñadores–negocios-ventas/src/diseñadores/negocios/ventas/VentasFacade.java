@@ -1,23 +1,29 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.infraestructura.notificaciones.INotificaciones;
+import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.InventarioFacade;
+import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.productos.ProductosFacade;
 import java.util.List;
 
 public class VentasFacade implements IVentas {
 
-  private final ProductosFacade productosSubsistema;
+  private final IProductos productosSubsistema;
   private final InventarioFacade inventarioSubsistema;
   private final VentasControl ventasControl;
+  private final INotificaciones notificacionesSubsistema;
 
   public VentasFacade() {
     this.productosSubsistema = new ProductosFacade();
     this.inventarioSubsistema = new InventarioFacade();
+    this.notificacionesSubsistema = new NotificacionesFacade();
     this.ventasControl = new VentasControl(
-      productosSubsistema.getControl(),
+      productosSubsistema,
       inventarioSubsistema
     );
+    this.ventasControl.setServicioNotificaciones(notificacionesSubsistema);
   }
 
   @Override

@@ -1,18 +1,18 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.productos.ProductosControl;
-import diseñadores.negocios.ventas.notificacion.IServicioNotificacion;
+import diseñadores.negocios.productos.IProductos;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class VentasControl {
 
-  private final ProductosControl productosControl;
+  private final IProductos productosFacade;
   private final IInventario inventario;
-  private IServicioNotificacion servicioCorreo;
+  private INotificaciones servicioNotificaciones;
 
   private static final int STOCK_MINIMO = 3;
   private static final String NOMBRE_TIENDA = "La Canasta";
@@ -21,17 +21,17 @@ public class VentasControl {
   private static final String TELEFONO = "Tel: (555) 123-4567";
   private static final String CAJERO = "Juan Pérez - Caja #1";
 
-  public VentasControl(ProductosControl productosControl, IInventario inventario) {
-    this.productosControl = productosControl;
+  public VentasControl(IProductos productosFacade, IInventario inventario) {
+    this.productosFacade = productosFacade;
     this.inventario = inventario;
   }
 
-  public void setServicioCorreo(IServicioNotificacion servicio) {
-    this.servicioCorreo = servicio;
+  public void setServicioNotificaciones(INotificaciones servicio) {
+    this.servicioNotificaciones = servicio;
   }
 
   public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
-    ProductoDTO productoDTO = productosControl.buscar(dto);
+    ProductoDTO productoDTO = productosFacade.buscarProductoPorCodigo(dto);
 
     if (productoDTO == null) {
       return null;
@@ -92,7 +92,7 @@ public class VentasControl {
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    if (servicioCorreo == null) {
+    if (servicioNotificaciones == null) {
       System.out.println("El stock se encuentra bajo para el producto: " + p.getNombre()
         + ". Cantidad actual: " + p.getStock() + " unidades.");
       return;
@@ -100,7 +100,7 @@ public class VentasControl {
 
     String mensaje = "Alerta: El stock se encuentra bajo para el producto " + p.getNombre()
       + ". Solo quedan " + p.getStock() + " unidades disponibles.";
-    boolean enviado = servicioCorreo.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);
+    boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);
 
     if (enviado) {
       System.out.println("Notificación de stock bajo enviada satisfactoriamente para: " + p.getNombre());

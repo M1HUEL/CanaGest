@@ -355,7 +355,7 @@ public class OrdenesCompras extends JFrame {
     JDialog dlg = new JDialog(this, "Nueva Orden de Compra", true);
     dlg.setSize(520, 520);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

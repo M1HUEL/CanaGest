@@ -353,7 +353,7 @@ public class ConsolidarInventario extends JFrame {
     JDialog dlg = new JDialog(this, "Ajustar Inventario: " + item.nombre, true);
     dlg.setSize(440, 320);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -449,7 +449,7 @@ public class ConsolidarInventario extends JFrame {
     JDialog dlg = new JDialog(this, "Iniciar Nuevo Conteo", true);
     dlg.setSize(480, 420);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

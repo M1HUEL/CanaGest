@@ -33,11 +33,9 @@ public class AsociarProductosProveedores extends JFrame {
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
-
     for (ProductoDTO p : inventarioFacade.obtenerTodos()) {
       productos.add(p);
     }
-
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -60,20 +58,16 @@ public class AsociarProductosProveedores extends JFrame {
       BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS),
       new EmptyBorder(0, 24, 0, 24)));
     bar.setPreferredSize(new Dimension(0, 66));
-
     JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
     izq.setOpaque(false);
-
     JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
       menuOrigen.setVisible(true);
     });
-
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));
     der.setOpaque(false);
     der.add(btnMenu);
-
     bar.add(izq, BorderLayout.WEST);
     bar.add(der, BorderLayout.EAST);
     return bar;
@@ -83,11 +77,9 @@ public class AsociarProductosProveedores extends JFrame {
     JPanel contenido = new JPanel(new BorderLayout());
     contenido.setOpaque(false);
     contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
-
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
     header.setBorder(new EmptyBorder(0, 0, 18, 0));
-
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
@@ -101,7 +93,6 @@ public class AsociarProductosProveedores extends JFrame {
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
     header.add(tituloCol, BorderLayout.WEST);
-
     JPanel barBusqueda = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -118,7 +109,6 @@ public class AsociarProductosProveedores extends JFrame {
     barBusqueda.setOpaque(false);
     barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
     barBusqueda.setPreferredSize(new Dimension(0, 66));
-
     campoBusqueda = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -172,24 +162,20 @@ public class AsociarProductosProveedores extends JFrame {
 
     });
     barBusqueda.add(campoBusqueda, BorderLayout.CENTER);
-
     panelLista = new JPanel();
     panelLista.setLayout(new BoxLayout(panelLista, BoxLayout.Y_AXIS));
     panelLista.setOpaque(false);
     construirLista(productos);
-
     JScrollPane scroll = new JScrollPane(panelLista);
     scroll.setBorder(BorderFactory.createEmptyBorder());
     scroll.setOpaque(false);
     scroll.getViewport().setOpaque(false);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
     JPanel centro = new JPanel(new BorderLayout(0, 16));
     centro.setOpaque(false);
     centro.add(barBusqueda, BorderLayout.NORTH);
     centro.add(scroll, BorderLayout.CENTER);
-
     contenido.add(header, BorderLayout.NORTH);
     contenido.add(centro, BorderLayout.CENTER);
     return contenido;
@@ -239,10 +225,8 @@ public class AsociarProductosProveedores extends JFrame {
     card.setBorder(new EmptyBorder(20, 22, 20, 22));
     card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     card.setAlignmentX(LEFT_ALIGNMENT);
-
     JPanel topRow = new JPanel(new BorderLayout());
     topRow.setOpaque(false);
-
     JPanel infoCol = new JPanel();
     infoCol.setLayout(new BoxLayout(infoCol, BoxLayout.Y_AXIS));
     infoCol.setOpaque(false);
@@ -255,27 +239,21 @@ public class AsociarProductosProveedores extends JFrame {
     infoCol.add(lblNombre);
     infoCol.add(Box.createVerticalStrut(2));
     infoCol.add(lblCodigo);
-
     JPanel derTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     derTop.setOpaque(false);
-
     if (prod.getProveedor() == null) {
       JButton btnAgregar = btnAzul("Agregar Proveedor");
       btnAgregar.addActionListener(e -> abrirDialogoAgregarProveedor(prod));
       derTop.add(btnAgregar);
     }
-
     topRow.add(infoCol, BorderLayout.WEST);
     topRow.add(derTop, BorderLayout.EAST);
-
     JLabel lblTitSec = new JLabel("Proveedor asociado:");
     lblTitSec.setFont(Fuentes.r(13));
     lblTitSec.setForeground(Colores.GRIS_TEXTO);
-
     JPanel proveedorArea = new JPanel(new BorderLayout(0, 8));
     proveedorArea.setOpaque(false);
     proveedorArea.add(lblTitSec, BorderLayout.NORTH);
-
     if (prod.getProveedor() == null) {
       JPanel vacioBorder = new JPanel(new GridBagLayout()) {
         @Override
@@ -292,7 +270,6 @@ public class AsociarProductosProveedores extends JFrame {
       };
       vacioBorder.setOpaque(false);
       vacioBorder.setPreferredSize(new Dimension(0, 72));
-
       JPanel vacioCentro = new JPanel();
       vacioCentro.setLayout(new BoxLayout(vacioCentro, BoxLayout.Y_AXIS));
       vacioCentro.setOpaque(false);
@@ -315,7 +292,6 @@ public class AsociarProductosProveedores extends JFrame {
       wrapProv.add(cardProveedorUnico(prod.getProveedor(), prod));
       proveedorArea.add(wrapProv, BorderLayout.CENTER);
     }
-
     card.add(topRow, BorderLayout.NORTH);
     card.add(proveedorArea, BorderLayout.CENTER);
     return card;
@@ -339,7 +315,6 @@ public class AsociarProductosProveedores extends JFrame {
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(14, 16, 14, 16));
     card.setPreferredSize(new Dimension(330, 130));
-
     JPanel headerCard = new JPanel(new BorderLayout());
     headerCard.setOpaque(false);
     JLabel lblNomProv = new JLabel(pv.getNombre());
@@ -356,7 +331,6 @@ public class AsociarProductosProveedores extends JFrame {
     bw.add(badgePrin);
     headerCard.add(lblNomProv, BorderLayout.WEST);
     headerCard.add(bw, BorderLayout.EAST);
-
     JPanel datosCol = new JPanel();
     datosCol.setLayout(new BoxLayout(datosCol, BoxLayout.Y_AXIS));
     datosCol.setOpaque(false);
@@ -376,11 +350,9 @@ public class AsociarProductosProveedores extends JFrame {
     datosCol.add(lblPrecio);
     datosCol.add(Box.createVerticalStrut(3));
     datosCol.add(rowTE);
-
     JPanel botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
     botonesRow.setOpaque(false);
     botonesRow.setPreferredSize(new Dimension(0, 36));
-
     JButton btnEditar = new JButton("Editar") {
       boolean ov = false;
 
@@ -421,7 +393,6 @@ public class AsociarProductosProveedores extends JFrame {
     btnEditar.setForeground(Colores.TEXTO_OSCURO);
     btnEditar.setFont(Fuentes.r(12));
     btnEditar.addActionListener(e -> abrirDialogoEditarProveedor(pv, prod));
-
     JButton btnRemover = new JButton("Remover") {
       boolean ov = false;
 
@@ -470,10 +441,8 @@ public class AsociarProductosProveedores extends JFrame {
         construirLista(productos);
       }
     });
-
     botonesRow.add(btnEditar);
     botonesRow.add(btnRemover);
-
     card.add(headerCard, BorderLayout.NORTH);
     card.add(datosCol, BorderLayout.CENTER);
     card.add(botonesRow, BorderLayout.SOUTH);
@@ -491,15 +460,13 @@ public class AsociarProductosProveedores extends JFrame {
 
   private void abrirDialogoAgregarProveedor(ProductoDTO prod) {
     JDialog dlg = new JDialog(this, "Agregar Proveedor a " + prod.getNombre(), true);
-    dlg.setSize(460, 360);
+    dlg.setSize(460, 420);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
-
+    dlg.setResizable(true);
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setBorder(new EmptyBorder(28, 32, 28, 32));
     panel.setBackground(Colores.BLANCO);
-
     JLabel titulo = new JLabel("Asociar Proveedor");
     titulo.setFont(Fuentes.b(20));
     titulo.setForeground(Colores.TEXTO_OSCURO);
@@ -512,14 +479,12 @@ public class AsociarProductosProveedores extends JFrame {
     sub.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(sub);
     panel.add(Box.createVerticalStrut(20));
-
     JLabel lblProv = new JLabel("Seleccionar Proveedor");
     lblProv.setFont(Fuentes.b(12));
     lblProv.setForeground(Colores.TEXTO_OSCURO);
     lblProv.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(lblProv);
     panel.add(Box.createVerticalStrut(4));
-
     String[] nombresProv = proveedoresFacade.obtenerProveedores().stream()
       .map(ProveedorDTO::getNombre)
       .toArray(String[]::new);
@@ -529,14 +494,12 @@ public class AsociarProductosProveedores extends JFrame {
     comboProveedor.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(comboProveedor);
     panel.add(Box.createVerticalStrut(10));
-
     JLabel lblPrecio = new JLabel("Precio ($)");
     lblPrecio.setFont(Fuentes.b(12));
     lblPrecio.setForeground(Colores.TEXTO_OSCURO);
     lblPrecio.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(lblPrecio);
     panel.add(Box.createVerticalStrut(4));
-
     JTextField campoPrecio = new JTextField();
     campoPrecio.setFont(Fuentes.r(13));
     campoPrecio.setBorder(BorderFactory.createCompoundBorder(
@@ -546,14 +509,12 @@ public class AsociarProductosProveedores extends JFrame {
     campoPrecio.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(campoPrecio);
     panel.add(Box.createVerticalStrut(10));
-
     JLabel lblTiempo = new JLabel("Tiempo de Entrega");
     lblTiempo.setFont(Fuentes.b(12));
     lblTiempo.setForeground(Colores.TEXTO_OSCURO);
     lblTiempo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(lblTiempo);
     panel.add(Box.createVerticalStrut(4));
-
     JTextField campoTiempo = new JTextField();
     campoTiempo.setFont(Fuentes.r(13));
     campoTiempo.setBorder(BorderFactory.createCompoundBorder(
@@ -562,10 +523,7 @@ public class AsociarProductosProveedores extends JFrame {
     campoTiempo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     campoTiempo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(campoTiempo);
-    panel.add(Box.createVerticalStrut(10));
-
-    panel.add(Box.createVerticalStrut(8));
-
+    panel.add(Box.createVerticalStrut(18));
     JButton btnGuardar = btnAzulDialog("Asociar Proveedor");
     btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
@@ -600,33 +558,28 @@ public class AsociarProductosProveedores extends JFrame {
       dlg.dispose();
     });
     panel.add(btnGuardar);
-
     dlg.setContentPane(panel);
     dlg.setVisible(true);
   }
 
   private void abrirDialogoEditarProveedor(ProveedorDTO pv, ProductoDTO prod) {
     JDialog dlg = new JDialog(this, "Editar Proveedor: " + pv.getNombre(), true);
-    dlg.setSize(460, 350);
+    dlg.setSize(460, 380);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
-
+    dlg.setResizable(true);
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setBorder(new EmptyBorder(28, 32, 28, 32));
     panel.setBackground(Colores.BLANCO);
-
     JLabel titulo = new JLabel("Editar Proveedor Asociado");
     titulo.setFont(Fuentes.b(20));
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
-
     String[] etqs = {"Nombre del Proveedor", "Precio ($)", "Tiempo de Entrega"};
     String[] vals = {pv.getNombre(), String.valueOf(pv.getPrecioProveedor()), pv.getTiempoEntregaProveedor()};
     JTextField[] campos = new JTextField[etqs.length];
-
     for (int i = 0; i < etqs.length; i++) {
       JLabel lbl = new JLabel(etqs[i]);
       lbl.setFont(Fuentes.b(12));
@@ -645,9 +598,7 @@ public class AsociarProductosProveedores extends JFrame {
       panel.add(tf);
       panel.add(Box.createVerticalStrut(10));
     }
-
     panel.add(Box.createVerticalStrut(8));
-
     JButton btnGuardar = btnAzulDialog("Guardar Cambios");
     btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
@@ -673,7 +624,6 @@ public class AsociarProductosProveedores extends JFrame {
       dlg.dispose();
     });
     panel.add(btnGuardar);
-
     dlg.setContentPane(panel);
     dlg.setVisible(true);
   }

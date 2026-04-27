@@ -51,6 +51,12 @@ public class MenuPrincipal extends JFrame {
     card.setBorder(new EmptyBorder(36, 52, 36, 52));
     card.setPreferredSize(new Dimension(420, 660));
 
+    JPanel panelTitulo = new JPanel();
+    panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
+    panelTitulo.setOpaque(false);
+    panelTitulo.setAlignmentX(LEFT_ALIGNMENT);
+    panelTitulo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+
     JLabel titulo = new JLabel("La Canasta", SwingConstants.CENTER);
     titulo.setFont(Fuentes.b(30));
     titulo.setForeground(new Color(30, 50, 200));
@@ -63,9 +69,11 @@ public class MenuPrincipal extends JFrame {
     lblUsuario.setForeground(Colores.GRIS_TEXTO);
     lblUsuario.setAlignmentX(CENTER_ALIGNMENT);
 
-    card.add(titulo);
-    card.add(Box.createVerticalStrut(4));
-    card.add(lblUsuario);
+    panelTitulo.add(titulo);
+    panelTitulo.add(Box.createVerticalStrut(4));
+    panelTitulo.add(lblUsuario);
+
+    card.add(panelTitulo);
     card.add(Box.createVerticalStrut(28));
 
     card.add(seccionLabel("Ventas"));
@@ -126,7 +134,7 @@ public class MenuPrincipal extends JFrame {
     card.add(btnAsociar);
     card.add(Box.createVerticalStrut(24));
 
-    JButton btnCerrar = botonMenuRojo("Menu Principal");
+    JButton btnCerrar = botonMenuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
       new MenuPrincipal(null).setVisible(true);
@@ -164,6 +172,8 @@ public class MenuPrincipal extends JFrame {
     lbl.setFont(Fuentes.b(10));
     lbl.setForeground(new Color(160, 163, 175));
     lbl.setAlignmentX(LEFT_ALIGNMENT);
+    lbl.setHorizontalAlignment(SwingConstants.LEFT);
+    lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 16));
     return lbl;
   }
 
@@ -202,7 +212,7 @@ public class MenuPrincipal extends JFrame {
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(14));
-    b.setAlignmentX(CENTER_ALIGNMENT);
+    b.setAlignmentX(LEFT_ALIGNMENT);
     b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     b.setPreferredSize(new Dimension(316, 48));
     return b;
@@ -243,7 +253,7 @@ public class MenuPrincipal extends JFrame {
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(14));
-    b.setAlignmentX(CENTER_ALIGNMENT);
+    b.setAlignmentX(LEFT_ALIGNMENT);
     b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     b.setPreferredSize(new Dimension(316, 48));
     return b;

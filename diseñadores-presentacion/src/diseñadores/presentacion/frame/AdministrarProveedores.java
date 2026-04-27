@@ -370,7 +370,7 @@ public class AdministrarProveedores extends JFrame {
     JDialog dlg = new JDialog(this, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
     dlg.setSize(540, 680);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -501,7 +501,7 @@ public class AdministrarProveedores extends JFrame {
     JDialog dlg = new JDialog(this, "Detalle del Proveedor", true);
     dlg.setSize(600, 520);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

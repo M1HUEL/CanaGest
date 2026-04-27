@@ -339,7 +339,7 @@ public class ExistenciaProductos extends JFrame {
     JDialog dlg = new JDialog(this, "Actualizar Stock: " + p.getNombre(), true);
     dlg.setSize(400, 340);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(false);
+    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

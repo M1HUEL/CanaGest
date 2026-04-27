@@ -85,7 +85,7 @@ public class VentasControl {
     double subtotal = ventaActual.getSubtotal();
     double iva = ventaActual.getIva();
     double cambio = ultimoEfectivo - total;
-    String folio = "TK-" + System.currentTimeMillis();
+    String folio = generarFolio();
 
     LocalDateTime ahora = LocalDateTime.now();
     String fecha = ahora.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("es", "MX")));
@@ -113,6 +113,10 @@ public class VentasControl {
     if (enviado) {
       System.out.println("Notificación de stock bajo enviada satisfactoriamente para: " + p.getNombre());
     }
+  }
+
+  private String generarFolio() {
+    return "TK-" + System.currentTimeMillis();
   }
 
 }

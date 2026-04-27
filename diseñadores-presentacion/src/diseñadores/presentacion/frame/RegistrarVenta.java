@@ -89,7 +89,7 @@ public class RegistrarVenta extends JFrame {
     campoEscanear.addActionListener(e -> {
       String codigo = campoEscanear.getText().trim();
       if (!codigo.isEmpty()) {
-        agregarAlCarrito(codigo);
+        escanearProducto(codigo);
         campoEscanear.setText("");
       }
     });
@@ -197,6 +197,7 @@ public class RegistrarVenta extends JFrame {
             repaint();
           }
 
+          @Override
           public void mouseExited(java.awt.event.MouseEvent e) {
             hover = false;
             repaint();
@@ -204,7 +205,7 @@ public class RegistrarVenta extends JFrame {
 
           @Override
           public void mouseClicked(java.awt.event.MouseEvent e) {
-            agregarAlCarrito(prod.getCodigo());
+            escanearProducto(prod.getCodigo());
           }
 
         });
@@ -337,7 +338,7 @@ public class RegistrarVenta extends JFrame {
     return row;
   }
 
-  private void agregarAlCarrito(String codigo) {
+  private void escanearProducto(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
 
     if (!fachada.existeProducto(dto)) {

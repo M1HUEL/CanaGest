@@ -4,6 +4,7 @@ import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.negocios.inventario.InventarioFacade;
 import diseñadores.negocios.proveedores.ProveedoresFacade;
+import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -139,7 +140,7 @@ public class AsociarProductosProveedores extends JFrame {
     };
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
-      new PantallaLogin.RoundedLineBorder(new Color(213, 218, 230), 1, 8),
+      new Bordes(new Color(213, 218, 230), 1, 8),
       new EmptyBorder(8, 14, 8, 14)));
     campoBusqueda.setFont(Fuentes.r(14));
     campoBusqueda.setForeground(Colores.GRIS_TEXTO);
@@ -547,7 +548,7 @@ public class AsociarProductosProveedores extends JFrame {
     JTextField campoPrecio = new JTextField();
     campoPrecio.setFont(Fuentes.r(13));
     campoPrecio.setBorder(BorderFactory.createCompoundBorder(
-      new PantallaLogin.RoundedLineBorder(Colores.BORDE_GRIS, 1, 8),
+      new Bordes(Colores.BORDE_GRIS, 1, 8),
       new EmptyBorder(8, 12, 8, 12)));
     campoPrecio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     campoPrecio.setAlignmentX(LEFT_ALIGNMENT);
@@ -564,7 +565,7 @@ public class AsociarProductosProveedores extends JFrame {
     JTextField campoTiempo = new JTextField();
     campoTiempo.setFont(Fuentes.r(13));
     campoTiempo.setBorder(BorderFactory.createCompoundBorder(
-      new PantallaLogin.RoundedLineBorder(Colores.BORDE_GRIS, 1, 8),
+      new Bordes(Colores.BORDE_GRIS, 1, 8),
       new EmptyBorder(8, 12, 8, 12)));
     campoTiempo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     campoTiempo.setAlignmentX(LEFT_ALIGNMENT);
@@ -642,7 +643,7 @@ public class AsociarProductosProveedores extends JFrame {
       JTextField tf = new JTextField(vals[i]);
       tf.setFont(Fuentes.r(13));
       tf.setBorder(BorderFactory.createCompoundBorder(
-        new PantallaLogin.RoundedLineBorder(Colores.BORDE_GRIS, 1, 8),
+        new Bordes(Colores.BORDE_GRIS, 1, 8),
         new EmptyBorder(8, 12, 8, 12)));
       tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
       tf.setAlignmentX(LEFT_ALIGNMENT);

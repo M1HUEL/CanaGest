@@ -2,6 +2,7 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.inventario.InventarioFacade;
+import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -394,7 +395,7 @@ public class ConsolidarInventario extends JFrame {
     JTextField campoFisico = new JTextField(String.valueOf(item.stockFisico));
     campoFisico.setFont(Fuentes.r(14));
     campoFisico.setBorder(BorderFactory.createCompoundBorder(
-      new PantallaLogin.RoundedLineBorder(Colores.BORDE_GRIS, 1, 8),
+      new Bordes(Colores.BORDE_GRIS, 1, 8),
       new EmptyBorder(8, 12, 8, 12)));
     campoFisico.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     campoFisico.setAlignmentX(LEFT_ALIGNMENT);
@@ -492,7 +493,7 @@ public class ConsolidarInventario extends JFrame {
       JTextField tf = new JTextField(String.valueOf(item.stockFisico));
       tf.setFont(Fuentes.r(13));
       tf.setBorder(BorderFactory.createCompoundBorder(
-        new PantallaLogin.RoundedLineBorder(Colores.BORDE_GRIS, 1, 8),
+        new Bordes(Colores.BORDE_GRIS, 1, 8),
         new EmptyBorder(6, 10, 6, 10)));
       campos[i] = tf;
 

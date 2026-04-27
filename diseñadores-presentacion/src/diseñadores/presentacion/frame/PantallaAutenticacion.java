@@ -2,6 +2,7 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -10,14 +11,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
-public class PantallaLogin extends JFrame {
+public class PantallaAutenticacion extends JFrame {
 
   private IUsuarios fachada;
 
-  private static final String USUARIO = "admin";
-  private static final String CONTRASENA = "1234";
-
-  public PantallaLogin(IUsuarios fachada) {
+  public PantallaAutenticacion(IUsuarios fachada) {
     this.fachada = fachada;
 
     setTitle("La Canasta - Iniciar Sesión");
@@ -79,12 +77,14 @@ public class PantallaLogin extends JFrame {
     campoUsuario.setAlignmentX(LEFT_ALIGNMENT);
     campoUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
-    JPanel usuarioRow = new JPanel(new BorderLayout(0, 6));
+    JPanel usuarioRow = new JPanel();
+    usuarioRow.setLayout(new BoxLayout(usuarioRow, BoxLayout.Y_AXIS));
     usuarioRow.setOpaque(false);
     usuarioRow.setAlignmentX(LEFT_ALIGNMENT);
-    usuarioRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-    usuarioRow.add(lblUsuario, BorderLayout.NORTH);
-    usuarioRow.add(campoUsuario, BorderLayout.CENTER);
+    usuarioRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+    usuarioRow.add(lblUsuario);
+    usuarioRow.add(Box.createVerticalStrut(6));
+    usuarioRow.add(campoUsuario);
 
     JLabel lblContrasena = new JLabel("Contraseña");
     lblContrasena.setFont(Fuentes.b(13));
@@ -95,12 +95,14 @@ public class PantallaLogin extends JFrame {
     campoContrasena.setAlignmentX(LEFT_ALIGNMENT);
     campoContrasena.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
-    JPanel contrasenaRow = new JPanel(new BorderLayout(0, 6));
+    JPanel contrasenaRow = new JPanel();
+    contrasenaRow.setLayout(new BoxLayout(contrasenaRow, BoxLayout.Y_AXIS));
     contrasenaRow.setOpaque(false);
     contrasenaRow.setAlignmentX(LEFT_ALIGNMENT);
-    contrasenaRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-    contrasenaRow.add(lblContrasena, BorderLayout.NORTH);
-    contrasenaRow.add(campoContrasena, BorderLayout.CENTER);
+    contrasenaRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+    contrasenaRow.add(lblContrasena);
+    contrasenaRow.add(Box.createVerticalStrut(6));
+    contrasenaRow.add(campoContrasena);
 
     JLabel lblError = new JLabel(" ", SwingConstants.CENTER);
     lblError.setFont(Fuentes.r(12));
@@ -208,7 +210,7 @@ public class PantallaLogin extends JFrame {
 
     tf.setOpaque(false);
     tf.setBorder(BorderFactory.createCompoundBorder(
-      new RoundedLineBorder(new Color(213, 218, 230), 1, 10),
+      new Bordes(new Color(213, 218, 230), 1, 10),
       new EmptyBorder(10, 16, 10, 16)));
     tf.setFont(Fuentes.r(14));
     tf.setForeground(Colores.GRIS_TEXTO);
@@ -260,40 +262,5 @@ public class PantallaLogin extends JFrame {
       });
     }
     return tf;
-  }
-
-  static class RoundedLineBorder extends AbstractBorder {
-
-    private final Color color;
-    private final int thickness;
-    private final int arc;
-
-    RoundedLineBorder(Color color, int thickness, int arc) {
-      this.color = color;
-      this.thickness = thickness;
-      this.arc = arc;
-    }
-
-    @Override
-    public void paintBorder(Component c, Graphics g2d, int x, int y, int w, int h) {
-      Graphics2D g = (Graphics2D) g2d.create();
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(color);
-      g.setStroke(new BasicStroke(thickness));
-      g.draw(new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, w - 1, h - 1, arc, arc));
-      g.dispose();
-    }
-
-    @Override
-    public Insets getBorderInsets(Component c) {
-      return new Insets(thickness, thickness, thickness, thickness);
-    }
-
-    @Override
-    public Insets getBorderInsets(Component c, Insets i) {
-      i.set(thickness, thickness, thickness, thickness);
-      return i;
-    }
-
   }
 }

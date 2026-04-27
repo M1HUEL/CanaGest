@@ -17,7 +17,7 @@ public class Main {
     IUsuarios usuariosFachada = new UsuariosFacade();
 
     SwingUtilities.invokeLater(() -> {
-      new PantallaLogin(usuariosFachada).setVisible(true);
+      new PantallaAutenticacion(usuariosFachada).setVisible(true);
     });
   }
 

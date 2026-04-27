@@ -337,7 +337,7 @@ public class ExistenciaProductos extends JFrame {
 
   private void abrirDialogoActualizar(ProductoDTO p) {
     JDialog dlg = new JDialog(this, "Actualizar Stock: " + p.getNombre(), true);
-    dlg.setSize(400, 340);
+    dlg.setSize(564, 480);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(true);
 

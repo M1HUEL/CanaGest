@@ -1,6 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.VentasFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -137,7 +138,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnCerrar = botonMenuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(null).setVisible(true);
+      new PantallaAutenticacion(null).setVisible(true);
     });
     card.add(btnCerrar);
 

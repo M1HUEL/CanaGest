@@ -1,5 +1,7 @@
 package diseñadores.presentacion.utilidad;
 
+import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.presentacion.frame.MenuPrincipal;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -64,17 +66,14 @@ public final class Componentes {
     return c;
   }
 
-  public static JPanel topBar(JFrame owner) {
+  public static JPanel topBar(JFrame owner, UsuarioDTO usuario) {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    JButton btnCS = botonTopBar("Cerrar sesion");
+    JButton btnCS = botonTopBar("Menu Principal");
     btnCS.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(owner,
-        "¿Cerrar sesion?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        System.exit(0);
-      }
+      owner.dispose();
+      new MenuPrincipal(usuario).setVisible(true);
     });
     bar.add(btnCS);
     return bar;
@@ -195,7 +194,8 @@ public final class Componentes {
   }
 
   public static JButton botonTopBar(String texto) {
-    JButton b = crearBoton(texto, Colores.AZUL, Colores.AZUL_HOVER, 10);
+    JButton b = crearBoton(texto, Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER, 10);
+    b.setForeground(Colores.TEXTO_OSCURO);
     b.setFont(Fuentes.b(13));
     b.setPreferredSize(new Dimension(160, 38));
     return b;

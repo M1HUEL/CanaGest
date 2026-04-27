@@ -327,12 +327,10 @@ public class PantallaTicket extends JFrame {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    JButton btnCS = topBarBtn("Cerrar sesion");
+    JButton btnCS = topBarBtn("Menu Principal");
     btnCS.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesion?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        System.exit(0);
-      }
+      dispose();
+      new MenuPrincipal(null).setVisible(true);
     });
     bar.add(btnCS);
     return bar;

@@ -38,7 +38,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     setLocation(mainFrame.getLocation());
 
     JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(this), BorderLayout.NORTH);
+    root.add(Componentes.topBar(mainFrame, null), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);

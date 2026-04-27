@@ -75,7 +75,7 @@ public class MenuPrincipal extends JFrame {
     btnVender.addActionListener(e -> {
       this.setVisible(false);
       Fuentes.cargar();
-      new RegistrarVenta(new VentasFacade()).setVisible(true);
+      new RegistrarVenta(new VentasFacade(), usuarioActivo).setVisible(true);
     });
     card.add(btnVender);
     card.add(Box.createVerticalStrut(20));
@@ -126,12 +126,10 @@ public class MenuPrincipal extends JFrame {
     card.add(btnAsociar);
     card.add(Box.createVerticalStrut(24));
 
-    JButton btnCerrar = botonMenuRojo("Cerrar Sesión");
+    JButton btnCerrar = botonMenuRojo("Menu Principal");
     btnCerrar.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cerrar sesión?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        System.exit(0);
-      }
+      dispose();
+      new MenuPrincipal(null).setVisible(true);
     });
     card.add(btnCerrar);
 

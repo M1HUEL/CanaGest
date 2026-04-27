@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 public class RegistrarVenta extends JFrame {
 
+  private final UsuarioDTO usuarioActivo;
   private VentaDTO ventaActual;
 
   private final IVentas fachada;
@@ -28,9 +29,10 @@ public class RegistrarVenta extends JFrame {
   private JPanel panelGrid;
   private JScrollPane scrollGrid;
 
-  public RegistrarVenta(IVentas facade) {
+  public RegistrarVenta(IVentas facade, UsuarioDTO usuarioActivo) {
     super("Punto de Venta");
     this.fachada = facade;
+    this.usuarioActivo = usuarioActivo;
 
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
@@ -41,7 +43,7 @@ public class RegistrarVenta extends JFrame {
     catalogoProductos = fachada.obtenerCatalogo();
 
     JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(this), BorderLayout.NORTH);
+    root.add(Componentes.topBar(this, usuarioActivo), BorderLayout.NORTH);
 
     JPanel centro = new JPanel(new GridBagLayout());
     centro.setOpaque(false);

@@ -49,7 +49,7 @@ public class SeleccionarMetodoPago extends JFrame {
     setLocation(frame.getLocation());
 
     JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(this), BorderLayout.NORTH);
+    root.add(Componentes.topBar(frame, null), BorderLayout.NORTH);
     root.add(Componentes.centrado(buildCard(), 280, 30), BorderLayout.CENTER);
     setContentPane(root);
 

@@ -88,16 +88,8 @@ public class ConsolidarInventario extends JFrame {
 
     JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
     izq.setOpaque(false);
-    JLabel n = new JLabel("La Canasta");
-    n.setFont(Fuentes.b(16));
-    n.setForeground(Colores.TEXTO_OSCURO);
-    JLabel s = new JLabel("Punto de Venta");
-    s.setFont(Fuentes.r(12));
-    s.setForeground(Colores.GRIS_TEXTO);
-    izq.add(n);
-    izq.add(s);
 
-    JButton btnMenu = btnAmarillo("← Menú Principal");
+    JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
       menuOrigen.setVisible(true);

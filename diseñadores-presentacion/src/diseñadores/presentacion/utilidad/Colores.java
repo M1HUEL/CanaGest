@@ -51,6 +51,9 @@ public class Colores {
   public static final Color NARANJA_BG = new Color(255, 247, 237);
   public static final Color NARANJA_INST_BG = new Color(254, 243, 232);
 
+  public static final Color AMARILLO_BTN = new Color(255, 200, 0);
+  public static final Color AMARILLO_BTN_HOVER = new Color(240, 180, 0);
+
   public static final Color FONDO_ITEM = new Color(249, 250, 251);
   public static final Color FONDO_FOLIO = new Color(243, 244, 246);
 }

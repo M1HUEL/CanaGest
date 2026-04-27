@@ -16,42 +16,10 @@ import java.util.List;
 
 public class AsociarProductosProveedores extends JFrame {
 
-  static class ProveedorAsociado {
-
-    String nombre, precio, tiempoEntrega;
-    ProveedorDTO dto;
-
-    ProveedorAsociado(String nombre, String precio, String tiempoEntrega, ProveedorDTO dto) {
-      this.nombre = nombre;
-      this.precio = precio;
-      this.tiempoEntrega = tiempoEntrega;
-      this.dto = dto;
-    }
-
-  }
-
-  static class ProductoConProveedor {
-
-    String nombre, codigo;
-    ProveedorAsociado proveedor;
-    ProductoDTO dto;
-
-    ProductoConProveedor(String nombre, String codigo, ProductoDTO dto) {
-      this.nombre = nombre;
-      this.codigo = codigo;
-      this.dto = dto;
-    }
-
-    boolean tieneProveedor() {
-      return proveedor != null;
-    }
-
-  }
-
   private final JFrame menuOrigen;
   private final InventarioFacade inventarioFacade;
   private final ProveedoresFacade proveedoresFacade;
-  private final List<ProductoConProveedor> productos = new ArrayList<>();
+  private final List<ProductoDTO> productos = new ArrayList<>();
   private JPanel panelLista;
   private JTextField campoBusqueda;
 
@@ -66,15 +34,7 @@ public class AsociarProductosProveedores extends JFrame {
     setResizable(true);
 
     for (ProductoDTO p : inventarioFacade.obtenerTodos()) {
-      ProductoConProveedor pcp = new ProductoConProveedor(p.getNombre(), p.getCodigo(), p);
-      if (p.getProveedor() != null) {
-        pcp.proveedor = new ProveedorAsociado(
-          p.getProveedor().getNombre(),
-          "$" + String.format("%.2f", p.getPrecio()),
-          p.getProveedor().getTerminosPago(),
-          p.getProveedor());
-      }
-      productos.add(pcp);
+      productos.add(p);
     }
 
     JPanel root = new JPanel(new BorderLayout()) {
@@ -249,18 +209,18 @@ public class AsociarProductosProveedores extends JFrame {
       return;
     }
     String ql = q.toLowerCase();
-    List<ProductoConProveedor> f = new ArrayList<>();
-    for (ProductoConProveedor p : productos) {
-      if (p.nombre.toLowerCase().contains(ql) || p.codigo.toLowerCase().contains(ql)) {
+    List<ProductoDTO> f = new ArrayList<>();
+    for (ProductoDTO p : productos) {
+      if (p.getNombre().toLowerCase().contains(ql) || p.getCodigo().toLowerCase().contains(ql)) {
         f.add(p);
       }
     }
     construirLista(f);
   }
 
-  private void construirLista(List<ProductoConProveedor> lista) {
+  private void construirLista(List<ProductoDTO> lista) {
     panelLista.removeAll();
-    for (ProductoConProveedor p : lista) {
+    for (ProductoDTO p : lista) {
       panelLista.add(cardProducto(p));
       panelLista.add(Box.createVerticalStrut(14));
     }
@@ -268,7 +228,7 @@ public class AsociarProductosProveedores extends JFrame {
     panelLista.repaint();
   }
 
-  private JPanel cardProducto(ProductoConProveedor prod) {
+  private JPanel cardProducto(ProductoDTO prod) {
     JPanel card = new JPanel(new BorderLayout(0, 14)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -293,10 +253,10 @@ public class AsociarProductosProveedores extends JFrame {
     JPanel infoCol = new JPanel();
     infoCol.setLayout(new BoxLayout(infoCol, BoxLayout.Y_AXIS));
     infoCol.setOpaque(false);
-    JLabel lblNombre = new JLabel(prod.nombre);
+    JLabel lblNombre = new JLabel(prod.getNombre());
     lblNombre.setFont(Fuentes.b(18));
     lblNombre.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblCodigo = new JLabel(prod.codigo);
+    JLabel lblCodigo = new JLabel(prod.getCodigo());
     lblCodigo.setFont(Fuentes.r(12));
     lblCodigo.setForeground(Colores.GRIS_TEXTO);
     infoCol.add(lblNombre);
@@ -306,7 +266,7 @@ public class AsociarProductosProveedores extends JFrame {
     JPanel derTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     derTop.setOpaque(false);
 
-    if (!prod.tieneProveedor()) {
+    if (prod.getProveedor() == null) {
       JButton btnAgregar = btnAzul("Agregar Proveedor");
       btnAgregar.addActionListener(e -> abrirDialogoAgregarProveedor(prod));
       derTop.add(btnAgregar);
@@ -323,7 +283,7 @@ public class AsociarProductosProveedores extends JFrame {
     proveedorArea.setOpaque(false);
     proveedorArea.add(lblTitSec, BorderLayout.NORTH);
 
-    if (!prod.tieneProveedor()) {
+    if (prod.getProveedor() == null) {
       JPanel vacioBorder = new JPanel(new GridBagLayout()) {
         @Override
         protected void paintComponent(Graphics g2d) {
@@ -359,7 +319,7 @@ public class AsociarProductosProveedores extends JFrame {
     } else {
       JPanel wrapProv = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
       wrapProv.setOpaque(false);
-      wrapProv.add(cardProveedorUnico(prod.proveedor, prod));
+      wrapProv.add(cardProveedorUnico(prod.getProveedor(), prod));
       proveedorArea.add(wrapProv, BorderLayout.CENTER);
     }
 
@@ -368,7 +328,7 @@ public class AsociarProductosProveedores extends JFrame {
     return card;
   }
 
-  private JPanel cardProveedorUnico(ProveedorAsociado pv, ProductoConProveedor prod) {
+  private JPanel cardProveedorUnico(ProveedorDTO pv, ProductoDTO prod) {
     JPanel card = new JPanel(new BorderLayout(0, 8)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -389,7 +349,7 @@ public class AsociarProductosProveedores extends JFrame {
 
     JPanel headerCard = new JPanel(new BorderLayout());
     headerCard.setOpaque(false);
-    JLabel lblNomProv = new JLabel(pv.nombre);
+    JLabel lblNomProv = new JLabel(pv.getNombre());
     lblNomProv.setFont(Fuentes.b(14));
     lblNomProv.setForeground(Colores.TEXTO_OSCURO);
     JLabel badgePrin = new JLabel("Principal", SwingConstants.CENTER);
@@ -407,7 +367,7 @@ public class AsociarProductosProveedores extends JFrame {
     JPanel datosCol = new JPanel();
     datosCol.setLayout(new BoxLayout(datosCol, BoxLayout.Y_AXIS));
     datosCol.setOpaque(false);
-    JLabel lblPrecio = new JLabel("Precio: " + pv.precio);
+    JLabel lblPrecio = new JLabel("Precio: $" + String.format("%.2f", pv.getPrecioProveedor()));
     lblPrecio.setFont(Fuentes.r(13));
     lblPrecio.setForeground(Colores.TEXTO_OSCURO);
     JPanel rowTE = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -415,7 +375,7 @@ public class AsociarProductosProveedores extends JFrame {
     JLabel lblTELbl = new JLabel("Tiempo entrega: ");
     lblTELbl.setFont(Fuentes.b(13));
     lblTELbl.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblTEVal = new JLabel(pv.tiempoEntrega);
+    JLabel lblTEVal = new JLabel(pv.getTiempoEntregaProveedor());
     lblTEVal.setFont(Fuentes.r(13));
     lblTEVal.setForeground(Colores.TEXTO_OSCURO);
     rowTE.add(lblTELbl);
@@ -510,10 +470,10 @@ public class AsociarProductosProveedores extends JFrame {
     btnRemover.setFont(Fuentes.r(12));
     btnRemover.addActionListener(e -> {
       int op = JOptionPane.showConfirmDialog(this,
-        "¿Remover a " + pv.nombre + " como proveedor de " + prod.nombre + "?",
+        "¿Remover a " + pv.getNombre() + " como proveedor de " + prod.getNombre() + "?",
         "Confirmar", JOptionPane.YES_NO_OPTION);
       if (op == JOptionPane.YES_OPTION) {
-        prod.proveedor = null;
+        prod.setProveedor(null);
         construirLista(productos);
       }
     });
@@ -527,17 +487,17 @@ public class AsociarProductosProveedores extends JFrame {
     return card;
   }
 
-  private boolean proveedorYaUsado(String nombre, ProductoConProveedor excluir) {
-    for (ProductoConProveedor p : productos) {
-      if (p != excluir && p.tieneProveedor() && p.proveedor.nombre.equalsIgnoreCase(nombre)) {
+  private boolean proveedorYaUsado(String nombre, ProductoDTO excluir) {
+    for (ProductoDTO p : productos) {
+      if (p != excluir && p.getProveedor() != null && p.getProveedor().getNombre().equalsIgnoreCase(nombre)) {
         return true;
       }
     }
     return false;
   }
 
-  private void abrirDialogoAgregarProveedor(ProductoConProveedor prod) {
-    JDialog dlg = new JDialog(this, "Agregar Proveedor a " + prod.nombre, true);
+  private void abrirDialogoAgregarProveedor(ProductoDTO prod) {
+    JDialog dlg = new JDialog(this, "Agregar Proveedor a " + prod.getNombre(), true);
     dlg.setSize(460, 360);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
@@ -553,7 +513,7 @@ public class AsociarProductosProveedores extends JFrame {
     titulo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(6));
-    JLabel sub = new JLabel("Producto: " + prod.nombre + " (" + prod.codigo + ")");
+    JLabel sub = new JLabel("Producto: " + prod.getNombre() + " (" + prod.getCodigo() + ")");
     sub.setFont(Fuentes.r(13));
     sub.setForeground(Colores.GRIS_TEXTO);
     sub.setAlignmentX(LEFT_ALIGNMENT);
@@ -640,8 +600,9 @@ public class AsociarProductosProveedores extends JFrame {
         .filter(p -> p.getNombre().equals(nombre))
         .findFirst()
         .orElse(null);
-      prod.proveedor = new ProveedorAsociado(nombre, precio, tiempo, provDto);
-      prod.dto.setProveedor(provDto);
+      provDto.setPrecioProveedor(Double.parseDouble(precio.replace("$", "")));
+      provDto.setTiempoEntregaProveedor(tiempo);
+      prod.setProveedor(provDto);
       construirLista(productos);
       dlg.dispose();
     });
@@ -651,8 +612,8 @@ public class AsociarProductosProveedores extends JFrame {
     dlg.setVisible(true);
   }
 
-  private void abrirDialogoEditarProveedor(ProveedorAsociado pv, ProductoConProveedor prod) {
-    JDialog dlg = new JDialog(this, "Editar Proveedor: " + pv.nombre, true);
+  private void abrirDialogoEditarProveedor(ProveedorDTO pv, ProductoDTO prod) {
+    JDialog dlg = new JDialog(this, "Editar Proveedor: " + pv.getNombre(), true);
     dlg.setSize(460, 350);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
@@ -670,7 +631,7 @@ public class AsociarProductosProveedores extends JFrame {
     panel.add(Box.createVerticalStrut(20));
 
     String[] etqs = {"Nombre del Proveedor", "Precio ($)", "Tiempo de Entrega"};
-    String[] vals = {pv.nombre, pv.precio, pv.tiempoEntrega};
+    String[] vals = {pv.getNombre(), String.valueOf(pv.getPrecioProveedor()), pv.getTiempoEntregaProveedor()};
     JTextField[] campos = new JTextField[etqs.length];
 
     for (int i = 0; i < etqs.length; i++) {
@@ -705,15 +666,16 @@ public class AsociarProductosProveedores extends JFrame {
         JOptionPane.showMessageDialog(dlg, "Todos los campos son obligatorios.", "Error", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      if (!nombre.equalsIgnoreCase(pv.nombre) && proveedorYaUsado(nombre, prod)) {
+      if (!nombre.equalsIgnoreCase(pv.getNombre()) && proveedorYaUsado(nombre, prod)) {
         JOptionPane.showMessageDialog(dlg,
           "El proveedor \"" + nombre + "\" ya está vinculado a otro producto.",
           "Proveedor no disponible", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      pv.nombre = nombre;
-      pv.precio = precio;
-      pv.tiempoEntrega = tiempo;
+      pv.setNombre(nombre);
+      pv.setPrecioProveedor(Double.parseDouble(precio));
+      pv.setTiempoEntregaProveedor(tiempo);
+      prod.setProveedor(pv);
       construirLista(productos);
       dlg.dispose();
     });

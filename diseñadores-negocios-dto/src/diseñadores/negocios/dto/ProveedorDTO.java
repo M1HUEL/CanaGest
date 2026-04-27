@@ -10,6 +10,8 @@ public class ProveedorDTO {
   private String direccion;
   private String terminosPago;
   private boolean activo;
+  private double precioProveedor;
+  private String tiempoEntregaProveedor;
 
   public ProveedorDTO() {
   }
@@ -88,6 +90,22 @@ public class ProveedorDTO {
 
   public void setActivo(boolean activo) {
     this.activo = activo;
+  }
+
+  public double getPrecioProveedor() {
+    return precioProveedor;
+  }
+
+  public void setPrecioProveedor(double precioProveedor) {
+    this.precioProveedor = precioProveedor;
+  }
+
+  public String getTiempoEntregaProveedor() {
+    return tiempoEntregaProveedor;
+  }
+
+  public void setTiempoEntregaProveedor(String tiempoEntregaProveedor) {
+    this.tiempoEntregaProveedor = tiempoEntregaProveedor;
   }
 
 }

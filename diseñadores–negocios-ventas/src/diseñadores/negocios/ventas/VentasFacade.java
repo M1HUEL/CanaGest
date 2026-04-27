@@ -53,11 +53,7 @@ public class VentasFacade implements IVentas {
 
   @Override
   public double procesarCalcularCambio(VentaDTO ventaActual, double efectivo) {
-    if (ventaActual == null) {
-      return 0;
-    }
-    double total = ventaActual.getTotal();
-    return efectivo >= total ? efectivo - total : 0;
+    return ventasControl.procesarCalcularCambio(ventaActual, efectivo);
   }
 
   @Override

@@ -368,13 +368,13 @@ public class AdministrarProveedores extends JFrame {
   private void abrirFormulario(ProveedorDTO prov) {
     boolean esNuevo = prov == null;
     JDialog dlg = new JDialog(this, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
-    dlg.setSize(500, 580);
+    dlg.setSize(540, 680);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
+    panel.setBorder(new EmptyBorder(24, 28, 24, 28));
     panel.setBackground(Colores.BLANCO);
 
     JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor" : "Editar: " + (prov != null ? prov.getNombre() : ""));
@@ -382,35 +382,70 @@ public class AdministrarProveedores extends JFrame {
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(titulo);
-    panel.add(Box.createVerticalStrut(20));
+    panel.add(Box.createVerticalStrut(4));
 
-    String[] etqs = {"Nombre", "Código", "Contacto", "Teléfono", "Email", "Dirección", "Términos de pago"};
-    String[] vals = esNuevo ? new String[]{"", "", "", "", "", "", ""}
-      : new String[]{prov.getNombre(), prov.getCodigo(), prov.getContacto(), prov.getTelefono(), prov.getEmail(), prov.getDireccion(), prov.getTerminosPago()};
-    JTextField[] campos = new JTextField[etqs.length];
+    JLabel subtitulo = new JLabel("Ingrese la información del proveedor");
+    subtitulo.setFont(Fuentes.r(13));
+    subtitulo.setForeground(Colores.GRIS_TEXTO);
+    subtitulo.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(subtitulo);
+    panel.add(Box.createVerticalStrut(18));
 
-    for (int i = 0; i < etqs.length; i++) {
-      JLabel lbl = new JLabel(etqs[i]);
-      lbl.setFont(Fuentes.b(12));
-      lbl.setForeground(Colores.TEXTO_OSCURO);
-      lbl.setAlignmentX(LEFT_ALIGNMENT);
-      JTextField tf = new JTextField(vals[i]);
-      tf.setFont(Fuentes.r(13));
-      tf.setBorder(BorderFactory.createCompoundBorder(
-        new Bordes(Colores.BORDE_GRIS, 1, 8),
-        new EmptyBorder(8, 12, 8, 12)));
-      tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-      tf.setAlignmentX(LEFT_ALIGNMENT);
-      campos[i] = tf;
-      panel.add(lbl);
-      panel.add(Box.createVerticalStrut(4));
-      panel.add(tf);
-      panel.add(Box.createVerticalStrut(10));
-    }
+    JLabel sep1 = new JLabel("DATOS GENERALES");
+    sep1.setFont(Fuentes.b(11));
+    sep1.setForeground(Colores.GRIS_TEXTO);
+    sep1.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sep1);
+    panel.add(Box.createVerticalStrut(10));
+
+    JTextField[] campos = new JTextField[7];
+
+    JTextField tfNombre = crearCampo(esNuevo ? "" : prov.getNombre(), 50);
+    campos[0] = tfNombre;
+    panel.add(crearFilaCampo("Nombre *", tfNombre));
+    panel.add(Box.createVerticalStrut(8));
+
+    JTextField tfCodigo = crearCampo(esNuevo ? "" : prov.getCodigo(), 20);
+    campos[1] = tfCodigo;
+    panel.add(crearFilaCampo("Código", tfCodigo));
+    panel.add(Box.createVerticalStrut(8));
+
+    JTextField tfTerminos = crearCampo(esNuevo ? "" : prov.getTerminosPago(), 100);
+    campos[6] = tfTerminos;
+    panel.add(crearFilaCampo("Términos de pago", tfTerminos));
+    panel.add(Box.createVerticalStrut(16));
+
+    JLabel sep2 = new JLabel("CONTACTO");
+    sep2.setFont(Fuentes.b(11));
+    sep2.setForeground(Colores.GRIS_TEXTO);
+    sep2.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sep2);
+    panel.add(Box.createVerticalStrut(10));
+
+    JTextField tfContacto = crearCampo(esNuevo ? "" : prov.getContacto(), 100);
+    campos[2] = tfContacto;
+    panel.add(crearFilaCampo("Contacto", tfContacto));
+    panel.add(Box.createVerticalStrut(8));
+
+    JTextField tfTelefono = crearCampo(esNuevo ? "" : prov.getTelefono(), 20);
+    campos[3] = tfTelefono;
+    panel.add(crearFilaCampo("Teléfono", tfTelefono));
+    panel.add(Box.createVerticalStrut(8));
+
+    JTextField tfEmail = crearCampo(esNuevo ? "" : prov.getEmail(), 100);
+    campos[4] = tfEmail;
+    panel.add(crearFilaCampo("Email", tfEmail));
+    panel.add(Box.createVerticalStrut(8));
+
+    JTextField tfDireccion = crearCampo(esNuevo ? "" : prov.getDireccion(), 200);
+    campos[5] = tfDireccion;
+    panel.add(crearFilaCampo("Dirección", tfDireccion));
+    panel.add(Box.createVerticalStrut(16));
 
     JPanel estadoRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     estadoRow.setOpaque(false);
     estadoRow.setAlignmentX(LEFT_ALIGNMENT);
+    estadoRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
     JCheckBox chk = new JCheckBox("Proveedor activo", esNuevo || (prov != null && prov.isActivo()));
     chk.setFont(Fuentes.r(13));
     chk.setForeground(Colores.TEXTO_OSCURO);
@@ -419,9 +454,9 @@ public class AdministrarProveedores extends JFrame {
     panel.add(estadoRow);
     panel.add(Box.createVerticalStrut(20));
 
-    JButton btnGuardar = crearBotonAzul(esNuevo ? "Agregar Proveedor" : "Guardar Cambios", Integer.MAX_VALUE, 48);
+    JButton btnGuardar = crearBotonAzul(esNuevo ? "Agregar Proveedor" : "Guardar Cambios", Integer.MAX_VALUE, 44);
     btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
     btnGuardar.addActionListener(e -> {
       if (campos[0].getText().trim().isEmpty()) {
         JOptionPane.showMessageDialog(dlg, "El nombre es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
@@ -457,13 +492,14 @@ public class AdministrarProveedores extends JFrame {
     JScrollPane sp = new JScrollPane(panel);
     sp.setBorder(BorderFactory.createEmptyBorder());
     sp.getVerticalScrollBar().setUnitIncrement(12);
+    sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     dlg.setContentPane(sp);
     dlg.setVisible(true);
   }
 
   private void abrirDetalle(ProveedorDTO p) {
     JDialog dlg = new JDialog(this, "Detalle del Proveedor", true);
-    dlg.setSize(460, 420);
+    dlg.setSize(600, 520);
     dlg.setLocationRelativeTo(this);
     dlg.setResizable(false);
 
@@ -472,10 +508,10 @@ public class AdministrarProveedores extends JFrame {
     panel.setBorder(new EmptyBorder(28, 32, 28, 32));
     panel.setBackground(Colores.BLANCO);
 
-    JPanel headerRow = new JPanel(new BorderLayout());
+    JPanel headerRow = new JPanel(new BorderLayout(10, 0));
     headerRow.setOpaque(false);
     JLabel lblN = new JLabel(p.getNombre());
-    lblN.setFont(Fuentes.b(20));
+    lblN.setFont(Fuentes.b(22));
     lblN.setForeground(Colores.TEXTO_OSCURO);
     JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
@@ -486,49 +522,113 @@ public class AdministrarProveedores extends JFrame {
     headerRow.add(lblN, BorderLayout.WEST);
     headerRow.add(badge, BorderLayout.EAST);
 
-    JLabel lblCod = new JLabel(p.getCodigo());
+    JLabel lblCod = new JLabel("Código: " + p.getCodigo());
     lblCod.setFont(Fuentes.r(13));
     lblCod.setForeground(Colores.GRIS_TEXTO);
 
     panel.add(headerRow);
-    panel.add(Box.createVerticalStrut(4));
+    panel.add(Box.createVerticalStrut(6));
     panel.add(lblCod);
+    panel.add(Box.createVerticalStrut(24));
+
+    JLabel sep = new JLabel("INFORMACIÓN DE CONTACTO");
+    sep.setFont(Fuentes.b(12));
+    sep.setForeground(Colores.GRIS_TEXTO);
+    sep.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sep);
+    panel.add(Box.createVerticalStrut(12));
+
+    panel.add(crearFilaInfo("Contacto", p.getContacto()));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Teléfono", p.getTelefono()));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Email", p.getEmail()));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Dirección", p.getDireccion()));
     panel.add(Box.createVerticalStrut(20));
 
-    String[][] info = {
-      {"Contacto", p.getContacto()}, {"Teléfono", p.getTelefono()},
-      {"Email", p.getEmail()}, {"Dirección", p.getDireccion()},
-      {"Términos de pago", p.getTerminosPago()}
-    };
-    for (String[] fi : info) {
-      JPanel row = new JPanel(new BorderLayout()) {
-        @Override
-        protected void paintComponent(Graphics g2d) {
-          Graphics2D g = (Graphics2D) g2d;
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-          g.setColor(Colores.FONDO_GRIS_CLARO);
-          g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-          super.paintComponent(g2d);
-        }
+    JLabel sep2 = new JLabel("TÉRMINOS COMERCIALES");
+    sep2.setFont(Fuentes.b(12));
+    sep2.setForeground(Colores.GRIS_TEXTO);
+    sep2.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sep2);
+    panel.add(Box.createVerticalStrut(12));
 
-      };
-      row.setOpaque(false);
-      row.setBorder(new EmptyBorder(10, 14, 10, 14));
-      row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-      row.setAlignmentX(LEFT_ALIGNMENT);
-      JLabel e = new JLabel(fi[0]);
-      e.setFont(Fuentes.r(12));
-      e.setForeground(Colores.GRIS_TEXTO);
-      JLabel v = new JLabel(fi[1]);
-      v.setFont(Fuentes.b(13));
-      v.setForeground(Colores.TEXTO_OSCURO);
-      row.add(e, BorderLayout.WEST);
-      row.add(v, BorderLayout.EAST);
-      panel.add(row);
-      panel.add(Box.createVerticalStrut(8));
-    }
+    panel.add(crearFilaInfo("Términos de pago", p.getTerminosPago()));
+
     dlg.setContentPane(panel);
     dlg.setVisible(true);
+  }
+
+  private JTextField crearCampo(String valor, int limite) {
+    JTextField tf = new JTextField(valor);
+    tf.setFont(Fuentes.r(13));
+    tf.setForeground(Colores.TEXTO_OSCURO);
+    tf.setBorder(BorderFactory.createCompoundBorder(
+      new Bordes(Colores.BORDE_GRIS, 1, 8),
+      new EmptyBorder(8, 12, 8, 12)));
+    tf.setAlignmentX(LEFT_ALIGNMENT);
+    tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+    tf.setPreferredSize(new Dimension(0, 40));
+    if (limite > 0) {
+      tf.setDocument(new javax.swing.text.PlainDocument() {
+        @Override
+        public void insertString(int offs, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
+          if (getLength() + str.length() <= limite) {
+            super.insertString(offs, str, a);
+          }
+        }
+
+      });
+      try {
+        tf.getDocument().insertString(0, valor, null);
+      } catch (javax.swing.text.BadLocationException ignored) {
+      }
+    }
+    return tf;
+  }
+
+  private JPanel crearFilaCampo(String label, JTextField campo) {
+    JPanel row = new JPanel();
+    row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
+    row.setOpaque(false);
+    row.setAlignmentX(LEFT_ALIGNMENT);
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
+    JLabel l = new JLabel(label);
+    l.setFont(Fuentes.b(12));
+    l.setForeground(Colores.TEXTO_OSCURO);
+    l.setAlignmentX(LEFT_ALIGNMENT);
+    row.add(l);
+    row.add(Box.createVerticalStrut(5));
+    row.add(campo);
+    return row;
+  }
+
+  private JPanel crearFilaInfo(String label, String valor) {
+    JPanel row = new JPanel(new BorderLayout(10, 0)) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.FONDO_GRIS_CLARO);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+        super.paintComponent(g2d);
+      }
+
+    };
+    row.setOpaque(false);
+    row.setBorder(new EmptyBorder(12, 14, 12, 14));
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+    row.setAlignmentX(LEFT_ALIGNMENT);
+    JLabel l = new JLabel(label);
+    l.setFont(Fuentes.r(12));
+    l.setForeground(Colores.GRIS_TEXTO);
+    JLabel v = new JLabel(valor != null ? valor : "-");
+    v.setFont(Fuentes.r(14));
+    v.setForeground(Colores.TEXTO_OSCURO);
+    row.add(l, BorderLayout.WEST);
+    row.add(v, BorderLayout.EAST);
+    return row;
   }
 
   private JButton crearBotonAmarillo(String texto) {

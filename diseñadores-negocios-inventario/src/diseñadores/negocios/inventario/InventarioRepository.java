@@ -26,8 +26,8 @@ public class InventarioRepository {
   }
 
   private void inicializarMocks() {
-    ProveedorDTO provGranos = new ProveedorDTO("Abarrotes del Mayo", "ventas@mayo.com");
-    ProveedorDTO provAceites = new ProveedorDTO("Distribuidora Sonora", "contacto@distsonora.com");
+    ProveedorDTO provGranos = new ProveedorDTO("Abarrotes del Mayo", "PROV-001", "Juan Pérez", "555-0101", "ventas@mayo.com", "Av. Mayo 123", "30 días", true);
+    ProveedorDTO provAceites = new ProveedorDTO("Distribuidora Sonora", "PROV-002", "María López", "555-0202", "contacto@distsonora.com", "Calle Sonora 456", "15 días", true);
 
     productos.add(new ProductoDTO("7501001000011", "Arroz", 28.00, 50, provGranos));
     productos.add(new ProductoDTO("7501001000028", "Frijol", 32.00, 30, provGranos));

@@ -3,14 +3,27 @@ package diseñadores.negocios.dto;
 public class ProveedorDTO {
 
   private String nombre;
+  private String codigo;
+  private String contacto;
+  private String telefono;
   private String email;
+  private String direccion;
+  private String terminosPago;
+  private boolean activo;
 
   public ProveedorDTO() {
   }
 
-  public ProveedorDTO(String nombre, String email) {
+  public ProveedorDTO(String nombre, String codigo, String contacto, String telefono,
+    String email, String direccion, String terminosPago, boolean activo) {
     this.nombre = nombre;
+    this.codigo = codigo;
+    this.contacto = contacto;
+    this.telefono = telefono;
     this.email = email;
+    this.direccion = direccion;
+    this.terminosPago = terminosPago;
+    this.activo = activo;
   }
 
   public String getNombre() {
@@ -21,6 +34,30 @@ public class ProveedorDTO {
     this.nombre = nombre;
   }
 
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
+  }
+
+  public String getContacto() {
+    return contacto;
+  }
+
+  public void setContacto(String contacto) {
+    this.contacto = contacto;
+  }
+
+  public String getTelefono() {
+    return telefono;
+  }
+
+  public void setTelefono(String telefono) {
+    this.telefono = telefono;
+  }
+
   public String getEmail() {
     return email;
   }
@@ -29,9 +66,28 @@ public class ProveedorDTO {
     this.email = email;
   }
 
-  @Override
-  public String toString() {
-    return "ProveedorDTO{" + "nombre=" + nombre + ", email=" + email + '}';
+  public String getDireccion() {
+    return direccion;
+  }
+
+  public void setDireccion(String direccion) {
+    this.direccion = direccion;
+  }
+
+  public String getTerminosPago() {
+    return terminosPago;
+  }
+
+  public void setTerminosPago(String terminosPago) {
+    this.terminosPago = terminosPago;
+  }
+
+  public boolean isActivo() {
+    return activo;
+  }
+
+  public void setActivo(boolean activo) {
+    this.activo = activo;
   }
 
 }

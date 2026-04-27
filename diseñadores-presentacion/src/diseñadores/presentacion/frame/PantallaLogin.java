@@ -108,6 +108,7 @@ public class PantallaLogin extends JFrame {
             repaint();
           }
 
+          @Override
           public void mouseExited(MouseEvent e) {
             hover = false;
             repaint();

@@ -1,5 +1,6 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -12,27 +13,8 @@ import java.util.List;
 
 public class AdministrarProveedores extends JFrame {
 
-  static class Proveedor {
-
-    String nombre, codigo, contacto, telefono, email, direccion, terminosPago;
-    boolean activo;
-
-    Proveedor(String nombre, String codigo, String contacto, String telefono,
-      String email, String direccion, String terminosPago, boolean activo) {
-      this.nombre = nombre;
-      this.codigo = codigo;
-      this.contacto = contacto;
-      this.telefono = telefono;
-      this.email = email;
-      this.direccion = direccion;
-      this.terminosPago = terminosPago;
-      this.activo = activo;
-    }
-
-  }
-
   private final JFrame menuOrigen;
-  private final List<Proveedor> proveedores = new ArrayList<>();
+  private final List<ProveedorDTO> proveedores = new ArrayList<>();
   private JPanel panelGrid;
   private JLabel lblActivos;
   private JTextField campoBusqueda;
@@ -45,13 +27,13 @@ public class AdministrarProveedores extends JFrame {
     setLocationRelativeTo(null);
     setResizable(true);
 
-    proveedores.add(new Proveedor("Distribuidora Central", "PROV-001", "Juan Pérez", "555-0101",
+    proveedores.add(new ProveedorDTO("Distribuidora Central", "PROV-001", "Juan Pérez", "555-0101",
       "contacto@distcentral.com", "Av. Principal 123, Col. Centro", "30 días", true));
-    proveedores.add(new Proveedor("Alimentos del Norte", "PROV-002", "María González", "555-0202",
+    proveedores.add(new ProveedorDTO("Alimentos del Norte", "PROV-002", "María González", "555-0202",
       "ventas@alimnorte.com", "Calle Comercio 456, Col. Industrial", "15 días", true));
-    proveedores.add(new Proveedor("Lácteos Premium", "PROV-003", "Carlos Ramírez", "555-0303",
+    proveedores.add(new ProveedorDTO("Lácteos Premium", "PROV-003", "Carlos Ramírez", "555-0303",
       "info@lacteospremium.com", "Blvd. Lácteo 789, Col. Valle", "45 días", true));
-    proveedores.add(new Proveedor("Granos y Semillas SA", "PROV-004", "Ana López", "555-0404",
+    proveedores.add(new ProveedorDTO("Granos y Semillas SA", "PROV-004", "Ana López", "555-0404",
       "contacto@granossemillas.com", "Carretera Norte Km 12", "30 días", false));
 
     JPanel root = new JPanel(new BorderLayout()) {
@@ -256,12 +238,12 @@ public class AdministrarProveedores extends JFrame {
   }
 
   private String contarActivos() {
-    return String.valueOf(proveedores.stream().filter(p -> p.activo).count());
+    return String.valueOf(proveedores.stream().filter(p -> p.isActivo()).count());
   }
 
-  private void construirGrid(List<Proveedor> lista) {
+  private void construirGrid(List<ProveedorDTO> lista) {
     panelGrid.removeAll();
-    for (Proveedor p : lista) {
+    for (ProveedorDTO p : lista) {
       panelGrid.add(cardProveedor(p));
     }
     if (lista.isEmpty()) {
@@ -281,17 +263,17 @@ public class AdministrarProveedores extends JFrame {
       return;
     }
     String ql = q.toLowerCase();
-    List<Proveedor> f = new ArrayList<>();
-    for (Proveedor p : proveedores) {
-      if (p.nombre.toLowerCase().contains(ql) || p.codigo.toLowerCase().contains(ql)
-        || p.contacto.toLowerCase().contains(ql)) {
+    List<ProveedorDTO> f = new ArrayList<>();
+    for (ProveedorDTO p : proveedores) {
+      if (p.getNombre().toLowerCase().contains(ql) || p.getCodigo().toLowerCase().contains(ql)
+        || p.getContacto().toLowerCase().contains(ql)) {
         f.add(p);
       }
     }
     construirGrid(f);
   }
 
-  private JPanel cardProveedor(Proveedor p) {
+  private JPanel cardProveedor(ProveedorDTO p) {
     JPanel card = new JPanel(new BorderLayout(0, 10)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -313,21 +295,21 @@ public class AdministrarProveedores extends JFrame {
     JPanel nombreCol = new JPanel();
     nombreCol.setLayout(new BoxLayout(nombreCol, BoxLayout.Y_AXIS));
     nombreCol.setOpaque(false);
-    JLabel lblN = new JLabel(p.nombre);
+    JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(16));
     lblN.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblC = new JLabel(p.codigo);
+    JLabel lblC = new JLabel(p.getCodigo());
     lblC.setFont(Fuentes.r(12));
     lblC.setForeground(Colores.GRIS_TEXTO);
     nombreCol.add(lblN);
     nombreCol.add(Box.createVerticalStrut(3));
     nombreCol.add(lblC);
 
-    JLabel badge = new JLabel(p.activo ? "Activo" : "Inactivo", SwingConstants.CENTER);
+    JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
-    badge.setForeground(p.activo ? new Color(21, 128, 61) : new Color(100, 100, 100));
+    badge.setForeground(p.isActivo() ? new Color(21, 128, 61) : new Color(100, 100, 100));
     badge.setOpaque(true);
-    badge.setBackground(p.activo ? new Color(220, 252, 231) : new Color(229, 231, 235));
+    badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
     JPanel badgeW = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     badgeW.setOpaque(false);
@@ -339,15 +321,15 @@ public class AdministrarProveedores extends JFrame {
     datos.setLayout(new BoxLayout(datos, BoxLayout.Y_AXIS));
     datos.setOpaque(false);
     datos.setBorder(new EmptyBorder(8, 0, 8, 0));
-    datos.add(filaDato("Contacto", p.contacto));
+    datos.add(filaDato("Contacto", p.getContacto()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Teléfono", p.telefono));
+    datos.add(filaDato("Teléfono", p.getTelefono()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Email", p.email));
+    datos.add(filaDato("Email", p.getEmail()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Dirección", p.direccion));
+    datos.add(filaDato("Dirección", p.getDireccion()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Términos de pago", p.terminosPago));
+    datos.add(filaDato("Términos de pago", p.getTerminosPago()));
 
     JPanel sep = new JPanel() {
       @Override
@@ -398,7 +380,7 @@ public class AdministrarProveedores extends JFrame {
     return row;
   }
 
-  private void abrirFormulario(Proveedor prov) {
+  private void abrirFormulario(ProveedorDTO prov) {
     boolean esNuevo = prov == null;
     JDialog dlg = new JDialog(this, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
     dlg.setSize(500, 580);
@@ -410,7 +392,7 @@ public class AdministrarProveedores extends JFrame {
     panel.setBorder(new EmptyBorder(28, 32, 28, 32));
     panel.setBackground(Colores.BLANCO);
 
-    JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor" : "Editar: " + (prov != null ? prov.nombre : ""));
+    JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor" : "Editar: " + (prov != null ? prov.getNombre() : ""));
     titulo.setFont(Fuentes.b(20));
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
@@ -419,7 +401,7 @@ public class AdministrarProveedores extends JFrame {
 
     String[] etqs = {"Nombre", "Código", "Contacto", "Teléfono", "Email", "Dirección", "Términos de pago"};
     String[] vals = esNuevo ? new String[]{"", "", "", "", "", "", ""}
-      : new String[]{prov.nombre, prov.codigo, prov.contacto, prov.telefono, prov.email, prov.direccion, prov.terminosPago};
+      : new String[]{prov.getNombre(), prov.getCodigo(), prov.getContacto(), prov.getTelefono(), prov.getEmail(), prov.getDireccion(), prov.getTerminosPago()};
     JTextField[] campos = new JTextField[etqs.length];
 
     for (int i = 0; i < etqs.length; i++) {
@@ -444,7 +426,7 @@ public class AdministrarProveedores extends JFrame {
     JPanel estadoRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     estadoRow.setOpaque(false);
     estadoRow.setAlignmentX(LEFT_ALIGNMENT);
-    JCheckBox chk = new JCheckBox("Proveedor activo", esNuevo || (prov != null && prov.activo));
+    JCheckBox chk = new JCheckBox("Proveedor activo", esNuevo || (prov != null && prov.isActivo()));
     chk.setFont(Fuentes.r(13));
     chk.setForeground(Colores.TEXTO_OSCURO);
     chk.setOpaque(false);
@@ -462,21 +444,21 @@ public class AdministrarProveedores extends JFrame {
       }
       if (esNuevo) {
         String nc = String.format("PROV-%03d", proveedores.size() + 1);
-        proveedores.add(new Proveedor(
+        proveedores.add(new ProveedorDTO(
           campos[0].getText().trim(),
           campos[1].getText().trim().isEmpty() ? nc : campos[1].getText().trim(),
           campos[2].getText().trim(), campos[3].getText().trim(),
           campos[4].getText().trim(), campos[5].getText().trim(),
           campos[6].getText().trim(), chk.isSelected()));
       } else {
-        prov.nombre = campos[0].getText().trim();
-        prov.codigo = campos[1].getText().trim();
-        prov.contacto = campos[2].getText().trim();
-        prov.telefono = campos[3].getText().trim();
-        prov.email = campos[4].getText().trim();
-        prov.direccion = campos[5].getText().trim();
-        prov.terminosPago = campos[6].getText().trim();
-        prov.activo = chk.isSelected();
+        prov.setNombre(campos[0].getText().trim());
+        prov.setCodigo(campos[1].getText().trim());
+        prov.setContacto(campos[2].getText().trim());
+        prov.setTelefono(campos[3].getText().trim());
+        prov.setEmail(campos[4].getText().trim());
+        prov.setDireccion(campos[5].getText().trim());
+        prov.setTerminosPago(campos[6].getText().trim());
+        prov.setActivo(chk.isSelected());
       }
       lblActivos.setText(contarActivos());
       construirGrid(proveedores);
@@ -491,7 +473,7 @@ public class AdministrarProveedores extends JFrame {
     dlg.setVisible(true);
   }
 
-  private void abrirDetalle(Proveedor p) {
+  private void abrirDetalle(ProveedorDTO p) {
     JDialog dlg = new JDialog(this, "Detalle del Proveedor", true);
     dlg.setSize(460, 420);
     dlg.setLocationRelativeTo(this);
@@ -504,19 +486,19 @@ public class AdministrarProveedores extends JFrame {
 
     JPanel headerRow = new JPanel(new BorderLayout());
     headerRow.setOpaque(false);
-    JLabel lblN = new JLabel(p.nombre);
+    JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(20));
     lblN.setForeground(Colores.TEXTO_OSCURO);
-    JLabel badge = new JLabel(p.activo ? "Activo" : "Inactivo", SwingConstants.CENTER);
+    JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
-    badge.setForeground(p.activo ? new Color(21, 128, 61) : new Color(100, 100, 100));
+    badge.setForeground(p.isActivo() ? new Color(21, 128, 61) : new Color(100, 100, 100));
     badge.setOpaque(true);
-    badge.setBackground(p.activo ? new Color(220, 252, 231) : new Color(229, 231, 235));
+    badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
     headerRow.add(lblN, BorderLayout.WEST);
     headerRow.add(badge, BorderLayout.EAST);
 
-    JLabel lblCod = new JLabel(p.codigo);
+    JLabel lblCod = new JLabel(p.getCodigo());
     lblCod.setFont(Fuentes.r(13));
     lblCod.setForeground(Colores.GRIS_TEXTO);
 
@@ -526,9 +508,9 @@ public class AdministrarProveedores extends JFrame {
     panel.add(Box.createVerticalStrut(20));
 
     String[][] info = {
-      {"Contacto", p.contacto}, {"Teléfono", p.telefono},
-      {"Email", p.email}, {"Dirección", p.direccion},
-      {"Términos de pago", p.terminosPago}
+      {"Contacto", p.getContacto()}, {"Teléfono", p.getTelefono()},
+      {"Email", p.getEmail()}, {"Dirección", p.getDireccion()},
+      {"Términos de pago", p.getTerminosPago()}
     };
     for (String[] fi : info) {
       JPanel row = new JPanel(new BorderLayout()) {

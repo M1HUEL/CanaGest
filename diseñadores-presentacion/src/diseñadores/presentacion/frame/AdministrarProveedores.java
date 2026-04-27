@@ -1,6 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProveedorDTO;
+import diseñadores.negocios.proveedores.ProveedoresFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -14,6 +15,7 @@ import java.util.List;
 public class AdministrarProveedores extends JFrame {
 
   private final JFrame menuOrigen;
+  private final ProveedoresFacade facade;
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
   private JPanel panelGrid;
   private JLabel lblActivos;
@@ -21,20 +23,14 @@ public class AdministrarProveedores extends JFrame {
 
   public AdministrarProveedores(JFrame menuOrigen) {
     this.menuOrigen = menuOrigen;
+    this.facade = new ProveedoresFacade();
     setTitle("La Canasta - Administrar Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    proveedores.add(new ProveedorDTO("Distribuidora Central", "PROV-001", "Juan Pérez", "555-0101",
-      "contacto@distcentral.com", "Av. Principal 123, Col. Centro", "30 días", true));
-    proveedores.add(new ProveedorDTO("Alimentos del Norte", "PROV-002", "María González", "555-0202",
-      "ventas@alimnorte.com", "Calle Comercio 456, Col. Industrial", "15 días", true));
-    proveedores.add(new ProveedorDTO("Lácteos Premium", "PROV-003", "Carlos Ramírez", "555-0303",
-      "info@lacteospremium.com", "Blvd. Lácteo 789, Col. Valle", "45 días", true));
-    proveedores.add(new ProveedorDTO("Granos y Semillas SA", "PROV-004", "Ana López", "555-0404",
-      "contacto@granossemillas.com", "Carretera Norte Km 12", "30 días", false));
+    proveedores.addAll(facade.obtenerProveedores());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -129,7 +125,7 @@ public class AdministrarProveedores extends JFrame {
     lblActivosTxt.setFont(Fuentes.r(12));
     lblActivosTxt.setForeground(Colores.GRIS_TEXTO);
     lblActivosTxt.setAlignmentX(CENTER_ALIGNMENT);
-    lblActivos = new JLabel(contarActivos(), SwingConstants.CENTER);
+    lblActivos = new JLabel(String.valueOf(facade.contarProveedoresActivos()), SwingConstants.CENTER);
     lblActivos.setFont(Fuentes.b(36));
     lblActivos.setForeground(Colores.AZUL);
     lblActivos.setAlignmentX(CENTER_ALIGNMENT);
@@ -235,10 +231,6 @@ public class AdministrarProveedores extends JFrame {
     contenido.add(header, BorderLayout.NORTH);
     contenido.add(centro, BorderLayout.CENTER);
     return contenido;
-  }
-
-  private String contarActivos() {
-    return String.valueOf(proveedores.stream().filter(p -> p.isActivo()).count());
   }
 
   private void construirGrid(List<ProveedorDTO> lista) {
@@ -443,13 +435,15 @@ public class AdministrarProveedores extends JFrame {
         return;
       }
       if (esNuevo) {
-        String nc = String.format("PROV-%03d", proveedores.size() + 1);
-        proveedores.add(new ProveedorDTO(
+        ProveedorDTO nuevo = new ProveedorDTO(
           campos[0].getText().trim(),
-          campos[1].getText().trim().isEmpty() ? nc : campos[1].getText().trim(),
+          campos[1].getText().trim().isEmpty() ? null : campos[1].getText().trim(),
           campos[2].getText().trim(), campos[3].getText().trim(),
           campos[4].getText().trim(), campos[5].getText().trim(),
-          campos[6].getText().trim(), chk.isSelected()));
+          campos[6].getText().trim(), chk.isSelected());
+        facade.guardarProveedor(nuevo);
+        proveedores.clear();
+        proveedores.addAll(facade.obtenerProveedores());
       } else {
         prov.setNombre(campos[0].getText().trim());
         prov.setCodigo(campos[1].getText().trim());
@@ -459,8 +453,9 @@ public class AdministrarProveedores extends JFrame {
         prov.setDireccion(campos[5].getText().trim());
         prov.setTerminosPago(campos[6].getText().trim());
         prov.setActivo(chk.isSelected());
+        facade.actualizarProveedor(prov);
       }
-      lblActivos.setText(contarActivos());
+      lblActivos.setText(String.valueOf(facade.contarProveedoresActivos()));
       construirGrid(proveedores);
       dlg.dispose();
     });

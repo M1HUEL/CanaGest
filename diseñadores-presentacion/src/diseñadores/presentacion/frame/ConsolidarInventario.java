@@ -1,5 +1,7 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.inventario.InventarioFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -37,22 +39,21 @@ public class ConsolidarInventario extends JFrame {
   }
 
   private final JFrame menuOrigen;
+  private final InventarioFacade facade;
   private final List<ItemConteo> items = new ArrayList<>();
   private JPanel panelTabla;
   private JLabel lblAuditados, lblPendientes, lblDiferencias;
 
   public ConsolidarInventario(JFrame menuOrigen) {
     this.menuOrigen = menuOrigen;
+    this.facade = new InventarioFacade();
     setTitle("La Canasta - Consolidar Inventario");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    items.add(new ItemConteo("PROD-001", "Arroz 1kg", 45, 45));
-    items.add(new ItemConteo("PROD-002", "Frijol 1kg", 12, 10));
-    items.add(new ItemConteo("PROD-003", "Azúcar 1kg", 78, 80));
-    items.add(new ItemConteo("PROD-004", "Aceite 1L", 35, 32));
+    cargarItemsDesdeSistema();
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -67,6 +68,13 @@ public class ConsolidarInventario extends JFrame {
     root.add(buildTopBar(), BorderLayout.NORTH);
     root.add(buildContenido(), BorderLayout.CENTER);
     setContentPane(root);
+  }
+
+  private void cargarItemsDesdeSistema() {
+    List<ProductoDTO> productos = facade.obtenerTodos();
+    for (ProductoDTO p : productos) {
+      items.add(new ItemConteo(p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()));
+    }
   }
 
   private JPanel buildTopBar() {
@@ -134,11 +142,11 @@ public class ConsolidarInventario extends JFrame {
     lblPendientes = new JLabel(String.valueOf(contarPendientes()));
     lblDiferencias = new JLabel(String.valueOf(sumaDiferencias()));
 
-    lblAuditados.setFont(Fuentes.b(36));
+    lblAuditados.setFont(Fuentes.b(32));
     lblAuditados.setForeground(Colores.AZUL);
-    lblPendientes.setFont(Fuentes.b(36));
+    lblPendientes.setFont(Fuentes.b(32));
     lblPendientes.setForeground(new Color(217, 119, 6));
-    lblDiferencias.setFont(Fuentes.b(36));
+    lblDiferencias.setFont(Fuentes.b(32));
     lblDiferencias.setForeground(Colores.ROJO);
 
     statsRow.add(cardStat("Productos Auditados", lblAuditados));
@@ -401,6 +409,7 @@ public class ConsolidarInventario extends JFrame {
     btnConfirmar.addActionListener(e -> {
       try {
         int nuevoFisico = Integer.parseInt(campoFisico.getText().trim());
+        facade.ajustarStock(item.codigo, nuevoFisico);
         item.stockFisico = nuevoFisico;
         item.verificado = (item.stockSistema == item.stockFisico);
         actualizarStats();
@@ -500,9 +509,11 @@ public class ConsolidarInventario extends JFrame {
     btnGuardar.addActionListener(e -> {
       try {
         for (int i = 0; i < items.size(); i++) {
+          ItemConteo item = items.get(i);
           int nf = Integer.parseInt(campos[i].getText().trim());
-          items.get(i).stockFisico = nf;
-          items.get(i).verificado = (items.get(i).stockSistema == nf);
+          facade.ajustarStock(item.codigo, nf);
+          item.stockFisico = nf;
+          item.verificado = (item.stockSistema == nf);
         }
         actualizarStats();
         construirTabla();

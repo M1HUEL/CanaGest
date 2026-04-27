@@ -51,6 +51,16 @@ public class InventarioFacade implements IInventario {
     control.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
+  @Override
+  public void ajustarStock(String codigo, int stockFisico) {
+    control.ajustarStock(codigo, stockFisico);
+  }
+
+  @Override
+  public int[] obtenerEstadisticasConteo() {
+    return control.obtenerEstadisticasConteo();
+  }
+
   public InventarioControl getControl() {
     return control;
   }

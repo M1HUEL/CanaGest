@@ -21,4 +21,8 @@ public interface IInventario {
 
   List<ProductoDTO> necesitanReorden();
 
+  void ajustarStock(String codigo, int stockFisico);
+
+  int[] obtenerEstadisticasConteo();
+
 }

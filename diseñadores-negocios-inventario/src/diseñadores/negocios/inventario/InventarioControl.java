@@ -52,4 +52,21 @@ public class InventarioControl {
     InventarioRepository.getInstancia().actualizarStock(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
+  public void ajustarStock(String codigo, int stockFisico) {
+    ProductoDTO p = obtenerProductoPorCodigo(codigo);
+    if (p != null) {
+      p.setStockActual(stockFisico);
+    }
+  }
+
+  public int[] obtenerEstadisticasConteo() {
+    List<ProductoDTO> productos = obtenerTodos();
+    int total = productos.size();
+    int pendientes = (int) productos.stream().filter(p -> p.getStock() < p.getStockMinimo()).count();
+    int diferencias = productos.stream()
+      .mapToInt(p -> Math.abs(p.getStock() - (p.getStockMinimo() + p.getStockMaximo()) / 2))
+      .sum();
+    return new int[]{total, pendientes, diferencias};
+  }
+
 }

@@ -79,6 +79,13 @@ public class PantallaLogin extends JFrame {
     campoUsuario.setAlignmentX(LEFT_ALIGNMENT);
     campoUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
+    JPanel usuarioRow = new JPanel(new BorderLayout(0, 6));
+    usuarioRow.setOpaque(false);
+    usuarioRow.setAlignmentX(LEFT_ALIGNMENT);
+    usuarioRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+    usuarioRow.add(lblUsuario, BorderLayout.NORTH);
+    usuarioRow.add(campoUsuario, BorderLayout.CENTER);
+
     JLabel lblContrasena = new JLabel("Contraseña");
     lblContrasena.setFont(Fuentes.b(13));
     lblContrasena.setForeground(Colores.TEXTO_OSCURO);
@@ -87,6 +94,13 @@ public class PantallaLogin extends JFrame {
     JPasswordField campoContrasena = (JPasswordField) campoLogin("Ingrese su contraseña", true);
     campoContrasena.setAlignmentX(LEFT_ALIGNMENT);
     campoContrasena.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+
+    JPanel contrasenaRow = new JPanel(new BorderLayout(0, 6));
+    contrasenaRow.setOpaque(false);
+    contrasenaRow.setAlignmentX(LEFT_ALIGNMENT);
+    contrasenaRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+    contrasenaRow.add(lblContrasena, BorderLayout.NORTH);
+    contrasenaRow.add(campoContrasena, BorderLayout.CENTER);
 
     JLabel lblError = new JLabel(" ", SwingConstants.CENTER);
     lblError.setFont(Fuentes.r(12));
@@ -155,13 +169,9 @@ public class PantallaLogin extends JFrame {
     card.add(Box.createVerticalStrut(6));
     card.add(lblSubtitulo);
     card.add(Box.createVerticalStrut(32));
-    card.add(lblUsuario);
-    card.add(Box.createVerticalStrut(6));
-    card.add(campoUsuario);
+    card.add(usuarioRow);
     card.add(Box.createVerticalStrut(18));
-    card.add(lblContrasena);
-    card.add(Box.createVerticalStrut(6));
-    card.add(campoContrasena);
+    card.add(contrasenaRow);
     card.add(Box.createVerticalStrut(10));
     card.add(lblError);
     card.add(Box.createVerticalStrut(10));

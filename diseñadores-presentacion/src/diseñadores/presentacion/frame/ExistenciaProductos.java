@@ -1,5 +1,7 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.inventario.InventarioFacade;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -16,14 +18,16 @@ public class ExistenciaProductos extends JFrame {
 
     String codigo, nombre, ultimaAct;
     int stockActual, stockMin, stockMax;
+    ProductoDTO dto;
 
-    Producto(String codigo, String nombre, int stockActual, int stockMin, int stockMax, String ultimaAct) {
+    Producto(String codigo, String nombre, int stockActual, int stockMin, int stockMax, String ultimaAct, ProductoDTO dto) {
       this.codigo = codigo;
       this.nombre = nombre;
       this.stockActual = stockActual;
       this.stockMin = stockMin;
       this.stockMax = stockMax;
       this.ultimaAct = ultimaAct;
+      this.dto = dto;
     }
 
     String getEstado() {
@@ -39,22 +43,24 @@ public class ExistenciaProductos extends JFrame {
   }
 
   private final JFrame menuOrigen;
+  private final InventarioFacade facade;
   private final List<Producto> productos = new ArrayList<>();
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
   public ExistenciaProductos(JFrame menuOrigen) {
     this.menuOrigen = menuOrigen;
+    this.facade = new InventarioFacade();
     setTitle("La Canasta - Existencia de Productos");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    productos.add(new Producto("PROD-001", "Arroz 1kg", 45, 20, 100, "2026-04-22"));
-    productos.add(new Producto("PROD-002", "Frijol 1kg", 12, 20, 80, "2026-04-21"));
-    productos.add(new Producto("PROD-003", "Azúcar 1kg", 78, 30, 120, "2026-04-22"));
-    productos.add(new Producto("PROD-004", "Aceite 1L", 35, 15, 60, "2026-04-20"));
+    for (ProductoDTO p : facade.obtenerTodos()) {
+      productos.add(new Producto(p.getCodigo(), p.getNombre(), p.getStock(), p.getStockMinimo(),
+        p.getStockMaximo(), p.getFechaModificacion(), p));
+    }
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -257,11 +263,20 @@ public class ExistenciaProductos extends JFrame {
       return;
     }
     String ql = q.toLowerCase();
-    List<Producto> f = new ArrayList<>();
-    for (Producto p : productos) {
-      if (p.nombre.toLowerCase().contains(ql) || p.codigo.toLowerCase().contains(ql)) {
+List<ProductoDTO> f = new ArrayList<>();
+    for (ProductoDTO p : productos) {
+      if (p.nombre.toLowerCase().contains(q) || p.codigo.toLowerCase().contains(q)) {
         f.add(p);
       }
+    }
+    construirTabla(f);
+  }
+
+  private void construirTabla(List<ProductoDTO> lista) {
+    panelTabla.removeAll();
+    for (ProductoDTO p : lista) {
+      panelTabla.add(filaProducto(p));
+    }
     }
     construirTabla(f);
   }
@@ -295,11 +310,11 @@ public class ExistenciaProductos extends JFrame {
     panelTabla.repaint();
   }
 
-  private JPanel filaProducto(Producto p) {
+private JPanel filaProducto(ProductoDTO p) {
     JPanel fila = new JPanel(new GridLayout(1, 8));
     fila.setOpaque(false);
-    fila.setBorder(new EmptyBorder(14, 20, 14, 20));
-    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+    fila.setBorder(new EmptyBorder(16, 24, 16, 24));
+    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 
     JLabel lblCodigo = new JLabel(p.codigo);
     lblCodigo.setFont(Fuentes.r(13));
@@ -315,20 +330,18 @@ public class ExistenciaProductos extends JFrame {
 
     JLabel lblMin = new JLabel(String.valueOf(p.stockMin));
     lblMin.setFont(Fuentes.r(13));
-    lblMin.setForeground(Colores.GRIS_TEXTO);
+    lblMin.setForeground(Colores.TEXTO_OSCURO);
 
     JLabel lblMax = new JLabel(String.valueOf(p.stockMax));
     lblMax.setFont(Fuentes.r(13));
-    lblMax.setForeground(Colores.GRIS_TEXTO);
+    lblMax.setForeground(Colores.TEXTO_OSCURO);
 
     String estado = p.getEstado();
-    Color estadoFg = estado.equals("Bajo") ? new Color(185, 28, 28)
-      : (estado.equals("Alto") ? new Color(21, 128, 61) : new Color(60, 80, 120));
-    Color estadoBg = estado.equals("Bajo") ? new Color(254, 226, 226)
-      : (estado.equals("Alto") ? new Color(220, 252, 231) : new Color(239, 246, 255));
+    Color estadoColor = "Bajo".equals(estado) ? new Color(185, 28, 28) : ("Alto".equals(estado) ? new Color(161, 110, 0) : new Color(21, 128, 61));
+    Color estadoBg = "Bajo".equals(estado) ? new Color(254, 226, 226) : ("Alto".equals(estado) ? new Color(254, 243, 199) : new Color(220, 252, 231));
     JLabel lblEstado = new JLabel(estado, SwingConstants.CENTER);
     lblEstado.setFont(Fuentes.b(11));
-    lblEstado.setForeground(estadoFg);
+    lblEstado.setForeground(estadoColor);
     lblEstado.setOpaque(true);
     lblEstado.setBackground(estadoBg);
     lblEstado.setBorder(new EmptyBorder(4, 10, 4, 10));
@@ -336,24 +349,26 @@ public class ExistenciaProductos extends JFrame {
     wrapEstado.setOpaque(false);
     wrapEstado.add(lblEstado);
 
-    JLabel lblUlt = new JLabel(p.ultimaAct);
+    JLabel lblUlt = new JLabel(p.ultimaAct != null ? p.ultimaAct : "-");
     lblUlt.setFont(Fuentes.r(13));
-    lblUlt.setForeground(Colores.GRIS_TEXTO);
+    lblUlt.setForeground(Colores.TEXTO_OSCURO);
 
-    JButton btnActualizar = new JButton("Actualizar") {
-      boolean ov = false;
+    JPanel wrapAccion = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    wrapAccion.setOpaque(false);
+    JButton btnEditar = crearBotonTabla("Editar");
+    btnEditar.addActionListener(e -> abrirDialogoActualizar(p));
+    wrapAccion.add(btnEditar);
 
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
+    fila.add(lblCodigo);
+    fila.add(lblNombre);
+    fila.add(lblStock);
+    fila.add(lblMin);
+    fila.add(lblMax);
+    fila.add(wrapEstado);
+    fila.add(lblUlt);
+    fila.add(wrapAccion);
+    return fila;
+  }
 
           @Override
           public void mouseExited(MouseEvent e) {
@@ -475,9 +490,13 @@ public class ExistenciaProductos extends JFrame {
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     btnGuardar.addActionListener(e -> {
       try {
-        p.stockActual = Integer.parseInt(campos[0].getText().trim());
-        p.stockMin = Integer.parseInt(campos[1].getText().trim());
-        p.stockMax = Integer.parseInt(campos[2].getText().trim());
+        int nuevoStock = Integer.parseInt(campos[0].getText().trim());
+        int nuevoMin = Integer.parseInt(campos[1].getText().trim());
+        int nuevoMax = Integer.parseInt(campos[2].getText().trim());
+        facade.actualizarStockCompleto(p.codigo, nuevoStock, nuevoMin, nuevoMax);
+        p.stockActual = nuevoStock;
+        p.stockMin = nuevoMin;
+        p.stockMax = nuevoMax;
         p.ultimaAct = java.time.LocalDate.now().toString();
         construirTabla(productos);
         dlg.dispose();

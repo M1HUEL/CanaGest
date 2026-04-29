@@ -63,7 +63,7 @@ public class RegistrarVenta extends JFrame {
     gbc.gridx = 0;
     gbc.weightx = 0.65;
     gbc.insets = new Insets(0, 0, 0, 16);
-    centro.add(panelIzquierdo(), gbc);
+    centro.add(crearPanelIzquierdo(), gbc);
     gbc.gridx = 1;
     gbc.weightx = 0.35;
     gbc.insets = new Insets(0, 0, 0, 0);
@@ -123,7 +123,7 @@ public class RegistrarVenta extends JFrame {
     return bar;
   }
 
-  private JPanel panelIzquierdo() {
+  private JPanel crearPanelIzquierdo() {
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
     p.setOpaque(false);

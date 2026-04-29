@@ -55,7 +55,7 @@ public class MenuPrincipal extends JFrame {
     panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
     panelTitulo.setOpaque(false);
     panelTitulo.setAlignmentX(LEFT_ALIGNMENT);
-    panelTitulo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+    panelTitulo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
     JLabel titulo = new JLabel("La Canasta", SwingConstants.CENTER);
     titulo.setFont(Fuentes.b(30));

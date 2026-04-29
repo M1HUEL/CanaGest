@@ -3,10 +3,10 @@ package diseñadores.presentacion.frame;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
-import diseñadores.presentacion.utilidad.Componentes;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,7 @@ public class RegistrarVenta extends JFrame {
 
   private final UsuarioDTO usuarioActivo;
   private VentaDTO ventaActual;
-
   private final IVentas fachada;
-
-  private final List<ItemVentaDTO> carritoDisplay = new ArrayList<>();
 
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
@@ -42,8 +39,18 @@ public class RegistrarVenta extends JFrame {
     ventaActual = fachada.iniciarNuevaVenta();
     catalogoProductos = fachada.obtenerCatalogo();
 
-    JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(this, usuarioActivo), BorderLayout.NORTH);
+    JPanel root = new JPanel(new BorderLayout()) {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.FONDO_AMARILLO);
+        g.fillRect(0, 0, getWidth(), getHeight());
+      }
+
+    };
+    root.setOpaque(false);
+
+    root.add(crearTopBar(), BorderLayout.NORTH);
 
     JPanel centro = new JPanel(new GridBagLayout());
     centro.setOpaque(false);
@@ -67,6 +74,55 @@ public class RegistrarVenta extends JFrame {
     actualizarVista();
   }
 
+  private JPanel crearTopBar() {
+    JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
+    bar.setBackground(Colores.BLANCO);
+    bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+
+    JButton btnMenu = new JButton("Menu Principal") {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? Colores.AMARILLO_BTN_HOVER : Colores.AMARILLO_BTN);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    btnMenu.setForeground(Colores.TEXTO_OSCURO);
+    btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    btnMenu.setPreferredSize(new Dimension(160, 38));
+    btnMenu.addActionListener(e -> {
+      dispose();
+      new MenuPrincipal(usuarioActivo).setVisible(true);
+    });
+
+    bar.add(btnMenu);
+    return bar;
+  }
+
   private JPanel panelIzquierdo() {
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
@@ -78,14 +134,16 @@ public class RegistrarVenta extends JFrame {
   }
 
   private JPanel tarjetaEscanear() {
-    JPanel card = Componentes.tarjeta();
+    JPanel card = crearTarjeta();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 145));
 
-    JLabel titulo = Componentes.etiqueta("Escanear Producto", 17, true, Colores.TEXTO_OSCURO);
+    JLabel titulo = new JLabel("Escanear Producto");
+    titulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
+    titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
 
-    campoEscanear = Componentes.campoPill("Escanear codigo de barras");
+    campoEscanear = crearCampoPill("Escanear codigo de barras");
     campoEscanear.setAlignmentX(LEFT_ALIGNMENT);
     campoEscanear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     campoEscanear.addActionListener(e -> {
@@ -103,17 +161,19 @@ public class RegistrarVenta extends JFrame {
   }
 
   private JPanel tarjetaBusqueda() {
-    JPanel card = Componentes.tarjeta();
+    JPanel card = crearTarjeta();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-    JLabel titulo = Componentes.etiqueta("Busqueda Rapida", 17, true, Colores.TEXTO_OSCURO);
+    JLabel titulo = new JLabel("Busqueda Rapida");
+    titulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
+    titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
 
-    campoBusqueda = Componentes.campoPill("Nombre del producto");
+    campoBusqueda = crearCampoPill("Nombre del producto");
     campoBusqueda.setAlignmentX(LEFT_ALIGNMENT);
     campoBusqueda.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-    JButton btnBuscar = Componentes.botonAccion("Buscar", Colores.AZUL, Colores.AZUL_HOVER);
+    JButton btnBuscar = crearBotonAccion("Buscar", Colores.AZUL, Colores.AZUL_HOVER);
     btnBuscar.setAlignmentX(LEFT_ALIGNMENT);
     btnBuscar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
@@ -192,21 +252,21 @@ public class RegistrarVenta extends JFrame {
       {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new java.awt.event.MouseAdapter() {
+        addMouseListener(new MouseAdapter() {
           @Override
-          public void mouseEntered(java.awt.event.MouseEvent e) {
+          public void mouseEntered(MouseEvent e) {
             hover = true;
             repaint();
           }
 
           @Override
-          public void mouseExited(java.awt.event.MouseEvent e) {
+          public void mouseExited(MouseEvent e) {
             hover = false;
             repaint();
           }
 
           @Override
-          public void mouseClicked(java.awt.event.MouseEvent e) {
+          public void mouseClicked(MouseEvent e) {
             escanearProducto(prod.getCodigo());
           }
 
@@ -227,17 +287,26 @@ public class RegistrarVenta extends JFrame {
     btn.setBorder(new EmptyBorder(12, 10, 12, 10));
     btn.setPreferredSize(new Dimension(0, 90));
 
-    JLabel lCod = Componentes.etiqueta(prod.getCodigo(), 10, false, Colores.AZUL_MUY_SUTIL);
-    JLabel lNom = Componentes.etiqueta(prod.getNombre(), 16, true, Colores.BLANCO);
-    JLabel lPre = Componentes.etiqueta("$" + String.format("%.2f", prod.getPrecio()), 13, false, Colores.AZUL_MUY_SUTIL);
+    JLabel lCod = new JLabel(prod.getCodigo());
+    lCod.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+    lCod.setForeground(Colores.AZUL_MUY_SUTIL);
+    lCod.setAlignmentX(CENTER_ALIGNMENT);
 
-    for (JLabel l : new JLabel[]{lCod, lNom, lPre}) {
-      l.setAlignmentX(CENTER_ALIGNMENT);
-      btn.add(l);
-      if (l == lCod || l == lNom) {
-        btn.add(Box.createVerticalStrut(4));
-      }
-    }
+    JLabel lNom = new JLabel(prod.getNombre());
+    lNom.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    lNom.setForeground(Colores.BLANCO);
+    lNom.setAlignmentX(CENTER_ALIGNMENT);
+
+    JLabel lPre = new JLabel("$" + String.format("%.2f", prod.getPrecio()));
+    lPre.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lPre.setForeground(Colores.AZUL_MUY_SUTIL);
+    lPre.setAlignmentX(CENTER_ALIGNMENT);
+
+    btn.add(lCod);
+    btn.add(Box.createVerticalStrut(4));
+    btn.add(lNom);
+    btn.add(Box.createVerticalStrut(4));
+    btn.add(lPre);
     return btn;
   }
 
@@ -252,17 +321,23 @@ public class RegistrarVenta extends JFrame {
   }
 
   private JPanel tarjetaCarrito() {
-    JPanel card = Componentes.tarjeta();
+    JPanel card = crearTarjeta();
     card.setLayout(new BorderLayout(0, 12));
 
-    lblCantItems = Componentes.etiqueta("0 items", 12, true, Colores.AZUL);
+    lblCantItems = new JLabel("0 items");
+    lblCantItems.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    lblCantItems.setForeground(Colores.AZUL);
     lblCantItems.setOpaque(true);
     lblCantItems.setBackground(Colores.AZUL_CLARO);
     lblCantItems.setBorder(new EmptyBorder(3, 10, 3, 10));
 
+    JLabel lblTitulo = new JLabel("Carrito");
+    lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
+    lblTitulo.setForeground(Colores.TEXTO_OSCURO);
+
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
-    header.add(Componentes.etiqueta("Carrito", 17, true, Colores.TEXTO_OSCURO), BorderLayout.WEST);
+    header.add(lblTitulo, BorderLayout.WEST);
     header.add(lblCantItems, BorderLayout.EAST);
 
     panelCarritoItems = new JPanel();
@@ -282,18 +357,28 @@ public class RegistrarVenta extends JFrame {
   }
 
   private JPanel tarjetaTotal() {
-    JPanel card = Componentes.tarjetaBlanca(18);
+    JPanel card = crearTarjetaBlanca(18);
     card.setLayout(new BorderLayout(0, 12));
     card.setBorder(new EmptyBorder(20, 20, 20, 20));
-    card.add(Componentes.etiquetaCentrada("Total a pagar", 15, false, Colores.GRIS_TEXTO), BorderLayout.NORTH);
+
+    JLabel lblTitulo = new JLabel("Total a pagar", SwingConstants.CENTER);
+    lblTitulo.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+    lblTitulo.setForeground(Colores.GRIS_TEXTO);
+
+    card.add(lblTitulo, BorderLayout.NORTH);
     card.add(cuadroTotalAzul(), BorderLayout.CENTER);
     card.add(botonesVenta(), BorderLayout.SOUTH);
     return card;
   }
 
   private JPanel cuadroTotalAzul() {
-    lblTotal = Componentes.etiquetaCentrada("$0.00", 38, true, Colores.BLANCO);
-    lblProductosCount = Componentes.etiquetaCentrada("0 productos", 13, false, Colores.AZUL_SUTIL);
+    lblTotal = new JLabel("$0.00", SwingConstants.CENTER);
+    lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 38));
+    lblTotal.setForeground(Colores.BLANCO);
+
+    lblProductosCount = new JLabel("0 productos", SwingConstants.CENTER);
+    lblProductosCount.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lblProductosCount.setForeground(Colores.AZUL_SUTIL);
 
     JPanel cuadro = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
@@ -319,7 +404,7 @@ public class RegistrarVenta extends JFrame {
     row.setOpaque(false);
     row.setPreferredSize(new Dimension(0, 58));
 
-    JButton btnCancelar = Componentes.botonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
+    JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
     btnCancelar.addActionListener(e -> {
       if (ventaActual.getItems().isEmpty()) {
         return;
@@ -332,17 +417,101 @@ public class RegistrarVenta extends JFrame {
       }
     });
 
-    JButton btnContinuar = Componentes.botonAccion("Pagar", Colores.VERDE, Colores.VERDE_OSCURO);
-    btnContinuar.addActionListener(e -> continuarAPago());
+    JButton btnPagar = crearBotonAccion("Pagar", Colores.VERDE, Colores.VERDE_OSCURO);
+    btnPagar.addActionListener(e -> continuarAPago());
 
     row.add(btnCancelar);
-    row.add(btnContinuar);
+    row.add(btnPagar);
     return row;
+  }
+
+  private JPanel filaCarrito(ItemVentaDTO item) {
+    JPanel fila = new JPanel(new GridBagLayout());
+    fila.setOpaque(true);
+    fila.setBackground(Colores.BLANCO);
+    fila.setBorder(BorderFactory.createCompoundBorder(
+      new LineBorder(Colores.BORDE_GRIS, 1, true),
+      new EmptyBorder(10, 12, 10, 12)));
+    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
+
+    GridBagConstraints c = new GridBagConstraints();
+
+    JLabel lblNombre = new JLabel(item.getNombre());
+    lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    lblNombre.setForeground(Colores.TEXTO_OSCURO);
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 1;
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    fila.add(lblNombre, c);
+
+    JButton btnElim = crearBotonIcono("X", Colores.ROJO_BG, Colores.ROJO_BG_HOVER, Colores.ROJO_ICONO, 11);
+    btnElim.addActionListener(e -> eliminarItem(item));
+    c.gridx = 1;
+    c.weightx = 0;
+    c.fill = GridBagConstraints.NONE;
+    c.anchor = GridBagConstraints.EAST;
+    fila.add(btnElim, c);
+
+    JLabel lblPrecio = new JLabel("Precio unitario: $" + String.format("%.2f", item.getPrecioUnitario()));
+    lblPrecio.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+    lblPrecio.setForeground(Colores.GRIS_TEXTO);
+    c.gridx = 0;
+    c.gridy = 1;
+    c.weightx = 1;
+    c.anchor = GridBagConstraints.WEST;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.gridwidth = 2;
+    fila.add(lblPrecio, c);
+
+    JButton btnMenos = crearBotonIcono("-", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
+    JLabel lblCant = new JLabel(String.valueOf(item.getCantidad()), SwingConstants.CENTER);
+    lblCant.setFont(new Font("Segoe UI", Font.BOLD, 15));
+    lblCant.setForeground(Colores.TEXTO_OSCURO);
+    lblCant.setPreferredSize(new Dimension(32, 32));
+    JButton btnMas = crearBotonIcono("+", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
+
+    btnMenos.addActionListener(e -> decrementarItem(item));
+    btnMas.addActionListener(e -> incrementarItem(item));
+
+    JPanel ctrlCant = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+    ctrlCant.setOpaque(false);
+    ctrlCant.add(btnMenos);
+    ctrlCant.add(lblCant);
+    ctrlCant.add(btnMas);
+
+    JLabel lblSubTxt = new JLabel("Subtotal");
+    lblSubTxt.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+    lblSubTxt.setForeground(Colores.GRIS_TEXTO);
+    lblSubTxt.setHorizontalAlignment(SwingConstants.RIGHT);
+
+    JLabel lblSub = new JLabel(String.format("$%.2f", item.getSubtotal()));
+    lblSub.setFont(new Font("Segoe UI", Font.BOLD, 15));
+    lblSub.setForeground(Colores.AZUL);
+    lblSub.setHorizontalAlignment(SwingConstants.RIGHT);
+
+    JPanel subPanel = new JPanel(new BorderLayout());
+    subPanel.setOpaque(false);
+    subPanel.add(lblSubTxt, BorderLayout.NORTH);
+    subPanel.add(lblSub, BorderLayout.SOUTH);
+
+    JPanel ctrlRow = new JPanel(new BorderLayout(8, 0));
+    ctrlRow.setOpaque(false);
+    ctrlRow.add(ctrlCant, BorderLayout.WEST);
+    ctrlRow.add(subPanel, BorderLayout.EAST);
+
+    c.gridx = 0;
+    c.gridy = 2;
+    c.gridwidth = 2;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.insets = new Insets(6, 0, 0, 0);
+    fila.add(ctrlRow, c);
+    return fila;
   }
 
   private void escanearProducto(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
-
     if (!fachada.existeProducto(dto)) {
       mostrarError("<html>El producto <b>" + codigo + "</b> no existe en el catalogo.</html>",
         "Producto no encontrado");
@@ -353,12 +522,10 @@ public class RegistrarVenta extends JFrame {
         "Sin stock");
       return;
     }
-
     ProductoDTO p = fachada.procesarProducto(ventaActual, dto);
     if (p == null) {
       return;
     }
-
     actualizarVista();
   }
 
@@ -377,7 +544,6 @@ public class RegistrarVenta extends JFrame {
       ItemVentaDTO itemEnVenta = ventaActual.getItems().stream()
         .filter(i -> i.getCodigo().equals(item.getCodigo()))
         .findFirst().orElse(null);
-
       if (itemEnVenta != null) {
         int index = ventaActual.getItems().indexOf(itemEnVenta);
         ventaActual.getItems().set(index, itemEnVenta.conCantidad(itemEnVenta.getCantidad() - 1));
@@ -405,7 +571,7 @@ public class RegistrarVenta extends JFrame {
     }
     double total = ventaActual.getTotal();
     this.setVisible(false);
-    SeleccionarMetodoPago seleccionarMetodoPago = new SeleccionarMetodoPago(this, fachada, ventaActual, total, () -> {
+    new SeleccionarMetodoPago(this, fachada, ventaActual, total, () -> {
       ventaActual = fachada.iniciarNuevaVenta();
       actualizarVista();
       refrescarCatalogo();
@@ -426,84 +592,151 @@ public class RegistrarVenta extends JFrame {
     lblProductosCount.setText(ventaActual.getTotalUnidades() + " productos");
   }
 
-  private JPanel filaCarrito(ItemVentaDTO item) {
-    JPanel fila = new JPanel(new GridBagLayout());
-    fila.setOpaque(true);
-    fila.setBackground(Colores.BLANCO);
-    fila.setBorder(BorderFactory.createCompoundBorder(
-      new LineBorder(Colores.BORDE_GRIS, 1, true),
-      new EmptyBorder(10, 12, 10, 12)));
-    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
-
-    GridBagConstraints c = new GridBagConstraints();
-
-    c.gridx = 0;
-    c.gridy = 0;
-    c.weightx = 1;
-    c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    fila.add(Componentes.etiqueta(item.getNombre(), 14, true, Colores.TEXTO_OSCURO), c);
-
-    JButton btnElim = Componentes.botonIcono("X", Colores.ROJO_BG, Colores.ROJO_BG_HOVER, Colores.ROJO_ICONO, 11);
-    btnElim.addActionListener(e -> eliminarItem(item));
-    c.gridx = 1;
-    c.weightx = 0;
-    c.fill = GridBagConstraints.NONE;
-    c.anchor = GridBagConstraints.EAST;
-    fila.add(btnElim, c);
-
-    c.gridx = 0;
-    c.gridy = 1;
-    c.weightx = 1;
-    c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridwidth = 2;
-    fila.add(Componentes.etiqueta("Precio unitario: $" + String.format("%.2f", item.getPrecioUnitario()), 11, false, Colores.GRIS_TEXTO), c);
-
-    JButton btnMenos = Componentes.botonIcono("-", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
-    JLabel lblCant = Componentes.etiquetaCentrada(String.valueOf(item.getCantidad()), 15, true, Colores.TEXTO_OSCURO);
-    lblCant.setPreferredSize(new Dimension(32, 32));
-    JButton btnMas = Componentes.botonIcono("+", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
-
-    btnMenos.addActionListener(e -> decrementarItem(item));
-    btnMas.addActionListener(e -> incrementarItem(item));
-
-    JPanel ctrlCant = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
-    ctrlCant.setOpaque(false);
-    ctrlCant.add(btnMenos);
-    ctrlCant.add(lblCant);
-    ctrlCant.add(btnMas);
-
-    JLabel lblSubTxt = Componentes.etiqueta("Subtotal", 10, false, Colores.GRIS_TEXTO);
-    lblSubTxt.setHorizontalAlignment(SwingConstants.RIGHT);
-    JLabel lblSub = Componentes.etiqueta(String.format("$%.2f", item.getSubtotal()), 15, true, Colores.AZUL);
-    lblSub.setHorizontalAlignment(SwingConstants.RIGHT);
-
-    JPanel subPanel = new JPanel(new BorderLayout());
-    subPanel.setOpaque(false);
-    subPanel.add(lblSubTxt, BorderLayout.NORTH);
-    subPanel.add(lblSub, BorderLayout.SOUTH);
-
-    JPanel ctrlRow = new JPanel(new BorderLayout(8, 0));
-    ctrlRow.setOpaque(false);
-    ctrlRow.add(ctrlCant, BorderLayout.WEST);
-    ctrlRow.add(subPanel, BorderLayout.EAST);
-
-    c.gridx = 0;
-    c.gridy = 2;
-    c.gridwidth = 2;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.insets = new Insets(6, 0, 0, 0);
-    fila.add(ctrlRow, c);
-    return fila;
-  }
-
   private void mostrarError(String msg, String titulo) {
     JOptionPane.showMessageDialog(this, msg, titulo, JOptionPane.ERROR_MESSAGE);
   }
 
   private void mostrarAviso(String msg, String titulo) {
     JOptionPane.showMessageDialog(this, msg, titulo, JOptionPane.WARNING_MESSAGE);
+  }
+
+  private JPanel crearTarjetaBlanca(int radio) {
+    JPanel p = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.SOMBRA);
+        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, radio, radio));
+        g.setColor(Colores.BLANCO);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, radio, radio));
+        super.paintComponent(g2d);
+      }
+
+    };
+    p.setOpaque(false);
+    return p;
+  }
+
+  private JPanel crearTarjeta() {
+    JPanel p = crearTarjetaBlanca(18);
+    p.setBorder(new EmptyBorder(20, 20, 20, 20));
+    return p;
+  }
+
+  private JTextField crearCampoPill(String placeholder) {
+    JTextField tf = new JTextField() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.FONDO_INPUT);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    tf.setOpaque(false);
+    tf.setBorder(new EmptyBorder(8, 14, 8, 14));
+    tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+    tf.setText(placeholder);
+    tf.setForeground(Colores.GRIS_TEXTO);
+    tf.addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) {
+        if (tf.getText().equals(placeholder)) {
+          tf.setText("");
+          tf.setForeground(Colores.TEXTO_OSCURO);
+        }
+      }
+
+      public void focusLost(FocusEvent e) {
+        if (tf.getText().isEmpty()) {
+          tf.setText(placeholder);
+          tf.setForeground(Colores.GRIS_TEXTO);
+        }
+      }
+
+    });
+    return tf;
+  }
+
+  private JButton crearBotonAccion(String texto, Color base, Color hover) {
+    JButton b = new JButton(texto) {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? hover : base);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    b.setForeground(Colores.BLANCO);
+    b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    b.setHorizontalAlignment(SwingConstants.CENTER);
+    return b;
+  }
+
+  private JButton crearBotonIcono(String texto, Color baseBg, Color hoverBg, Color colorTexto, int fontSize) {
+    JButton b = new JButton(texto) {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? hoverBg : baseBg);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+        super.paintComponent(g2d);
+      }
+
+    };
+    b.setForeground(colorTexto);
+    b.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+    b.setPreferredSize(new Dimension(32, 32));
+    return b;
   }
 
 }

@@ -3,25 +3,21 @@ package diseñadores.presentacion.frame;
 import diseñadores.negocios.dto.VentaDTO;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
-import diseñadores.presentacion.utilidad.Componentes;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SeleccionarMetodoPago extends JFrame {
 
   private final VentaDTO ventaActual;
-
   private final JFrame frame;
-
   private final IVentas fachada;
-
   private final double total;
-
   private final Runnable onVentaFinalizada;
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
@@ -37,7 +33,6 @@ public class SeleccionarMetodoPago extends JFrame {
     VentaDTO ventaActual, double total,
     Runnable onVentaFinalizada) {
     super("Metodo de pago");
-
     this.ventaActual = ventaActual;
     this.frame = frame;
     this.fachada = fachada;
@@ -48,19 +43,106 @@ public class SeleccionarMetodoPago extends JFrame {
     setSize(frame.getWidth(), frame.getHeight());
     setLocation(frame.getLocation());
 
-    JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(frame, null), BorderLayout.NORTH);
-    root.add(Componentes.centrado(buildCard(), 280, 30), BorderLayout.CENTER);
-    setContentPane(root);
+    JPanel root = new JPanel(new BorderLayout()) {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.FONDO_AMARILLO);
+        g.fillRect(0, 0, getWidth(), getHeight());
+      }
 
+    };
+    root.setOpaque(false);
+    root.add(crearTopBar(), BorderLayout.NORTH);
+    root.add(crearCentrado(buildCard(), 280, 30), BorderLayout.CENTER);
+    setContentPane(root);
     setVisible(true);
   }
 
+  private JPanel crearTopBar() {
+    JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
+    bar.setBackground(Colores.BLANCO);
+    bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+
+    JButton btnMenu = new JButton("Menu Principal") {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? Colores.AMARILLO_BTN_HOVER : Colores.AMARILLO_BTN);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    btnMenu.setForeground(Colores.TEXTO_OSCURO);
+    btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    btnMenu.setPreferredSize(new Dimension(160, 38));
+    btnMenu.addActionListener(e -> {
+      dispose();
+      new MenuPrincipal(null).setVisible(true);
+    });
+
+    bar.add(btnMenu);
+    return bar;
+  }
+
+  private JPanel crearCentrado(JComponent contenido, int margenH, int margenV) {
+    JPanel c = new JPanel(new GridBagLayout());
+    c.setOpaque(false);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.weightx = 1;
+    gbc.weighty = 1;
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.insets = new Insets(margenV, margenH, margenV, margenH);
+    c.add(contenido, gbc);
+    return c;
+  }
+
   private JPanel buildCard() {
-    JPanel card = Componentes.tarjetaBlanca(22);
+    JPanel card = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.SOMBRA);
+        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 22, 22));
+        g.setColor(Colores.BLANCO);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 22, 22));
+        super.paintComponent(g2d);
+      }
+
+    };
+    card.setOpaque(false);
     card.setLayout(new BorderLayout(0, 20));
     card.setBorder(new EmptyBorder(32, 32, 32, 32));
-    card.add(Componentes.etiquetaCentrada("Seleccione el metodo de pago", 22, true, Colores.TEXTO_OSCURO), BorderLayout.NORTH);
+
+    JLabel titulo = new JLabel("Seleccione el metodo de pago", SwingConstants.CENTER);
+    titulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+    titulo.setForeground(Colores.TEXTO_OSCURO);
+
+    card.add(titulo, BorderLayout.NORTH);
     card.add(gridMetodos(), BorderLayout.CENTER);
     card.add(botonesInferiores(), BorderLayout.SOUTH);
     return card;
@@ -69,8 +151,7 @@ public class SeleccionarMetodoPago extends JFrame {
   private JPanel gridMetodos() {
     JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
     grid.setOpaque(false);
-    COLORES_METODO.forEach((nombre, colores)
-      -> grid.add(botonMetodo(nombre, colores[0], colores[1])));
+    COLORES_METODO.forEach((nombre, colores) -> grid.add(botonMetodo(nombre, colores[0], colores[1])));
     return grid;
   }
 
@@ -107,14 +188,18 @@ public class SeleccionarMetodoPago extends JFrame {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(ov ? hover : base);
-        g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 18, 18));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 18, 18));
         super.paintComponent(g2d);
       }
 
     };
     btn.setBorder(new EmptyBorder(28, 20, 28, 20));
     btn.add(new JLabel("", SwingConstants.CENTER));
-    btn.add(Componentes.etiquetaCentrada(nombre, 20, true, Colores.BLANCO));
+
+    JLabel lblNombre = new JLabel(nombre, SwingConstants.CENTER);
+    lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 20));
+    lblNombre.setForeground(Colores.BLANCO);
+    btn.add(lblNombre);
     return btn;
   }
 
@@ -123,7 +208,7 @@ public class SeleccionarMetodoPago extends JFrame {
     row.setOpaque(false);
     row.setPreferredSize(new Dimension(0, 60));
 
-    JButton btnCancelar = Componentes.botonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
+    JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
     btnCancelar.addActionListener(e -> {
       int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Cancelar",
         JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -132,7 +217,7 @@ public class SeleccionarMetodoPago extends JFrame {
       }
     });
 
-    JButton btnVolver = Componentes.botonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
+    JButton btnVolver = crearBotonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
     btnVolver.addActionListener(e -> volver());
 
     row.add(btnCancelar);
@@ -157,6 +242,45 @@ public class SeleccionarMetodoPago extends JFrame {
   void volver() {
     dispose();
     frame.setVisible(true);
+  }
+
+  private JButton crearBotonAccion(String texto, Color base, Color hover) {
+    JButton b = new JButton(texto) {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? hover : base);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    b.setForeground(Colores.BLANCO);
+    b.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    b.setHorizontalAlignment(SwingConstants.CENTER);
+    return b;
   }
 
 }

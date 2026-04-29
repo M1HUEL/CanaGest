@@ -13,7 +13,7 @@ import java.awt.geom.RoundRectangle2D;
 
 public class PantallaAutenticacion extends JFrame {
 
-  private IUsuarios fachada;
+  private final IUsuarios fachada;
 
   public PantallaAutenticacion(IUsuarios fachada) {
     this.fachada = fachada;
@@ -40,7 +40,7 @@ public class PantallaAutenticacion extends JFrame {
     };
     root.setOpaque(false);
 
-    JPanel card = new JPanel() {
+    JPanel tarjeta = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -53,10 +53,10 @@ public class PantallaAutenticacion extends JFrame {
       }
 
     };
-    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-    card.setOpaque(false);
-    card.setBorder(new EmptyBorder(48, 52, 48, 52));
-    card.setPreferredSize(new Dimension(420, 460));
+    tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
+    tarjeta.setOpaque(false);
+    tarjeta.setBorder(new EmptyBorder(48, 52, 48, 52));
+    tarjeta.setPreferredSize(new Dimension(420, 460));
 
     JLabel lblTitulo = new JLabel("La Canasta", SwingConstants.CENTER);
     lblTitulo.setFont(Fuentes.b(30));
@@ -167,19 +167,19 @@ public class PantallaAutenticacion extends JFrame {
     campoContrasena.addActionListener(e -> accionLogin.run());
     campoUsuario.addActionListener(e -> campoContrasena.requestFocus());
 
-    card.add(lblTitulo);
-    card.add(Box.createVerticalStrut(6));
-    card.add(lblSubtitulo);
-    card.add(Box.createVerticalStrut(32));
-    card.add(usuarioRow);
-    card.add(Box.createVerticalStrut(18));
-    card.add(contrasenaRow);
-    card.add(Box.createVerticalStrut(10));
-    card.add(lblError);
-    card.add(Box.createVerticalStrut(10));
-    card.add(btnIniciar);
+    tarjeta.add(lblTitulo);
+    tarjeta.add(Box.createVerticalStrut(6));
+    tarjeta.add(lblSubtitulo);
+    tarjeta.add(Box.createVerticalStrut(32));
+    tarjeta.add(usuarioRow);
+    tarjeta.add(Box.createVerticalStrut(18));
+    tarjeta.add(contrasenaRow);
+    tarjeta.add(Box.createVerticalStrut(10));
+    tarjeta.add(lblError);
+    tarjeta.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnIniciar);
 
-    root.add(card, new GridBagConstraints());
+    root.add(tarjeta, new GridBagConstraints());
     setContentPane(root);
   }
 
@@ -263,4 +263,5 @@ public class PantallaAutenticacion extends JFrame {
     }
     return tf;
   }
+
 }

@@ -1,14 +1,13 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.VentasFacade;
+import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class MenuPrincipal extends JFrame {
@@ -17,11 +16,11 @@ public class MenuPrincipal extends JFrame {
 
   public MenuPrincipal(UsuarioDTO usuarioActivo) {
     this.usuarioActivo = usuarioActivo;
+
     setTitle("La Canasta");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
-    setResizable(true);
 
     JPanel root = new JPanel(new GridBagLayout()) {
       @Override
@@ -34,7 +33,7 @@ public class MenuPrincipal extends JFrame {
     };
     root.setOpaque(false);
 
-    JPanel card = new JPanel() {
+    JPanel tarjeta = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -47,10 +46,10 @@ public class MenuPrincipal extends JFrame {
       }
 
     };
-    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-    card.setOpaque(false);
-    card.setBorder(new EmptyBorder(36, 52, 36, 52));
-    card.setPreferredSize(new Dimension(420, 660));
+    tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
+    tarjeta.setOpaque(false);
+    tarjeta.setBorder(new EmptyBorder(36, 52, 36, 52));
+    tarjeta.setPreferredSize(new Dimension(420, 660));
 
     JPanel panelTitulo = new JPanel();
     panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
@@ -74,73 +73,73 @@ public class MenuPrincipal extends JFrame {
     panelTitulo.add(Box.createVerticalStrut(4));
     panelTitulo.add(lblUsuario);
 
-    card.add(panelTitulo);
-    card.add(Box.createVerticalStrut(28));
+    tarjeta.add(panelTitulo);
+    tarjeta.add(Box.createVerticalStrut(28));
 
-    card.add(seccionLabel("Ventas"));
-    card.add(Box.createVerticalStrut(8));
+    tarjeta.add(seccionLabel("Ventas"));
+    tarjeta.add(Box.createVerticalStrut(8));
 
-    JButton btnVender = botonMenuAzul("Vender Producto");
+    JButton btnVender = Botones.menuAzul("Vender Producto");
     btnVender.addActionListener(e -> {
       this.setVisible(false);
       Fuentes.cargar();
       new RegistrarVenta(new VentasFacade(), usuarioActivo).setVisible(true);
     });
-    card.add(btnVender);
-    card.add(Box.createVerticalStrut(20));
+    tarjeta.add(btnVender);
+    tarjeta.add(Box.createVerticalStrut(20));
 
-    card.add(seccionLabel("Inventario"));
-    card.add(Box.createVerticalStrut(8));
+    tarjeta.add(seccionLabel("Inventario"));
+    tarjeta.add(Box.createVerticalStrut(8));
 
-    JButton btnExistencia = botonMenuAzul("Existencia de Productos");
+    JButton btnExistencia = Botones.menuAzul("Existencia de Productos");
     btnExistencia.addActionListener(e -> {
       this.setVisible(false);
       new ExistenciaProductos(this).setVisible(true);
     });
-    card.add(btnExistencia);
-    card.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnExistencia);
+    tarjeta.add(Box.createVerticalStrut(10));
 
-    JButton btnConsolidar = botonMenuAzul("Consolidar Inventario");
+    JButton btnConsolidar = Botones.menuAzul("Consolidar Inventario");
     btnConsolidar.addActionListener(e -> {
       this.setVisible(false);
       new ConsolidarInventario(this).setVisible(true);
     });
-    card.add(btnConsolidar);
-    card.add(Box.createVerticalStrut(20));
+    tarjeta.add(btnConsolidar);
+    tarjeta.add(Box.createVerticalStrut(20));
 
-    card.add(seccionLabel("Proveedores"));
-    card.add(Box.createVerticalStrut(8));
+    tarjeta.add(seccionLabel("Proveedores"));
+    tarjeta.add(Box.createVerticalStrut(8));
 
-    JButton btnProveedores = botonMenuAzul("Administrar Proveedores");
+    JButton btnProveedores = Botones.menuAzul("Administrar Proveedores");
     btnProveedores.addActionListener(e -> {
       this.setVisible(false);
       new AdministrarProveedores(this).setVisible(true);
     });
-    card.add(btnProveedores);
-    card.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnProveedores);
+    tarjeta.add(Box.createVerticalStrut(10));
 
-    JButton btnOrdenes = botonMenuAzul("Órdenes de Compra");
+    JButton btnOrdenes = Botones.menuAzul("Órdenes de Compra");
     btnOrdenes.addActionListener(e -> {
       this.setVisible(false);
       new OrdenesCompras(this).setVisible(true);
     });
-    card.add(btnOrdenes);
-    card.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnOrdenes);
+    tarjeta.add(Box.createVerticalStrut(10));
 
-    JButton btnAsociar = botonMenuAzul("Asociar Productos con Proveedores");
+    JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
       new AsociarProductosProveedores(this).setVisible(true);
     });
-    card.add(btnAsociar);
-    card.add(Box.createVerticalStrut(24));
+    tarjeta.add(btnAsociar);
+    tarjeta.add(Box.createVerticalStrut(24));
 
-    JButton btnCerrar = botonMenuRojo("Cerrar Sesión");
+    JButton btnCerrar = Botones.menuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
       new PantallaAutenticacion(null).setVisible(true);
     });
-    card.add(btnCerrar);
+    tarjeta.add(btnCerrar);
 
     JPanel centrado = new JPanel(new GridBagLayout());
     centrado.setOpaque(false);
@@ -149,7 +148,7 @@ public class MenuPrincipal extends JFrame {
     gbc.weighty = 1;
     gbc.fill = GridBagConstraints.VERTICAL;
     gbc.insets = new Insets(20, 0, 20, 0);
-    centrado.add(card, gbc);
+    centrado.add(tarjeta, gbc);
 
     root.add(centrado, new GridBagConstraints());
     setContentPane(root);
@@ -176,88 +175,6 @@ public class MenuPrincipal extends JFrame {
     lbl.setHorizontalAlignment(SwingConstants.LEFT);
     lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 16));
     return lbl;
-  }
-
-  JButton botonMenuAzul(String texto) {
-    JButton b = new JButton(texto) {
-      boolean hover = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            hover = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            hover = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(14));
-    b.setAlignmentX(LEFT_ALIGNMENT);
-    b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-    b.setPreferredSize(new Dimension(316, 48));
-    return b;
-  }
-
-  JButton botonMenuRojo(String texto) {
-    JButton b = new JButton(texto) {
-      boolean hover = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            hover = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            hover = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.ROJO_HOVER : Colores.ROJO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(14));
-    b.setAlignmentX(LEFT_ALIGNMENT);
-    b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-    b.setPreferredSize(new Dimension(316, 48));
-    return b;
   }
 
 }

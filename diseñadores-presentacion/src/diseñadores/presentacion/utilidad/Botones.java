@@ -39,6 +39,14 @@ public class Botones {
     return crear(texto, Colores.AZUL, Colores.AZUL_HOVER, 10, Colores.BLANCO, Fuentes.b(14), new Dimension(Integer.MAX_VALUE, 48));
   }
 
+  public static JButton menuAzul(String texto) {
+    return crear(texto, Colores.AZUL, Colores.AZUL_HOVER, 12, Colores.BLANCO, Fuentes.b(14), new Dimension(Integer.MAX_VALUE, 48));
+  }
+
+  public static JButton menuRojo(String texto) {
+    return crear(texto, Colores.ROJO, Colores.ROJO_HOVER, 12, Colores.BLANCO, Fuentes.b(14), new Dimension(Integer.MAX_VALUE, 48));
+  }
+
   private static JButton crear(String texto, Color base, Color hover, int radio, Color textoColor, Font fuente, Dimension tamano) {
     JButton b = new JButton(texto) {
       private boolean ov = false;

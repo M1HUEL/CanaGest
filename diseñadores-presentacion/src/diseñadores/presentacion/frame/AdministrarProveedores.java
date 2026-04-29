@@ -15,23 +15,23 @@ import java.util.List;
 
 public class AdministrarProveedores extends JFrame {
 
-  private final JFrame menuOrigen;
-  private final ProveedoresFacade facade;
+  private final JFrame frame;
+  private final ProveedoresFacade fachada;
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
   private JPanel panelGrid;
   private JLabel lblActivos;
   private JTextField campoBusqueda;
 
-  public AdministrarProveedores(JFrame menuOrigen) {
-    this.menuOrigen = menuOrigen;
-    this.facade = new ProveedoresFacade();
+  public AdministrarProveedores(JFrame frame) {
+    this.frame = frame;
+    this.fachada = new ProveedoresFacade();
     setTitle("La Canasta - Administrar Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    proveedores.addAll(facade.obtenerProveedores());
+    proveedores.addAll(fachada.obtenerProveedores());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -62,7 +62,7 @@ public class AdministrarProveedores extends JFrame {
     JButton btnMenu = crearBotonAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
-      menuOrigen.setVisible(true);
+      frame.setVisible(true);
     });
 
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));
@@ -118,7 +118,7 @@ public class AdministrarProveedores extends JFrame {
     lblActivosTxt.setFont(Fuentes.r(12));
     lblActivosTxt.setForeground(Colores.GRIS_TEXTO);
     lblActivosTxt.setAlignmentX(CENTER_ALIGNMENT);
-    lblActivos = new JLabel(String.valueOf(facade.contarProveedoresActivos()), SwingConstants.CENTER);
+    lblActivos = new JLabel(String.valueOf(fachada.contarProveedoresActivos()), SwingConstants.CENTER);
     lblActivos.setFont(Fuentes.b(36));
     lblActivos.setForeground(Colores.AZUL);
     lblActivos.setAlignmentX(CENTER_ALIGNMENT);
@@ -469,9 +469,9 @@ public class AdministrarProveedores extends JFrame {
           campos[2].getText().trim(), campos[3].getText().trim(),
           campos[4].getText().trim(), campos[5].getText().trim(),
           campos[6].getText().trim(), chk.isSelected());
-        facade.guardarProveedor(nuevo);
+        fachada.guardarProveedor(nuevo);
         proveedores.clear();
-        proveedores.addAll(facade.obtenerProveedores());
+        proveedores.addAll(fachada.obtenerProveedores());
       } else {
         prov.setNombre(campos[0].getText().trim());
         prov.setCodigo(campos[1].getText().trim());
@@ -481,9 +481,9 @@ public class AdministrarProveedores extends JFrame {
         prov.setDireccion(campos[5].getText().trim());
         prov.setTerminosPago(campos[6].getText().trim());
         prov.setActivo(chk.isSelected());
-        facade.actualizarProveedor(prov);
+        fachada.actualizarProveedor(prov);
       }
-      lblActivos.setText(String.valueOf(facade.contarProveedoresActivos()));
+      lblActivos.setText(String.valueOf(fachada.contarProveedoresActivos()));
       construirGrid(proveedores);
       dlg.dispose();
     });

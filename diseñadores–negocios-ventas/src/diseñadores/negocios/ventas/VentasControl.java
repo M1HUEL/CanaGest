@@ -38,7 +38,6 @@ public class VentasControl {
     }
 
     ventaActual.agregarProducto(productoDTO);
-    inventario.reducirStock(dto.getCodigo(), 1);
 
     return productoDTO;
   }
@@ -53,7 +52,6 @@ public class VentasControl {
         String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
     }
 
-    ventaActual.setPagada(true);
     return ResultadoPagoDTO.aprobado(recibido - total);
   }
 
@@ -67,6 +65,10 @@ public class VentasControl {
 
   public void procesarFinalizarVenta(VentaDTO ventaActual) {
     ventaActual.setPagada(true);
+
+    for (ItemVentaDTO item : ventaActual.getItems()) {
+      inventario.reducirStock(item.getCodigo(), item.getCantidad());
+    }
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
       ProductoDTO estadoActual = inventario.obtenerProductoPorCodigo(item.getCodigo());

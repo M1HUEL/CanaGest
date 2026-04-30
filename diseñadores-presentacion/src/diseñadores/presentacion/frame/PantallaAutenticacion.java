@@ -152,10 +152,10 @@ public class PantallaAutenticacion extends JFrame {
       String usuario = campoUsuario.getText().trim();
       String contrasena = new String(campoContrasena.getPassword()).trim();
 
-      UsuarioDTO usuarioDTO = fachada.autenticarse(usuario, contrasena);
-      if (usuarioDTO != null) {
+      var usuarioOpt = fachada.autenticarse(usuario, contrasena);
+      if (usuarioOpt.isPresent()) {
         dispose();
-        new MenuPrincipal(usuarioDTO).setVisible(true);
+        new MenuPrincipal(usuarioOpt.get()).setVisible(true);
       } else {
         lblError.setText("Usuario o contraseña incorrectos.");
         campoContrasena.setText("");

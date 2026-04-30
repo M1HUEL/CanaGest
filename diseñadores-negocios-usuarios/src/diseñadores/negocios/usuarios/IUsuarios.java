@@ -1,9 +1,10 @@
 package diseñadores.negocios.usuarios;
 
 import diseñadores.negocios.dto.UsuarioDTO;
+import java.util.Optional;
 
 public interface IUsuarios {
 
-  UsuarioDTO autenticarse(String usuario, String contrasena);
+  Optional<UsuarioDTO> autenticarse(String usuario, String contrasena);
 
 }

@@ -1,6 +1,7 @@
 package diseñadores.negocios.usuarios;
 
 import diseñadores.negocios.dto.UsuarioDTO;
+import java.util.Optional;
 
 public class UsuariosFacade implements IUsuarios {
 
@@ -15,9 +16,9 @@ public class UsuariosFacade implements IUsuarios {
   }
 
   @Override
-  public UsuarioDTO autenticarse(String usuario, String contrasena) {
+  public Optional<UsuarioDTO> autenticarse(String usuario, String contrasena) {
     if (usuario == null || usuario.isBlank() || contrasena == null || contrasena.isBlank()) {
-      return null;
+      return Optional.empty();
     }
     return control.autenticar(usuario, contrasena);
   }

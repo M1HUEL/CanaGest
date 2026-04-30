@@ -4,6 +4,7 @@ import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.UsuarioRol;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class UsuariosControl {
 
@@ -20,15 +21,15 @@ public class UsuariosControl {
       new UsuarioDTO("almacen", "1234", UsuarioRol.ENCARGADO_ALMACEN));
   }
 
-  public UsuarioDTO autenticar(String nombre, String contrasena) {
+  public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
     UsuarioDTO usuario = usuariosMock.get(nombre.toLowerCase().trim());
     if (usuario == null) {
-      return null;
+      return Optional.empty();
     }
     if (!usuario.getContrasena().equals(contrasena)) {
-      return null;
+      return Optional.empty();
     }
-    return usuario;
+    return Optional.of(usuario);
   }
 
 }

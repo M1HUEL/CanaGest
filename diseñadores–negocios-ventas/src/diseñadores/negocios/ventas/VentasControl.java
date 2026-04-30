@@ -73,9 +73,7 @@ public class VentasControl {
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
       inventario.reducirStock(item.getCodigo(), item.getCantidad());
-    }
 
-    for (ItemVentaDTO item : ventaActual.getItems()) {
       ProductoDTO estadoActual = inventario.obtenerProductoPorCodigo(item.getCodigo());
       if (estadoActual != null && estadoActual.getStock() < STOCK_MINIMO) {
         ejecutarProtocoloReabastecimiento(estadoActual);

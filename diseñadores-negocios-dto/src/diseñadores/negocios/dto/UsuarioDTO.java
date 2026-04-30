@@ -4,12 +4,12 @@ public class UsuarioDTO {
 
   private String nombre;
   private String contrasena;
-  private UsuarioRolDTO rol;
+  private UsuarioRol rol;
 
   public UsuarioDTO() {
   }
 
-  public UsuarioDTO(String nombre, String contrasena, UsuarioRolDTO rol) {
+  public UsuarioDTO(String nombre, String contrasena, UsuarioRol rol) {
     this.nombre = nombre;
     this.contrasena = contrasena;
     this.rol = rol;
@@ -31,11 +31,11 @@ public class UsuarioDTO {
     this.contrasena = contrasena;
   }
 
-  public UsuarioRolDTO getRol() {
+  public UsuarioRol getRol() {
     return rol;
   }
 
-  public void setRol(UsuarioRolDTO rol) {
+  public void setRol(UsuarioRol rol) {
     this.rol = rol;
   }
 

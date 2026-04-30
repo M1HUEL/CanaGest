@@ -1,7 +1,7 @@
 package diseñadores.negocios.usuarios;
 
 import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.UsuarioRolDTO;
+import diseñadores.negocios.dto.UsuarioRol;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,13 +11,13 @@ public class UsuariosControl {
 
   public UsuariosControl() {
     usuariosMock.put("admin",
-      new UsuarioDTO("admin", "1234", UsuarioRolDTO.ADMINISTRADOR));
+      new UsuarioDTO("admin", "1234", UsuarioRol.ADMINISTRADOR));
 
     usuariosMock.put("cajero",
-      new UsuarioDTO("cajero", "1234", UsuarioRolDTO.CAJERO));
+      new UsuarioDTO("cajero", "1234", UsuarioRol.CAJERO));
 
     usuariosMock.put("almacen",
-      new UsuarioDTO("almacen", "1234", UsuarioRolDTO.ENCARGADO_ALMACEN));
+      new UsuarioDTO("almacen", "1234", UsuarioRol.ENCARGADO_ALMACEN));
   }
 
   public UsuarioDTO autenticar(String nombre, String contrasena) {

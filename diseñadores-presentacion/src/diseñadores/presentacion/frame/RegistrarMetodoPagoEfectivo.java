@@ -10,6 +10,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class RegistrarMetodoPagoEfectivo extends JFrame {
 
@@ -17,16 +19,16 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private final IVentas fachada;
 
-  private final double totalAPagar;
+  private final BigDecimal totalAPagar;
 
-  private double recibido = 0.0;
+  private BigDecimal recibido = BigDecimal.ZERO;
 
   private JLabel lblRecibido, lblCambio;
   private JButton btnCompletar;
 
   public RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
     IVentas fachada, VentaDTO ventaActual,
-    double total, Runnable onConfirmado) {
+    BigDecimal total, Runnable onConfirmado) {
     super("Pago en Efectivo");
 
     this.ventaActual = ventaActual;
@@ -55,7 +57,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     setVisible(true);
   }
 
-  private JPanel buildCard(double total, JFrame mainFrame, Runnable onConfirmado) {
+  private JPanel buildCard(BigDecimal total, JFrame mainFrame, Runnable onConfirmado) {
     JPanel card = Componentes.tarjetaBlanca(20);
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setBorder(new EmptyBorder(28, 32, 28, 32));
@@ -111,9 +113,9 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     btnAgregar.setPreferredSize(new Dimension(110, 44));
     btnAgregar.addActionListener(e -> {
       try {
-        double val = Double.parseDouble(campoCustom.getText().trim().replace(",", "."));
-        if (val > 0) {
-          recibido += val;
+        BigDecimal val = new BigDecimal(campoCustom.getText().trim().replace(",", "."));
+        if (val.compareTo(BigDecimal.ZERO) > 0) {
+          recibido = recibido.add(val).setScale(2, RoundingMode.HALF_UP);
           actualizarUI();
           campoCustom.setText("");
         }
@@ -135,7 +137,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   private JPanel filaAcciones(JFrame mainFrame, Runnable onConfirmado) {
     JButton btnLimpiar = Componentes.botonAccion("Limpiar", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
     btnLimpiar.addActionListener(e -> {
-      recibido = 0;
+      recibido = BigDecimal.ZERO;
       actualizarUI();
     });
 
@@ -171,7 +173,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        boolean hab = recibido >= totalAPagar;
+        boolean hab = recibido.compareTo(totalAPagar) >= 0;
         g.setColor(hab ? (ov ? Colores.VERDE_HOVER : Colores.VERDE) : Colores.GRIS_DISABLED);
         setCursor(Cursor.getPredefinedCursor(hab ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
@@ -192,7 +194,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   }
 
   private void confirmarPago(JFrame mainFrame, Runnable onConfirmado) {
-    if (recibido < totalAPagar) {
+    if (recibido.compareTo(totalAPagar) < 0) {
       return;
     }
 
@@ -214,9 +216,9 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private void actualizarUI() {
     lblRecibido.setText(String.format("$%.2f", recibido));
-    double cambio = fachada.procesarCalcularCambio(ventaActual, recibido);
-    lblCambio.setText(String.format("$%.2f", Math.max(cambio, 0)));
-    lblCambio.setForeground(recibido >= totalAPagar ? Colores.VERDE : Colores.GRIS_TEXTO);
+    BigDecimal cambio = fachada.procesarCalcularCambio(ventaActual, recibido);
+    lblCambio.setText(String.format("$%.2f", cambio.max(BigDecimal.ZERO).doubleValue()));
+    lblCambio.setForeground(recibido.compareTo(totalAPagar) >= 0 ? Colores.VERDE : Colores.GRIS_TEXTO);
     btnCompletar.repaint();
   }
 
@@ -224,7 +226,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     JButton b = Componentes.botonAccion(texto, Colores.VERDE, Colores.VERDE_HOVER);
     b.setFont(Fuentes.b(16));
     b.addActionListener(e -> {
-      recibido += valor;
+      recibido = recibido.add(BigDecimal.valueOf(valor)).setScale(2, RoundingMode.HALF_UP);
       actualizarUI();
     });
     return b;

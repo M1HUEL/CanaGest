@@ -1,5 +1,7 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+
 public class ProveedorDTO {
 
   private String nombre;
@@ -10,7 +12,7 @@ public class ProveedorDTO {
   private String direccion;
   private String terminosPago;
   private boolean activo;
-  private double precioProveedor;
+  private BigDecimal precioProveedor;
   private String tiempoEntregaProveedor;
 
   public ProveedorDTO() {
@@ -92,11 +94,11 @@ public class ProveedorDTO {
     this.activo = activo;
   }
 
-  public double getPrecioProveedor() {
+  public BigDecimal getPrecioProveedor() {
     return precioProveedor;
   }
 
-  public void setPrecioProveedor(double precioProveedor) {
+  public void setPrecioProveedor(BigDecimal precioProveedor) {
     this.precioProveedor = precioProveedor;
   }
 

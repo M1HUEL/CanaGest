@@ -1,21 +1,25 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
 public class VentaDTO {
 
   private List<ItemVentaDTO> items;
-  private double subtotal;
-  private double iva;
-  private double total;
+  private BigDecimal subtotal;
+  private BigDecimal iva;
+  private BigDecimal total;
   private int totalUnidades;
   private boolean pagada;
 
   public VentaDTO() {
     this.items = new ArrayList<>();
     this.pagada = false;
-    this.total = 0.0;
+    this.total = BigDecimal.ZERO;
+    this.subtotal = BigDecimal.ZERO;
+    this.iva = BigDecimal.ZERO;
   }
 
   public void agregarProducto(ProductoDTO producto) {
@@ -35,9 +39,12 @@ public class VentaDTO {
   }
 
   private void recalcularTotales() {
-    this.total = items.stream().mapToDouble(ItemVentaDTO::getSubtotal).sum();
-    this.subtotal = this.total / 1.16;
-    this.iva = this.total - this.subtotal;
+    this.total = items.stream()
+      .map(ItemVentaDTO::getSubtotal)
+      .reduce(BigDecimal.ZERO, BigDecimal::add)
+      .setScale(2, RoundingMode.HALF_UP);
+    this.subtotal = this.total.divide(BigDecimal.valueOf(1.16), 2, RoundingMode.HALF_UP);
+    this.iva = this.total.subtract(this.subtotal).setScale(2, RoundingMode.HALF_UP);
     this.totalUnidades = items.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
   }
 
@@ -49,27 +56,27 @@ public class VentaDTO {
     this.items = items;
   }
 
-  public double getSubtotal() {
+  public BigDecimal getSubtotal() {
     return subtotal;
   }
 
-  public void setSubtotal(double subtotal) {
+  public void setSubtotal(BigDecimal subtotal) {
     this.subtotal = subtotal;
   }
 
-  public double getIva() {
+  public BigDecimal getIva() {
     return iva;
   }
 
-  public void setIva(double iva) {
+  public void setIva(BigDecimal iva) {
     this.iva = iva;
   }
 
-  public double getTotal() {
+  public BigDecimal getTotal() {
     return total;
   }
 
-  public void setTotal(double total) {
+  public void setTotal(BigDecimal total) {
     this.total = total;
   }
 

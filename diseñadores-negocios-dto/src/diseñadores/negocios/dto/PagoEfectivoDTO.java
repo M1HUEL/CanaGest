@@ -1,14 +1,16 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+
 public class PagoEfectivoDTO {
 
-  private final double montoRecibido;
+  private final BigDecimal montoRecibido;
 
-  public PagoEfectivoDTO(double montoRecibido) {
+  public PagoEfectivoDTO(BigDecimal montoRecibido) {
     this.montoRecibido = montoRecibido;
   }
 
-  public double getMontoRecibido() {
+  public BigDecimal getMontoRecibido() {
     return montoRecibido;
   }
 

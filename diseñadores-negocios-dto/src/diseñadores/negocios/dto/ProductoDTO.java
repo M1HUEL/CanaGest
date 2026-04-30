@@ -1,10 +1,12 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+
 public class ProductoDTO {
 
   private String codigo;
   private String nombre;
-  private double precio;
+  private BigDecimal precio;
   private int stockActual;
   private int stockMinimo;
   private int stockMaximo;
@@ -14,7 +16,7 @@ public class ProductoDTO {
   public ProductoDTO() {
   }
 
-  public ProductoDTO(String codigo, String nombre, double precio, int stockActual, int stockMinimo, int stockMaximo, ProveedorDTO proveedor) {
+  public ProductoDTO(String codigo, String nombre, BigDecimal precio, int stockActual, int stockMinimo, int stockMaximo, ProveedorDTO proveedor) {
     this.codigo = codigo;
     this.nombre = nombre;
     this.precio = precio;
@@ -41,11 +43,11 @@ public class ProductoDTO {
     this.nombre = nombre;
   }
 
-  public double getPrecio() {
+  public BigDecimal getPrecio() {
     return precio;
   }
 
-  public void setPrecio(double precio) {
+  public void setPrecio(BigDecimal precio) {
     this.precio = precio;
   }
 

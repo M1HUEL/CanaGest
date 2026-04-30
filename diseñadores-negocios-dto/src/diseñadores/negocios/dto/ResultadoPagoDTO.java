@@ -1,30 +1,32 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+
 public class ResultadoPagoDTO {
 
   private final boolean aprobado;
-  private final double cambio;
+  private final BigDecimal cambio;
   private final String mensaje;
 
-  private ResultadoPagoDTO(boolean aprobado, double cambio, String mensaje) {
+  private ResultadoPagoDTO(boolean aprobado, BigDecimal cambio, String mensaje) {
     this.aprobado = aprobado;
     this.cambio = cambio;
     this.mensaje = mensaje;
   }
 
-  public static ResultadoPagoDTO aprobado(double cambio) {
+  public static ResultadoPagoDTO aprobado(BigDecimal cambio) {
     return new ResultadoPagoDTO(true, cambio, null);
   }
 
   public static ResultadoPagoDTO rechazado(String razon) {
-    return new ResultadoPagoDTO(false, 0.0, razon);
+    return new ResultadoPagoDTO(false, BigDecimal.ZERO, razon);
   }
 
   public boolean isAprobado() {
     return aprobado;
   }
 
-  public double getCambio() {
+  public BigDecimal getCambio() {
     return cambio;
   }
 

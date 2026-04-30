@@ -1,16 +1,17 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class TicketDTO {
 
   private final String folio;
   private final List<ItemVentaDTO> items;
-  private final double subtotal;
-  private final double iva;
-  private final double total;
-  private final double efectivoRecibido;
-  private final double cambio;
+  private final BigDecimal subtotal;
+  private final BigDecimal iva;
+  private final BigDecimal total;
+  private final BigDecimal efectivoRecibido;
+  private final BigDecimal cambio;
   private final String fechaFormateada;
   private final String horaFormateada;
   private final String cajero;
@@ -20,8 +21,8 @@ public class TicketDTO {
   private final String telefono;
 
   public TicketDTO(String folio, List<ItemVentaDTO> items,
-    double subtotal, double iva, double total,
-    double efectivoRecibido, double cambio,
+    BigDecimal subtotal, BigDecimal iva, BigDecimal total,
+    BigDecimal efectivoRecibido, BigDecimal cambio,
     String fechaFormateada, String horaFormateada,
     String cajero, String nombreTienda,
     String rfc, String direccion, String telefono) {
@@ -49,23 +50,23 @@ public class TicketDTO {
     return items;
   }
 
-  public double getSubtotal() {
+  public BigDecimal getSubtotal() {
     return subtotal;
   }
 
-  public double getIva() {
+  public BigDecimal getIva() {
     return iva;
   }
 
-  public double getTotal() {
+  public BigDecimal getTotal() {
     return total;
   }
 
-  public double getEfectivoRecibido() {
+  public BigDecimal getEfectivoRecibido() {
     return efectivoRecibido;
   }
 
-  public double getCambio() {
+  public BigDecimal getCambio() {
     return cambio;
   }
 

@@ -551,7 +551,7 @@ public class AsociarProductosProveedores extends JFrame {
         .filter(p -> p.getNombre().equals(nombre))
         .findFirst()
         .orElse(null);
-      provDto.setPrecioProveedor(Double.parseDouble(precio.replace("$", "")));
+      provDto.setPrecioProveedor(new java.math.BigDecimal(precio.replace("$", "")));
       provDto.setTiempoEntregaProveedor(tiempo);
       prod.setProveedor(provDto);
       construirLista(productos);
@@ -578,7 +578,7 @@ public class AsociarProductosProveedores extends JFrame {
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
     String[] etqs = {"Nombre del Proveedor", "Precio ($)", "Tiempo de Entrega"};
-    String[] vals = {pv.getNombre(), String.valueOf(pv.getPrecioProveedor()), pv.getTiempoEntregaProveedor()};
+      String[] vals = {pv.getNombre(), pv.getPrecioProveedor() != null ? String.format("$%.2f", pv.getPrecioProveedor().doubleValue()) : "", pv.getTiempoEntregaProveedor()};
     JTextField[] campos = new JTextField[etqs.length];
     for (int i = 0; i < etqs.length; i++) {
       JLabel lbl = new JLabel(etqs[i]);
@@ -617,7 +617,7 @@ public class AsociarProductosProveedores extends JFrame {
         return;
       }
       pv.setNombre(nombre);
-      pv.setPrecioProveedor(Double.parseDouble(precio));
+      pv.setPrecioProveedor(new java.math.BigDecimal(precio));
       pv.setTiempoEntregaProveedor(tiempo);
       prod.setProveedor(pv);
       construirLista(productos);

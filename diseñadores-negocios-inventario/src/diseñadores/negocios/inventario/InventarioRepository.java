@@ -3,6 +3,7 @@ package diseñadores.negocios.inventario;
 import diseñadores.negocios.dto.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class InventarioRepository {
 
@@ -40,15 +41,15 @@ public class InventarioRepository {
     ProveedorDTO provGranos = new ProveedorDTO("Abarrotes del Mayo", "PROV-001", "Juan Pérez", "555-0101", "ventas@mayo.com", "Av. Mayo 123", "30 días", true);
     ProveedorDTO provAceites = new ProveedorDTO("Distribuidora Sonora", "PROV-002", "María López", "555-0202", "contacto@distsonora.com", "Calle Sonora 456", "15 días", true);
 
-    productos.add(new ProductoDTO("7501001000011", "Arroz", 28.00, 50, 10, 100, provGranos));
-    productos.add(new ProductoDTO("7501001000028", "Frijol", 32.00, 30, 5, 80, provGranos));
-    productos.add(new ProductoDTO("7501001000035", "Azúcar", 26.00, 20, 5, 60, provGranos));
-    productos.add(new ProductoDTO("7501002000010", "Aceite", 48.00, 15, 3, 50, provAceites));
-    productos.add(new ProductoDTO("7501002000027", "Atún", 18.00, 40, 10, 100, provAceites));
-    productos.add(new ProductoDTO("7501003000019", "Leche", 30.00, 35, 8, 90, provGranos));
-    productos.add(new ProductoDTO("7501001000042", "Sal", 8.00, 60, 15, 150, provGranos));
-    productos.add(new ProductoDTO("7501004000018", "Café", 55.00, 25, 5, 70, provGranos));
-    productos.add(new ProductoDTO("7501005000017", "Jabón", 22.00, 45, 10, 120, provAceites));
+    productos.add(new ProductoDTO("7501001000011", "Arroz", BigDecimal.valueOf(28.00), 50, 10, 100, provGranos));
+    productos.add(new ProductoDTO("7501001000028", "Frijol", BigDecimal.valueOf(32.00), 30, 5, 80, provGranos));
+    productos.add(new ProductoDTO("7501001000035", "Azúcar", BigDecimal.valueOf(26.00), 20, 5, 60, provGranos));
+    productos.add(new ProductoDTO("7501002000010", "Aceite", BigDecimal.valueOf(48.00), 15, 3, 50, provAceites));
+    productos.add(new ProductoDTO("7501002000027", "Atún", BigDecimal.valueOf(18.00), 40, 10, 100, provAceites));
+    productos.add(new ProductoDTO("7501003000019", "Leche", BigDecimal.valueOf(30.00), 35, 8, 90, provGranos));
+    productos.add(new ProductoDTO("7501001000042", "Sal", BigDecimal.valueOf(8.00), 60, 15, 150, provGranos));
+    productos.add(new ProductoDTO("7501004000018", "Café", BigDecimal.valueOf(55.00), 25, 5, 70, provGranos));
+    productos.add(new ProductoDTO("7501005000017", "Jabón", BigDecimal.valueOf(22.00), 45, 10, 120, provAceites));
   }
 
 }

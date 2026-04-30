@@ -6,6 +6,7 @@ import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.InventarioFacade;
 import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.productos.ProductosFacade;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class VentasFacade implements IVentas {
@@ -52,7 +53,7 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public double procesarCalcularCambio(VentaDTO ventaActual, double efectivo) {
+  public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
     return ventasControl.procesarCalcularCambio(ventaActual, efectivo);
   }
 
@@ -67,7 +68,7 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public TicketDTO generarTicket(VentaDTO ventaActual, double montoRecibido) {
+  public TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal montoRecibido) {
     return ventasControl.generarTicket(ventaActual, montoRecibido);
   }
 

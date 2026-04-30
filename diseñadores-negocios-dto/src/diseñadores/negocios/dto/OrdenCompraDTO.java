@@ -1,5 +1,7 @@
 package diseñadores.negocios.dto;
 
+import java.math.BigDecimal;
+
 public class OrdenCompraDTO {
 
   private String numero;
@@ -7,12 +9,12 @@ public class OrdenCompraDTO {
   private ProveedorDTO proveedor;
   private String estado;
   private int cantidadProductos;
-  private double total;
+  private BigDecimal total;
 
   public OrdenCompraDTO() {
   }
 
-  public OrdenCompraDTO(String numero, String fecha, ProveedorDTO proveedor, String estado, int cantidadProductos, double total) {
+  public OrdenCompraDTO(String numero, String fecha, ProveedorDTO proveedor, String estado, int cantidadProductos, BigDecimal total) {
     this.numero = numero;
     this.fecha = fecha;
     this.proveedor = proveedor;
@@ -61,11 +63,11 @@ public class OrdenCompraDTO {
     this.cantidadProductos = cantidadProductos;
   }
 
-  public double getTotal() {
+  public BigDecimal getTotal() {
     return total;
   }
 
-  public void setTotal(double total) {
+  public void setTotal(BigDecimal total) {
     this.total = total;
   }
 

@@ -2,6 +2,7 @@ package diseñadores.negocios.proveedores;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class ProveedoresControl {
@@ -37,7 +38,7 @@ public class ProveedoresControl {
     return ProveedoresRepository.getInstancia().getOrdenesCompra();
   }
 
-  public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, double total) {
+  public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total) {
     String numero = generarNumeroOrden();
     String fecha = java.time.LocalDate.now().toString();
     ProveedorDTO provRef = new ProveedorDTO(proveedor.getNombre(), proveedor.getCodigo(),

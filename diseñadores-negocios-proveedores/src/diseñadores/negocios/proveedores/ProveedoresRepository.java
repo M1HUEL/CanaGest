@@ -4,6 +4,7 @@ import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class ProveedoresRepository {
 
@@ -68,9 +69,9 @@ public class ProveedoresRepository {
     proveedores.add(new ProveedorDTO("Granos y Semillas SA", "PROV-004", "Ana López", "555-0404",
       "contacto@granossemillas.com", "Carretera Norte Km 12", "30 días", false));
 
-    ordenesCompra.add(new OrdenCompraDTO("OC-2026-001", "2026-04-20", proveedores.get(0), "Pendiente", 15, 12500.00));
-    ordenesCompra.add(new OrdenCompraDTO("OC-2026-002", "2026-04-18", proveedores.get(1), "Aprobada", 23, 8750.50));
-    ordenesCompra.add(new OrdenCompraDTO("OC-2026-003", "2026-04-15", proveedores.get(2), "Recibida", 10, 5200.00));
+    ordenesCompra.add(new OrdenCompraDTO("OC-2026-001", "2026-04-20", proveedores.get(0), "Pendiente", 15, BigDecimal.valueOf(12500.00)));
+    ordenesCompra.add(new OrdenCompraDTO("OC-2026-002", "2026-04-18", proveedores.get(1), "Aprobada", 23, BigDecimal.valueOf(8750.50)));
+    ordenesCompra.add(new OrdenCompraDTO("OC-2026-003", "2026-04-15", proveedores.get(2), "Recibida", 10, BigDecimal.valueOf(5200.00)));
   }
 
 }

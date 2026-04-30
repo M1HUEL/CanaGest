@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
 
 public class PantallaTicket extends JFrame {
 
@@ -212,7 +213,7 @@ public class PantallaTicket extends JFrame {
     c.insets = new Insets(0, 0, 6, 0);
     body.add(filaResumen("TOTAL", t.getTotal(), true), c);
 
-    if (t.getEfectivoRecibido() > 0) {
+    if (t.getEfectivoRecibido().compareTo(BigDecimal.ZERO) > 0) {
       c.gridy = row++;
       c.insets = new Insets(0, 0, 6, 0);
       body.add(filaResumen("Efectivo recibido", t.getEfectivoRecibido(), false), c);
@@ -270,7 +271,7 @@ public class PantallaTicket extends JFrame {
     c.gridx = 1;
     c.weightx = 0;
     c.anchor = GridBagConstraints.EAST;
-    JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal()));
+    JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue()));
     lSub.setFont(Fuentes.b(13));
     lSub.setForeground(Colores.TEXTO_OSCURO);
     row.add(lSub, c);
@@ -287,7 +288,7 @@ public class PantallaTicket extends JFrame {
 
     c.gridy = 2;
     c.insets = new Insets(2, 0, 0, 0);
-    JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario()));
+    JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue()));
     lCant.setFont(Fuentes.r(11));
     lCant.setForeground(Colores.GRIS_TEXTO);
     row.add(lCant, c);
@@ -295,13 +296,13 @@ public class PantallaTicket extends JFrame {
     return row;
   }
 
-  private JPanel filaResumen(String etiqueta, double valor, boolean esTotal) {
+  private JPanel filaResumen(String etiqueta, BigDecimal valor, boolean esTotal) {
     JPanel row = new JPanel(new BorderLayout());
     row.setOpaque(false);
     JLabel lE = new JLabel(etiqueta);
     lE.setFont(esTotal ? Fuentes.b(15) : Fuentes.r(13));
     lE.setForeground(esTotal ? Colores.TEXTO_OSCURO : Colores.GRIS_TEXTO);
-    JLabel lV = new JLabel(String.format("$%.2f", valor));
+    JLabel lV = new JLabel(String.format("$%.2f", valor.doubleValue()));
     lV.setFont(esTotal ? Fuentes.b(15) : Fuentes.r(13));
     lV.setForeground(esTotal ? Colores.AZUL : Colores.GRIS_TEXTO);
     row.add(lE, BorderLayout.WEST);

@@ -1,6 +1,7 @@
 package diseñadores.negocios.ventas;
 
 import diseñadores.negocios.dto.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IVentas {
@@ -15,13 +16,13 @@ public interface IVentas {
 
   ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto);
 
-  double procesarCalcularCambio(VentaDTO ventaActual, double efectivo);
+  BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo);
 
   void procesarFinalizarVenta(VentaDTO ventaActual);
 
   VentaDTO obtenerResumenVenta(VentaDTO ventaActual);
 
-  TicketDTO generarTicket(VentaDTO ventaActual, double montoRecibido);
+  TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal montoRecibido);
 
   List<ProductoDTO> obtenerCatalogo();
 

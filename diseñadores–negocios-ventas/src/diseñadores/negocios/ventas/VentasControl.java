@@ -4,6 +4,7 @@ import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.productos.IProductos;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -12,7 +13,7 @@ public class VentasControl {
 
   private final IProductos productosFacade;
   private final IInventario inventario;
-  private INotificaciones servicioNotificaciones;
+  private final INotificaciones servicioNotificaciones;
 
   private static final int STOCK_MINIMO = 3;
   private static final String NOMBRE_TIENDA = "La Canasta";
@@ -40,24 +41,24 @@ public class VentasControl {
   }
 
   public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
-    double total = ventaActual.getTotal();
-    double recibido = dto.getMontoRecibido();
+    BigDecimal total = ventaActual.getTotal();
+    BigDecimal recibido = dto.getMontoRecibido();
 
-    if (recibido < total) {
-      double faltante = total - recibido;
+    if (recibido.compareTo(total) < 0) {
+      BigDecimal faltante = total.subtract(recibido);
       return ResultadoPagoDTO.rechazado(
         String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
     }
 
-    return ResultadoPagoDTO.aprobado(recibido - total);
+    return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
-  public double procesarCalcularCambio(VentaDTO ventaActual, double efectivo) {
+  public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
     if (ventaActual == null) {
-      return 0;
+      return BigDecimal.ZERO;
     }
-    double total = ventaActual.getTotal();
-    return efectivo >= total ? efectivo - total : 0;
+    BigDecimal total = ventaActual.getTotal();
+    return efectivo.compareTo(total) >= 0 ? efectivo.subtract(total) : BigDecimal.ZERO;
   }
 
   public void procesarFinalizarVenta(VentaDTO ventaActual) {
@@ -75,15 +76,15 @@ public class VentasControl {
     }
   }
 
-  public TicketDTO generarTicket(VentaDTO ventaActual, double ultimoEfectivo) {
+  public TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal ultimoEfectivo) {
     if (ventaActual == null) {
       return null;
     }
 
-    double total = ventaActual.getTotal();
-    double subtotal = ventaActual.getSubtotal();
-    double iva = ventaActual.getIva();
-    double cambio = ultimoEfectivo - total;
+    BigDecimal total = ventaActual.getTotal();
+    BigDecimal subtotal = ventaActual.getSubtotal();
+    BigDecimal iva = ventaActual.getIva();
+    BigDecimal cambio = ultimoEfectivo.subtract(total);
     String folio = generarFolio();
 
     LocalDateTime ahora = LocalDateTime.now();

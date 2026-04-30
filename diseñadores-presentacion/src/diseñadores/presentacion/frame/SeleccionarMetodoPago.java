@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class SeleccionarMetodoPago extends JFrame {
   private final VentaDTO ventaActual;
   private final JFrame frame;
   private final IVentas fachada;
-  private final double total;
+  private final BigDecimal total;
   private final Runnable onVentaFinalizada;
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
@@ -30,7 +31,7 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   public SeleccionarMetodoPago(JFrame frame, IVentas fachada,
-    VentaDTO ventaActual, double total,
+    VentaDTO ventaActual, BigDecimal total,
     Runnable onVentaFinalizada) {
     super("Metodo de pago");
     this.ventaActual = ventaActual;

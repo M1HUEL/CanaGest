@@ -8,6 +8,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -569,7 +570,7 @@ public class RegistrarVenta extends JFrame {
       mostrarAviso("El carrito esta vacio.", "Sin productos");
       return;
     }
-    double total = ventaActual.getTotal();
+    BigDecimal total = ventaActual.getTotal();
     this.setVisible(false);
     new SeleccionarMetodoPago(this, fachada, ventaActual, total, () -> {
       ventaActual = fachada.iniciarNuevaVenta();

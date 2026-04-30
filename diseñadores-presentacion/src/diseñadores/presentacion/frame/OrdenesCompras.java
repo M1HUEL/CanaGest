@@ -286,7 +286,7 @@ public class OrdenesCompras extends JFrame {
     datos.add(Box.createVerticalStrut(5));
     datos.add(filaQ);
 
-    JLabel lblTotal = new JLabel(String.format("$%.2f", o.getTotal()));
+    JLabel lblTotal = new JLabel(String.format("$%.2f", o.getTotal().doubleValue()));
     lblTotal.setFont(Fuentes.b(24));
     lblTotal.setForeground(Colores.AZUL);
     lblTotal.setBorder(new EmptyBorder(6, 0, 10, 0));
@@ -310,9 +310,9 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
     btnDetalle.addActionListener(e -> JOptionPane.showMessageDialog(this,
-      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
-      + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal())
-      + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
+        "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
+          + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal().doubleValue())
+          + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
     botonesRow.add(btnDetalle);
 
     if (o.getEstado().equals("Pendiente")) {
@@ -425,8 +425,8 @@ public class OrdenesCompras extends JFrame {
           .findFirst()
           .orElse(null);
         int cantidad = Integer.parseInt(campos[0].getText().trim());
-        double total = Double.parseDouble(campos[1].getText().trim());
-        if (cantidad <= 0 || total <= 0) {
+        java.math.BigDecimal total = new java.math.BigDecimal(campos[1].getText().trim());
+        if (cantidad <= 0 || total.compareTo(java.math.BigDecimal.ZERO) <= 0) {
           JOptionPane.showMessageDialog(dlg, "Ingrese valores positivos.", "Error", JOptionPane.WARNING_MESSAGE);
           return;
         }

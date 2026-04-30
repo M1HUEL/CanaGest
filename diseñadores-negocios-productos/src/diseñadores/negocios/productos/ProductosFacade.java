@@ -7,35 +7,30 @@ import java.util.List;
 
 public class ProductosFacade implements IProductos {
 
-  private final ProductosControl control;
+  private final InventarioControl inventarioControl;
 
   public ProductosFacade() {
-    InventarioControl inventarioControl = new InventarioControl();
-    this.control = new ProductosControl(inventarioControl);
+    this.inventarioControl = new InventarioControl();
   }
 
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
-    return control.obtenerTodosProductos();
+    return inventarioControl.obtenerTodos();
   }
 
   @Override
   public ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto) {
-    return control.buscar(dto);
+    return inventarioControl.obtenerProductoPorCodigo(dto.getCodigo());
   }
 
   @Override
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return control.buscarProductoPorCodigo(dto);
+    return inventarioControl.obtenerProductoPorCodigo(dto.getCodigo()) != null;
   }
 
   @Override
   public boolean tieneStock(EscanearProductoDTO dto) {
-    return control.tieneStock(dto);
-  }
-
-  public ProductosControl getControl() {
-    return control;
+    return inventarioControl.verificarStock(dto.getCodigo(), 1);
   }
 
 }

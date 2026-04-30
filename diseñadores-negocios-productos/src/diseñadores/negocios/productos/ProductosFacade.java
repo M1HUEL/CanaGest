@@ -2,15 +2,15 @@ package diseñadores.negocios.productos;
 
 import diseñadores.negocios.dto.EscanearProductoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.inventario.InventarioControl;
+import diseñadores.negocios.inventario.IInventario;
 import java.util.List;
 
 public class ProductosFacade implements IProductos {
 
-  private final InventarioControl inventarioControl;
+  private final IInventario inventarioControl;
 
-  public ProductosFacade() {
-    this.inventarioControl = new InventarioControl();
+  public ProductosFacade(IInventario inventarioControl) {
+    this.inventarioControl = inventarioControl;
   }
 
   @Override

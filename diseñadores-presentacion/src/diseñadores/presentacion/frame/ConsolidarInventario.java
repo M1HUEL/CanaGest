@@ -1,7 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.inventario.InventarioFacade;
+import diseñadores.negocios.inventario.IInventario;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -40,14 +40,14 @@ public class ConsolidarInventario extends JFrame {
   }
 
   private final JFrame menuOrigen;
-  private final InventarioFacade facade;
+  private final IInventario facade;
   private final List<ItemConteo> items = new ArrayList<>();
   private JPanel panelTabla;
   private JLabel lblAuditados, lblPendientes, lblDiferencias;
 
-  public ConsolidarInventario(JFrame menuOrigen) {
+  public ConsolidarInventario(JFrame menuOrigen, IInventario facade) {
     this.menuOrigen = menuOrigen;
-    this.facade = new InventarioFacade();
+    this.facade = facade;
     setTitle("La Canasta - Consolidar Inventario");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);

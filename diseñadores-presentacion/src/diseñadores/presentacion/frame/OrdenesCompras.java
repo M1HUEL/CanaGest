@@ -2,7 +2,7 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.proveedores.ProveedoresFacade;
+import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -17,22 +17,23 @@ import java.util.List;
 public class OrdenesCompras extends JFrame {
 
   private final JFrame menuOrigen;
-  private final ProveedoresFacade facade;
+  private final IProveedores proveedoresFachada;
   private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
 
-  public OrdenesCompras(JFrame menuOrigen) {
+  public OrdenesCompras(JFrame menuOrigen, IProveedores proveedoresFachada) {
     this.menuOrigen = menuOrigen;
-    this.facade = new ProveedoresFacade();
+    this.proveedoresFachada = proveedoresFachada;
+
     setTitle("La Canasta - Órdenes de Compra");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ordenes.addAll(facade.obtenerOrdenesCompra());
+    ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -310,16 +311,16 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
     btnDetalle.addActionListener(e -> JOptionPane.showMessageDialog(this,
-        "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
-          + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal().doubleValue())
-          + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
+      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
+      + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal().doubleValue())
+      + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
     botonesRow.add(btnDetalle);
 
     if (o.getEstado().equals("Pendiente")) {
       JButton btnAprobar = crearBotonCardOrdenes("Aprobar", Colores.VERDE, Colores.VERDE_HOVER, true);
       btnAprobar.addActionListener(e -> {
         o.setEstado("Aprobada");
-        facade.cambiarEstadoOrden(o.getNumero(), "Aprobada");
+        proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Aprobada");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnAprobar);
@@ -327,7 +328,7 @@ public class OrdenesCompras extends JFrame {
       JButton btnRecibir = crearBotonCardOrdenes("Recibir", Colores.AZUL, Colores.AZUL_HOVER, true);
       btnRecibir.addActionListener(e -> {
         o.setEstado("Recibida");
-        facade.cambiarEstadoOrden(o.getNumero(), "Recibida");
+        proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Recibida");
         construirOrdenes(filtrar());
       });
       botonesRow.add(btnRecibir);
@@ -369,7 +370,7 @@ public class OrdenesCompras extends JFrame {
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
 
-    List<ProveedorDTO> proveedores = facade.obtenerProveedores();
+    List<ProveedorDTO> proveedores = proveedoresFachada.obtenerProveedores();
     String[] nombresProveedores = proveedores.stream()
       .filter(ProveedorDTO::isActivo)
       .map(ProveedorDTO::getNombre)
@@ -420,7 +421,7 @@ public class OrdenesCompras extends JFrame {
           JOptionPane.showMessageDialog(dlg, "Seleccione un proveedor.", "Error", JOptionPane.WARNING_MESSAGE);
           return;
         }
-        ProveedorDTO proveedorSeleccionado = facade.obtenerProveedores().stream()
+        ProveedorDTO proveedorSeleccionado = proveedoresFachada.obtenerProveedores().stream()
           .filter(p -> p.getNombre().equals(nombreProvSeleccionado))
           .findFirst()
           .orElse(null);
@@ -431,9 +432,9 @@ public class OrdenesCompras extends JFrame {
           return;
         }
         OrdenCompraDTO nuevaOrden = new OrdenCompraDTO(null, null, proveedorSeleccionado, "Pendiente", cantidad, total);
-        facade.guardarOrdenCompra(nuevaOrden);
+        proveedoresFachada.guardarOrdenCompra(nuevaOrden);
         ordenes.clear();
-        ordenes.addAll(facade.obtenerOrdenesCompra());
+        ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
         construirOrdenes(filtrar());
         dlg.dispose();
       } catch (NumberFormatException ex) {

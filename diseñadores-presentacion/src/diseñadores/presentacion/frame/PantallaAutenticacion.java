@@ -1,7 +1,9 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -13,10 +15,16 @@ import java.awt.geom.RoundRectangle2D;
 
 public class PantallaAutenticacion extends JFrame {
 
-  private final IUsuarios fachada;
+  private final IUsuarios usuariosFachada;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
 
-  public PantallaAutenticacion(IUsuarios fachada) {
-    this.fachada = fachada;
+  public PantallaAutenticacion(IUsuarios usuariosFachada, IVentas ventasFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
+    this.usuariosFachada = usuariosFachada;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
 
     setTitle("La Canasta - Iniciar Sesión");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -152,10 +160,10 @@ public class PantallaAutenticacion extends JFrame {
       String usuario = campoUsuario.getText().trim();
       String contrasena = new String(campoContrasena.getPassword()).trim();
 
-      var usuarioOpt = fachada.autenticarse(usuario, contrasena);
+      var usuarioOpt = usuariosFachada.autenticarse(usuario, contrasena);
       if (usuarioOpt.isPresent()) {
         dispose();
-        new MenuPrincipal(usuarioOpt.get()).setVisible(true);
+        new MenuPrincipal(usuarioOpt.get(), usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
       } else {
         lblError.setText("Usuario o contraseña incorrectos.");
         campoContrasena.setText("");

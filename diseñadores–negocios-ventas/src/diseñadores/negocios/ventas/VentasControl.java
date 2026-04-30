@@ -73,7 +73,7 @@ public class VentasControl {
     ventaActual.setFolio(generarFolio());
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
-      inventario.reducirStock(item.getCodigo(), item.getCantidad());
+      inventario.descontarStock(item.getCodigo(), item.getCantidad());
 
       ProductoDTO estadoActual = inventario.obtenerProductoPorCodigo(item.getCodigo());
       if (estadoActual != null && estadoActual.getStock() < STOCK_MINIMO) {

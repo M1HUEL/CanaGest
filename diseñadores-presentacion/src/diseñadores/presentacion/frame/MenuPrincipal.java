@@ -1,7 +1,10 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.ventas.VentasFacade;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -14,8 +17,17 @@ public class MenuPrincipal extends JFrame {
 
   private final UsuarioDTO usuarioActivo;
 
-  public MenuPrincipal(UsuarioDTO usuarioActivo) {
+  private final IUsuarios usuariosFachada;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
+
+  public MenuPrincipal(UsuarioDTO usuarioActivo, IUsuarios usuariosFachada, IVentas ventasFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
     this.usuarioActivo = usuarioActivo;
+    this.usuariosFachada = usuariosFachada;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
 
     setTitle("La Canasta");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -83,7 +95,7 @@ public class MenuPrincipal extends JFrame {
     btnVender.addActionListener(e -> {
       this.setVisible(false);
       Fuentes.cargar();
-      new RegistrarVenta(new VentasFacade(), usuarioActivo).setVisible(true);
+      new RegistrarVenta(ventasFachada, usuarioActivo, usuariosFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnVender);
     tarjeta.add(Box.createVerticalStrut(20));
@@ -94,7 +106,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnExistencia = Botones.menuAzul("Existencia de Productos");
     btnExistencia.addActionListener(e -> {
       this.setVisible(false);
-      new ExistenciaProductos(this).setVisible(true);
+      new ExistenciaProductos(this, inventarioFachada).setVisible(true);
     });
     tarjeta.add(btnExistencia);
     tarjeta.add(Box.createVerticalStrut(10));
@@ -102,7 +114,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnConsolidar = Botones.menuAzul("Consolidar Inventario");
     btnConsolidar.addActionListener(e -> {
       this.setVisible(false);
-      new ConsolidarInventario(this).setVisible(true);
+      new ConsolidarInventario(this, inventarioFachada).setVisible(true);
     });
     tarjeta.add(btnConsolidar);
     tarjeta.add(Box.createVerticalStrut(20));
@@ -113,7 +125,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnProveedores = Botones.menuAzul("Administrar Proveedores");
     btnProveedores.addActionListener(e -> {
       this.setVisible(false);
-      new AdministrarProveedores(this).setVisible(true);
+      new AdministrarProveedores(this, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnProveedores);
     tarjeta.add(Box.createVerticalStrut(10));
@@ -121,7 +133,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnOrdenes = Botones.menuAzul("Órdenes de Compra");
     btnOrdenes.addActionListener(e -> {
       this.setVisible(false);
-      new OrdenesCompras(this).setVisible(true);
+      new OrdenesCompras(this, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnOrdenes);
     tarjeta.add(Box.createVerticalStrut(10));
@@ -129,7 +141,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
-      new AsociarProductosProveedores(this).setVisible(true);
+      new AsociarProductosProveedores(this, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnAsociar);
     tarjeta.add(Box.createVerticalStrut(24));
@@ -137,7 +149,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnCerrar = Botones.menuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
-      new PantallaAutenticacion(null).setVisible(true);
+      new PantallaAutenticacion(usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnCerrar);
 

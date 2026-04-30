@@ -22,4 +22,6 @@ public interface IProveedores {
 
   void actualizarOrdenCompra(OrdenCompraDTO orden);
 
+  void cambiarEstadoOrden(String numero, String nuevoEstado);
+
 }

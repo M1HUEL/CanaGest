@@ -1,6 +1,10 @@
 package diseñadores.presentacion.utilidad;
 
 import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.frame.MenuPrincipal;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -66,15 +70,21 @@ public final class Componentes {
     return c;
   }
 
-  public static JPanel topBar(JFrame owner, UsuarioDTO usuario) {
+  public static JPanel topBar(JFrame owner, UsuarioDTO usuario,
+    IUsuarios usuariosFachada, IVentas ventasFachada,
+    IInventario inventarioFachada, IProveedores proveedoresFachada) {
+
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+
     JButton btnCS = botonTopBar("Menu Principal");
     btnCS.addActionListener(e -> {
       owner.dispose();
-      new MenuPrincipal(usuario).setVisible(true);
+      new MenuPrincipal(usuario, usuariosFachada, ventasFachada,
+        inventarioFachada, proveedoresFachada).setVisible(true);
     });
+
     bar.add(btnCS);
     return bar;
   }

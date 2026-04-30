@@ -7,8 +7,8 @@ public class InventarioFacade implements IInventario {
 
   private final InventarioControl control;
 
-  public InventarioFacade() {
-    this.control = new InventarioControl();
+  public InventarioFacade(InventarioControl control) {
+    this.control = control;
   }
 
   @Override
@@ -37,7 +37,7 @@ public class InventarioFacade implements IInventario {
   }
 
   @Override
-  public void reducirStock(String codigo, int cantidad) {
+  public void descontarStock(String codigo, int cantidad) {
     control.descontarStock(codigo, cantidad);
   }
 
@@ -59,10 +59,6 @@ public class InventarioFacade implements IInventario {
   @Override
   public int[] obtenerEstadisticasConteo() {
     return control.obtenerEstadisticasConteo();
-  }
-
-  public InventarioControl getControl() {
-    return control;
   }
 
 }

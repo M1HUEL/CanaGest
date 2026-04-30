@@ -1,6 +1,9 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import javax.swing.*;
@@ -17,7 +20,10 @@ public class RegistrarVenta extends JFrame {
 
   private final UsuarioDTO usuarioActivo;
   private VentaDTO ventaActual;
-  private final IVentas fachada;
+  private final IVentas ventasFachada;
+  private final IUsuarios usuariosFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
 
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
@@ -27,18 +33,21 @@ public class RegistrarVenta extends JFrame {
   private JPanel panelGrid;
   private JScrollPane scrollGrid;
 
-  public RegistrarVenta(IVentas facade, UsuarioDTO usuarioActivo) {
+  public RegistrarVenta(IVentas ventasFachada, UsuarioDTO usuarioActivo, IUsuarios usuariosFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
     super("Punto de Venta");
-    this.fachada = facade;
+    this.ventasFachada = ventasFachada;
     this.usuarioActivo = usuarioActivo;
+    this.usuariosFachada = usuariosFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
 
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ventaActual = fachada.iniciarNuevaVenta();
-    catalogoProductos = fachada.obtenerCatalogo();
+    ventaActual = ventasFachada.iniciarNuevaVenta();
+    catalogoProductos = ventasFachada.obtenerCatalogo();
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -117,7 +126,7 @@ public class RegistrarVenta extends JFrame {
     btnMenu.setPreferredSize(new Dimension(160, 38));
     btnMenu.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(usuarioActivo).setVisible(true);
+      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
 
     bar.add(btnMenu);
@@ -230,7 +239,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void refrescarCatalogo() {
-    catalogoProductos = fachada.obtenerCatalogo();
+    catalogoProductos = ventasFachada.obtenerCatalogo();
     filtrarGrid(campoBusqueda != null ? campoBusqueda.getText().trim() : "");
   }
 
@@ -513,17 +522,17 @@ public class RegistrarVenta extends JFrame {
 
   private void escanearProducto(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
-    if (!fachada.existeProducto(dto)) {
+    if (!ventasFachada.existeProducto(dto)) {
       mostrarError("<html>El producto <b>" + codigo + "</b> no existe en el catalogo.</html>",
         "Producto no encontrado");
       return;
     }
-    if (!fachada.tieneStock(dto)) {
+    if (!ventasFachada.tieneStock(dto)) {
       mostrarAviso("<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles.</html>",
         "Sin stock");
       return;
     }
-    ProductoDTO p = fachada.procesarProducto(ventaActual, dto);
+    ProductoDTO p = ventasFachada.procesarProducto(ventaActual, dto);
     if (p == null) {
       return;
     }
@@ -532,11 +541,11 @@ public class RegistrarVenta extends JFrame {
 
   private void incrementarItem(ItemVentaDTO item) {
     EscanearProductoDTO dto = new EscanearProductoDTO(item.getCodigo());
-    if (!fachada.tieneStock(dto)) {
+    if (!ventasFachada.tieneStock(dto)) {
       mostrarAviso("<html>No hay mas stock de <b>" + item.getNombre() + "</b>.</html>", "Sin stock");
       return;
     }
-    fachada.procesarProducto(ventaActual, dto);
+    ventasFachada.procesarProducto(ventaActual, dto);
     actualizarVista();
   }
 
@@ -561,7 +570,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void cancelarVenta() {
-    ventaActual = fachada.iniciarNuevaVenta();
+    ventaActual = ventasFachada.iniciarNuevaVenta();
     actualizarVista();
   }
 
@@ -572,11 +581,11 @@ public class RegistrarVenta extends JFrame {
     }
     BigDecimal total = ventaActual.getTotal();
     this.setVisible(false);
-    new SeleccionarMetodoPago(this, fachada, ventaActual, total, () -> {
-      ventaActual = fachada.iniciarNuevaVenta();
+    new SeleccionarMetodoPago(this, ventasFachada, ventaActual, total, () -> {
+      ventaActual = ventasFachada.iniciarNuevaVenta();
       actualizarVista();
       refrescarCatalogo();
-    });
+    }, usuariosFachada, inventarioFachada, proveedoresFachada, ventasFachada, usuarioActivo);
   }
 
   private void actualizarVista() {

@@ -1,6 +1,10 @@
 package diseñadores.presentacion.frame;
 
+import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import javax.swing.*;
@@ -16,9 +20,18 @@ import java.util.Map;
 public class SeleccionarMetodoPago extends JFrame {
 
   private final VentaDTO ventaActual;
+
   private final JFrame frame;
-  private final IVentas fachada;
+
+  private final UsuarioDTO usuarioActivo;
+
+  private final IVentas ventasFachada;
+  private final IUsuarios usuariosFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
+
   private final BigDecimal total;
+
   private final Runnable onVentaFinalizada;
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
@@ -32,13 +45,25 @@ public class SeleccionarMetodoPago extends JFrame {
 
   public SeleccionarMetodoPago(JFrame frame, IVentas fachada,
     VentaDTO ventaActual, BigDecimal total,
-    Runnable onVentaFinalizada) {
+    Runnable onVentaFinalizada,
+    IUsuarios usuariosFachada, IInventario inventarioFachada,
+    IProveedores proveedoresFachada, IVentas ventasFachada,
+    UsuarioDTO usuarioActivo) {
     super("Metodo de pago");
+
     this.ventaActual = ventaActual;
+
+    this.usuarioActivo = usuarioActivo;
+
     this.frame = frame;
-    this.fachada = fachada;
+
     this.total = total;
     this.onVentaFinalizada = onVentaFinalizada;
+
+    this.ventasFachada = ventasFachada;
+    this.usuariosFachada = usuariosFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
 
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(frame.getWidth(), frame.getHeight());
@@ -102,7 +127,8 @@ public class SeleccionarMetodoPago extends JFrame {
     btnMenu.setPreferredSize(new Dimension(160, 38));
     btnMenu.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(null).setVisible(true);
+      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada,
+        inventarioFachada, proveedoresFachada).setVisible(true);
     });
 
     bar.add(btnMenu);
@@ -230,7 +256,9 @@ public class SeleccionarMetodoPago extends JFrame {
     this.setVisible(false);
     switch (nombre) {
       case "Efectivo" ->
-        new RegistrarMetodoPagoEfectivo(this, frame, fachada, ventaActual, total, onVentaFinalizada);
+        new RegistrarMetodoPagoEfectivo(this, frame, ventasFachada, inventarioFachada,
+          usuariosFachada, proveedoresFachada, ventaActual, total,
+          onVentaFinalizada, usuarioActivo);
       default -> {
         JOptionPane.showMessageDialog(frame,
           "El metodo '" + nombre + "' no esta disponible aun.",

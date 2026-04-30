@@ -1,7 +1,10 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.ItemVentaDTO;
-import diseñadores.negocios.dto.TicketDTO;
+import diseñadores.negocios.dto.*;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 import javax.swing.*;
@@ -14,8 +17,18 @@ import java.math.BigDecimal;
 
 public class PantallaTicket extends JFrame {
 
-  public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado) {
+  private final IUsuarios usuariosFachada;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
+
+  public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado,
+    IUsuarios usuariosFachada, IVentas ventasFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
     super("Ticket de Venta");
+    this.usuariosFachada = usuariosFachada;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
@@ -331,7 +344,7 @@ public class PantallaTicket extends JFrame {
     JButton btnCS = topBarBtn("Menu Principal");
     btnCS.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(null).setVisible(true);
+      new MenuPrincipal(null, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     bar.add(btnCS);
     return bar;

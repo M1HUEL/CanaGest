@@ -1,7 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.proveedores.ProveedoresFacade;
+import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -16,15 +16,15 @@ import java.util.List;
 public class AdministrarProveedores extends JFrame {
 
   private final JFrame frame;
-  private final ProveedoresFacade fachada;
+  private final IProveedores fachada;
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
   private JPanel panelGrid;
   private JLabel lblActivos;
   private JTextField campoBusqueda;
 
-  public AdministrarProveedores(JFrame frame) {
+  public AdministrarProveedores(JFrame frame, IProveedores fachada) {
     this.frame = frame;
-    this.fachada = new ProveedoresFacade();
+    this.fachada = fachada;
     setTitle("La Canasta - Administrar Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);

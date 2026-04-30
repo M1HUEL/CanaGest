@@ -2,8 +2,8 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.inventario.InventarioFacade;
-import diseñadores.negocios.proveedores.ProveedoresFacade;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -18,16 +18,16 @@ import java.util.List;
 public class AsociarProductosProveedores extends JFrame {
 
   private final JFrame menuOrigen;
-  private final InventarioFacade inventarioFacade;
-  private final ProveedoresFacade proveedoresFacade;
+  private final IInventario inventarioFacade;
+  private final IProveedores proveedoresFacade;
   private final List<ProductoDTO> productos = new ArrayList<>();
   private JPanel panelLista;
   private JTextField campoBusqueda;
 
-  public AsociarProductosProveedores(JFrame menuOrigen) {
+  public AsociarProductosProveedores(JFrame menuOrigen, IInventario inventarioFacade, IProveedores proveedoresFacade) {
     this.menuOrigen = menuOrigen;
-    this.inventarioFacade = new InventarioFacade();
-    this.proveedoresFacade = new ProveedoresFacade();
+    this.inventarioFacade = inventarioFacade;
+    this.proveedoresFacade = proveedoresFacade;
     setTitle("La Canasta - Asociar Productos con Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);

@@ -1,6 +1,9 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
+import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Componentes;
@@ -17,7 +20,12 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private final VentaDTO ventaActual;
 
-  private final IVentas fachada;
+  private final UsuarioDTO usuarioActivo;
+
+  private final IUsuarios usuariosFachada;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IProveedores proveedoresFachada;
 
   private final BigDecimal totalAPagar;
 
@@ -27,12 +35,18 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   private JButton btnCompletar;
 
   public RegistrarMetodoPagoEfectivo(SeleccionarMetodoPago pantallaPago, JFrame mainFrame,
-    IVentas fachada, VentaDTO ventaActual,
-    BigDecimal total, Runnable onConfirmado) {
+    IVentas ventasFachada, IInventario inventarioFachada, IUsuarios usuariosFachada,
+    IProveedores proveedoresFachada, VentaDTO ventaActual,
+    BigDecimal total, Runnable onConfirmado, UsuarioDTO usuarioActivo) {
     super("Pago en Efectivo");
 
+    this.usuarioActivo = usuarioActivo;
+
     this.ventaActual = ventaActual;
-    this.fachada = fachada;
+    this.usuariosFachada = usuariosFachada;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.proveedoresFachada = proveedoresFachada;
     this.totalAPagar = total;
 
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -40,7 +54,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     setLocation(mainFrame.getLocation());
 
     JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(mainFrame, null), BorderLayout.NORTH);
+    root.add(Componentes.topBar(this, usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);
@@ -199,7 +213,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     }
 
     PagoEfectivoDTO pagoDTO = new PagoEfectivoDTO(recibido);
-    ResultadoPagoDTO resultado = fachada.procesarPagoEfectivo(ventaActual, pagoDTO);
+    ResultadoPagoDTO resultado = ventasFachada.procesarPagoEfectivo(ventaActual, pagoDTO);
 
     if (!resultado.isAprobado()) {
       JOptionPane.showMessageDialog(this, resultado.getMensaje(),
@@ -207,16 +221,16 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
       return;
     }
 
-    fachada.procesarFinalizarVenta(ventaActual);
-    TicketDTO ticketDTO = fachada.generarTicket(ventaActual, recibido);
+    ventasFachada.procesarFinalizarVenta(ventaActual);
+    TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, recibido);
 
     this.setVisible(false);
-    PantallaTicket pantallaTicket = new PantallaTicket(mainFrame, ticketDTO, onConfirmado);
+    PantallaTicket pantallaTicket = new PantallaTicket(mainFrame, ticketDTO, onConfirmado, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
   }
 
   private void actualizarUI() {
     lblRecibido.setText(String.format("$%.2f", recibido));
-    BigDecimal cambio = fachada.procesarCalcularCambio(ventaActual, recibido);
+    BigDecimal cambio = ventasFachada.procesarCalcularCambio(ventaActual, recibido);
     lblCambio.setText(String.format("$%.2f", cambio.max(BigDecimal.ZERO).doubleValue()));
     lblCambio.setForeground(recibido.compareTo(totalAPagar) >= 0 ? Colores.VERDE : Colores.GRIS_TEXTO);
     btnCompletar.repaint();

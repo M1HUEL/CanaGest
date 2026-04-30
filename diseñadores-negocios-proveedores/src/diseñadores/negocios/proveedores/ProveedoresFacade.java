@@ -8,11 +8,6 @@ public class ProveedoresFacade implements IProveedores {
 
   private final ProveedoresControl control;
 
-  public ProveedoresFacade() {
-    IProveedoresRepository repository = ProveedoresRepository.getInstancia();
-    this.control = new ProveedoresControl(repository);
-  }
-
   public ProveedoresFacade(ProveedoresControl control) {
     this.control = control;
   }

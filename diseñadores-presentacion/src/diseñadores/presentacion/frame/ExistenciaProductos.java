@@ -1,7 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.inventario.InventarioFacade;
+import diseñadores.negocios.inventario.IInventario;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -16,14 +16,14 @@ import java.util.List;
 public class ExistenciaProductos extends JFrame {
 
   private final JFrame menuOrigen;
-  private final InventarioFacade facade;
+  private final IInventario facade;
   private final List<ProductoDTO> productos = new ArrayList<>();
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
-  public ExistenciaProductos(JFrame menuOrigen) {
+  public ExistenciaProductos(JFrame menuOrigen, IInventario facade) {
     this.menuOrigen = menuOrigen;
-    this.facade = new InventarioFacade();
+    this.facade = facade;
     setTitle("La Canasta - Existencia de Productos");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);

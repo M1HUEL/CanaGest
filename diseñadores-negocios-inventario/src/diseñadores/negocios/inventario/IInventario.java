@@ -9,7 +9,7 @@ public interface IInventario {
 
   boolean verificarStock(String codigo, int cantidad);
 
-  void reducirStock(String codigo, int cantidad);
+  void descontarStock(String codigo, int cantidad);
 
   void actualizarStock(String codigo, int nuevaCantidad);
 

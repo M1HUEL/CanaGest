@@ -13,6 +13,7 @@ public class VentaDTO {
   private BigDecimal total;
   private int totalUnidades;
   private boolean pagada;
+  private String folio;
 
   public VentaDTO() {
     this.items = new ArrayList<>();
@@ -20,6 +21,7 @@ public class VentaDTO {
     this.total = BigDecimal.ZERO;
     this.subtotal = BigDecimal.ZERO;
     this.iva = BigDecimal.ZERO;
+    this.folio = null;
   }
 
   public void agregarProducto(ProductoDTO producto) {
@@ -94,6 +96,14 @@ public class VentaDTO {
 
   public void setPagada(boolean pagada) {
     this.pagada = pagada;
+  }
+
+  public String getFolio() {
+    return folio;
+  }
+
+  public void setFolio(String folio) {
+    this.folio = folio;
   }
 
 }

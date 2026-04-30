@@ -70,6 +70,7 @@ public class VentasControl {
 
   public void procesarFinalizarVenta(VentaDTO ventaActual) {
     ventaActual.setPagada(true);
+    ventaActual.setFolio(generarFolio());
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
       inventario.reducirStock(item.getCodigo(), item.getCantidad());
@@ -90,11 +91,10 @@ public class VentasControl {
     BigDecimal subtotal = ventaActual.getSubtotal();
     BigDecimal iva = ventaActual.getIva();
     BigDecimal cambio = ultimoEfectivo.subtract(total);
-    String folio = generarFolio();
     LocalDateTime ahora = LocalDateTime.now();
 
     return new TicketDTO(
-      folio,
+      ventaActual.getFolio(),
       ventaActual.getItems(),
       subtotal, iva, total, ultimoEfectivo, cambio,
       ahora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO

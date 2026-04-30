@@ -6,8 +6,6 @@ import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.productos.IProductos;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 public class VentasControl {
 
@@ -32,6 +30,15 @@ public class VentasControl {
     ProductoDTO productoDTO = productosFacade.buscarProductoPorCodigo(dto);
 
     if (productoDTO == null) {
+      return null;
+    }
+
+    int cantidadEnCarrito = ventaActual.getItems().stream()
+      .filter(i -> i.getCodigo().equals(productoDTO.getCodigo()))
+      .mapToInt(ItemVentaDTO::getCantidad)
+      .sum();
+
+    if (productoDTO.getStock() <= cantidadEnCarrito) {
       return null;
     }
 
@@ -86,16 +93,13 @@ public class VentasControl {
     BigDecimal iva = ventaActual.getIva();
     BigDecimal cambio = ultimoEfectivo.subtract(total);
     String folio = generarFolio();
-
     LocalDateTime ahora = LocalDateTime.now();
-    String fecha = ahora.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("es", "MX")));
-    String hora = ahora.format(DateTimeFormatter.ofPattern("hh:mm a"));
 
     return new TicketDTO(
       folio,
       ventaActual.getItems(),
       subtotal, iva, total, ultimoEfectivo, cambio,
-      fecha, hora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
+      ahora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
     );
   }
 

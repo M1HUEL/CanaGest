@@ -1,7 +1,10 @@
 package diseñadores.negocios.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class TicketDTO {
 
@@ -23,7 +26,7 @@ public class TicketDTO {
   public TicketDTO(String folio, List<ItemVentaDTO> items,
     BigDecimal subtotal, BigDecimal iva, BigDecimal total,
     BigDecimal efectivoRecibido, BigDecimal cambio,
-    String fechaFormateada, String horaFormateada,
+    LocalDateTime fechaHora,
     String cajero, String nombreTienda,
     String rfc, String direccion, String telefono) {
     this.folio = folio;
@@ -33,8 +36,8 @@ public class TicketDTO {
     this.total = total;
     this.efectivoRecibido = efectivoRecibido;
     this.cambio = cambio;
-    this.fechaFormateada = fechaFormateada;
-    this.horaFormateada = horaFormateada;
+    this.fechaFormateada = fechaHora.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("es", "MX")));
+    this.horaFormateada = fechaHora.format(DateTimeFormatter.ofPattern("hh:mm a"));
     this.cajero = cajero;
     this.nombreTienda = nombreTienda;
     this.rfc = rfc;

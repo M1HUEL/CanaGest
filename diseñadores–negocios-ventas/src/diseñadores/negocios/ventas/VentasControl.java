@@ -21,13 +21,10 @@ public class VentasControl {
   private static final String TELEFONO = "Tel: (555) 123-4567";
   private static final String CAJERO = "Juan Pérez - Caja #1";
 
-  public VentasControl(IProductos productosFacade, IInventario inventario) {
+  public VentasControl(IProductos productosFacade, IInventario inventario, INotificaciones servicioNotificaciones) {
     this.productosFacade = productosFacade;
     this.inventario = inventario;
-  }
-
-  public void setServicioNotificaciones(INotificaciones servicio) {
-    this.servicioNotificaciones = servicio;
+    this.servicioNotificaciones = servicioNotificaciones;
   }
 
   public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
@@ -102,12 +99,6 @@ public class VentasControl {
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    if (servicioNotificaciones == null) {
-      System.out.println("El stock se encuentra bajo para el producto: " + p.getNombre()
-        + ". Cantidad actual: " + p.getStock() + " unidades.");
-      return;
-    }
-
     String mensaje = "Alerta: El stock se encuentra bajo para el producto " + p.getNombre()
       + ". Solo quedan " + p.getStock() + " unidades disponibles.";
     boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);

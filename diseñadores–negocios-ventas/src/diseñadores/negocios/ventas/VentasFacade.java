@@ -21,9 +21,9 @@ public class VentasFacade implements IVentas {
     this.notificacionesSubsistema = new NotificacionesFacade();
     this.ventasControl = new VentasControl(
       productosSubsistema,
-      inventarioSubsistema
+      inventarioSubsistema,
+      notificacionesSubsistema
     );
-    this.ventasControl.setServicioNotificaciones(notificacionesSubsistema);
   }
 
   @Override

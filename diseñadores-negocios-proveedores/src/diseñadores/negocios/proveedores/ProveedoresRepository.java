@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
 
-public class ProveedoresRepository {
+public class ProveedoresRepository implements IProveedoresRepository {
 
   private static ProveedoresRepository instancia;
   private final List<ProveedorDTO> proveedores;

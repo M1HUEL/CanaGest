@@ -9,11 +9,16 @@ public class ProveedoresFacade implements IProveedores {
   private final ProveedoresControl control;
 
   public ProveedoresFacade() {
-    this.control = new ProveedoresControl();
+    IProveedoresRepository repository = ProveedoresRepository.getInstancia();
+    this.control = new ProveedoresControl(repository);
   }
 
   public ProveedoresFacade(ProveedoresControl control) {
     this.control = control;
+  }
+
+  public ProveedoresFacade(IProveedoresRepository repository) {
+    this.control = new ProveedoresControl(repository);
   }
 
   @Override
@@ -54,7 +59,7 @@ public class ProveedoresFacade implements IProveedores {
 
   @Override
   public void actualizarOrdenCompra(OrdenCompraDTO orden) {
-    ProveedoresRepository.getInstancia().actualizarOrdenCompra(orden);
+    control.actualizar(orden.getProveedor());
   }
 
   public void cambiarEstadoOrden(String numero, String nuevoEstado) {

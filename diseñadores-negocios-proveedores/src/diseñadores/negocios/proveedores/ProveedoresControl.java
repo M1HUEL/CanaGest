@@ -3,16 +3,24 @@ package diseñadores.negocios.proveedores;
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public class ProveedoresControl {
 
+  private final IProveedoresRepository repository;
+
+  public ProveedoresControl(IProveedoresRepository repository) {
+    this.repository = repository;
+  }
+
   public List<ProveedorDTO> obtenerTodos() {
-    return ProveedoresRepository.getInstancia().getProveedores();
+    return repository.getProveedores();
   }
 
   public ProveedorDTO obtenerPorCodigo(String codigo) {
-    return ProveedoresRepository.getInstancia().getProveedores().stream()
+    return repository.getProveedores().stream()
       .filter(p -> p.getCodigo().equalsIgnoreCase(codigo))
       .findFirst()
       .orElse(null);
@@ -21,48 +29,49 @@ public class ProveedoresControl {
   public void guardar(ProveedorDTO proveedor) {
     String codigo = generarCodigoProveedor();
     proveedor.setCodigo(codigo);
-    ProveedoresRepository.getInstancia().agregarProveedor(proveedor);
+    repository.agregarProveedor(proveedor);
   }
 
   public void actualizar(ProveedorDTO proveedor) {
-    ProveedoresRepository.getInstancia().actualizarProveedor(proveedor);
+    repository.actualizarProveedor(proveedor);
   }
 
   public int contarActivos() {
-    return (int) ProveedoresRepository.getInstancia().getProveedores().stream()
+    return (int) repository.getProveedores().stream()
       .filter(ProveedorDTO::isActivo)
       .count();
   }
 
   public List<OrdenCompraDTO> obtenerOrdenesCompra() {
-    return ProveedoresRepository.getInstancia().getOrdenesCompra();
+    return repository.getOrdenesCompra();
   }
 
   public void guardarOrdenCompra(ProveedorDTO proveedor, int cantidadProductos, BigDecimal total) {
     String numero = generarNumeroOrden();
-    String fecha = java.time.LocalDate.now().toString();
-    ProveedorDTO provRef = new ProveedorDTO(proveedor.getNombre(), proveedor.getCodigo(),
+    String fecha = LocalDate.now().toString();
+    ProveedorDTO provRef = new ProveedorDTO(
+      proveedor.getNombre(), proveedor.getCodigo(),
       proveedor.getContacto(), proveedor.getTelefono(), proveedor.getEmail(),
-      proveedor.getDireccion(), proveedor.getTerminosPago(), proveedor.isActivo());
+      proveedor.getDireccion(), proveedor.getTerminosPago(), proveedor.isActivo()
+    );
     OrdenCompraDTO orden = new OrdenCompraDTO(numero, fecha, provRef, "Pendiente", cantidadProductos, total);
-    ProveedoresRepository.getInstancia().agregarOrdenCompra(orden);
+    repository.agregarOrdenCompra(orden);
   }
 
   public void actualizarEstadoOrden(String numero, String nuevoEstado) {
-    ProveedoresRepository.getInstancia().getOrdenesCompra().stream()
+    repository.getOrdenesCompra().stream()
       .filter(o -> o.getNumero().equals(numero))
       .findFirst()
       .ifPresent(o -> o.setEstado(nuevoEstado));
   }
 
   private String generarCodigoProveedor() {
-    int siguiente = ProveedoresRepository.getInstancia().getProveedores().size() + 1;
-    return String.format("PROV-%03d", siguiente);
+    return "PROV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
   }
 
   private String generarNumeroOrden() {
-    int siguiente = ProveedoresRepository.getInstancia().getOrdenesCompra().size() + 1;
-    return String.format("OC-%d-%03d", java.time.LocalDate.now().getYear(), siguiente);
+    return String.format("OC-%d-%s", java.time.LocalDate.now().getYear(),
+      UUID.randomUUID().toString().substring(0, 8).toUpperCase());
   }
 
 }

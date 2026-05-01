@@ -1,6 +1,7 @@
 package diseñadores.persistencia;
 
 import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.VentaDTO;
 
@@ -38,5 +39,15 @@ public interface IPersistencia {
   void actualizarUsuario(UsuarioDTO usuario);
 
   void eliminarUsuario(String nombre);
+
+  List<ProveedorDTO> obtenerProveedores();
+
+  ProveedorDTO obtenerProveedorPorCodigo(String codigo);
+
+  void guardarProveedor(ProveedorDTO proveedor);
+
+  void actualizarProveedor(ProveedorDTO proveedor);
+
+  void eliminarProveedor(String codigo);
 
 }

@@ -1,4 +1,4 @@
-package diseñadores.persistencia;
+package diseñadores.persistencia.conexion;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

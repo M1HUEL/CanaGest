@@ -1,32 +1,33 @@
 package diseñadores.negocios.objetos;
 
 import diseñadores.negocios.dto.VentaDTO;
-import diseñadores.persistencia.dao.IVentaDAO;
-import diseñadores.persistencia.dao.impl.VentaDAOImpl;
+import diseñadores.persistencia.IPersistencia;
+import diseñadores.persistencia.PersistenciaFacade;
+
 import java.util.List;
 
 public class Venta {
 
-  private static final IVentaDAO DAO = new VentaDAOImpl();
+  private static final IPersistencia PERSISTENCIA = PersistenciaFacade.getInstancia();
 
   public static List<VentaDTO> obtenerTodas() {
-    return DAO.obtenerTodas();
+    return PERSISTENCIA.obtenerVentas();
   }
 
   public static VentaDTO obtenerPorFolio(String folio) {
-    return DAO.obtenerPorFolio(folio);
+    return PERSISTENCIA.obtenerVentaPorFolio(folio);
   }
 
   public static void guardar(VentaDTO venta) {
-    DAO.guardar(venta);
+    PERSISTENCIA.guardarVenta(venta);
   }
 
   public static void actualizar(VentaDTO venta) {
-    DAO.actualizar(venta);
+    PERSISTENCIA.actualizarVenta(venta);
   }
 
   public static void eliminar(String folio) {
-    DAO.eliminar(folio);
+    PERSISTENCIA.eliminarVenta(folio);
   }
 
 }

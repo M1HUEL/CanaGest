@@ -1,40 +1,35 @@
 package diseñadores.negocios.objetos;
 
 import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.persistencia.dao.IUsuarioDAO;
-import diseñadores.persistencia.dao.impl.UsuarioDAOImpl;
+import diseñadores.persistencia.IPersistencia;
+import diseñadores.persistencia.PersistenciaFacade;
+
 import java.util.List;
 import java.util.Optional;
 
 public class Usuario {
 
-  private static final IUsuarioDAO DAO = new UsuarioDAOImpl();
+  private static final IPersistencia PERSISTENCIA = PersistenciaFacade.getInstancia();
 
   public static List<UsuarioDTO> obtenerTodos() {
-    return DAO.obtenerTodos();
+    return PERSISTENCIA.obtenerUsuarios();
   }
 
   public static Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
-    UsuarioDTO usuario = DAO.obtenerPorNombre(nombre);
-    if (usuario == null) {
-      return Optional.empty();
-    }
-    if (!usuario.getContrasena().equals(contrasena)) {
-      return Optional.empty();
-    }
-    return Optional.of(usuario);
+    Optional<UsuarioDTO> resultado = PERSISTENCIA.obtenerUsuarioPorNombre(nombre);
+    return resultado.filter(u -> u.getContrasena().equals(contrasena));
   }
 
   public static void guardar(UsuarioDTO usuario) {
-    DAO.guardar(usuario);
+    PERSISTENCIA.guardarUsuario(usuario);
   }
 
   public static void actualizar(UsuarioDTO usuario) {
-    DAO.actualizar(usuario);
+    PERSISTENCIA.actualizarUsuario(usuario);
   }
 
   public static void eliminar(String nombre) {
-    DAO.eliminar(nombre);
+    PERSISTENCIA.eliminarUsuario(nombre);
   }
 
 }

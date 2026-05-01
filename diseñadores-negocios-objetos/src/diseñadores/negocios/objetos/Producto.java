@@ -1,32 +1,32 @@
 package diseñadores.negocios.objetos;
 
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.persistencia.dao.IProductoDAO;
-import diseñadores.persistencia.dao.impl.ProductoDAOImpl;
+import diseñadores.persistencia.IPersistencia;
+import diseñadores.persistencia.PersistenciaFacade;
 import java.util.List;
 
 public class Producto {
 
-  private static final IProductoDAO DAO = new ProductoDAOImpl();
+  private static final IPersistencia PERSISTENCIA = PersistenciaFacade.getInstancia();
 
   public static List<ProductoDTO> obtenerTodos() {
-    return DAO.obtenerTodos();
+    return PERSISTENCIA.obtenerProductos();
   }
 
   public static ProductoDTO obtenerPorCodigo(String codigo) {
-    return DAO.obtenerPorCodigo(codigo);
+    return PERSISTENCIA.obtenerProductoPorCodigo(codigo);
   }
 
   public static void guardar(ProductoDTO producto) {
-    DAO.guardar(producto);
+    PERSISTENCIA.guardarProducto(producto);
   }
 
   public static void actualizar(ProductoDTO producto) {
-    DAO.actualizar(producto);
+    PERSISTENCIA.actualizarProducto(producto);
   }
 
   public static void eliminar(String codigo) {
-    DAO.eliminar(codigo);
+    PERSISTENCIA.eliminarProducto(codigo);
   }
 
 }

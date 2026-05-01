@@ -5,7 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.persistencia.Conexion;
+import diseñadores.persistencia.conexion.Conexion;
 import diseñadores.persistencia.dao.IProductoDAO;
 import org.bson.Document;
 

@@ -1,9 +1,18 @@
-package diseñadores.negocios.objetos;
+package diseñadores.nucleo;
 
-import diseñadores.negocios.dto.*;
-import diseñadores.negocios.objetos.*;
+import diseñadores.negocios.dto.ItemVentaDTO;
+import diseñadores.negocios.dto.OrdenCompraDTO;
+import diseñadores.negocios.dto.ProductoDTO;
+import diseñadores.negocios.dto.ProveedorDTO;
+import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.dto.UsuarioRol;
+import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.objetos.OrdenCompra;
+import diseñadores.negocios.objetos.Producto;
+import diseñadores.negocios.objetos.Proveedor;
+import diseñadores.negocios.objetos.Usuario;
+import diseñadores.negocios.objetos.Venta;
 import diseñadores.persistencia.PersistenciaFacade;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;

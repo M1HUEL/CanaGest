@@ -2,15 +2,16 @@ package diseñadores.negocios.ventas;
 
 import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.productos.IProductos;
+import diseñadores.negocios.objetos.Inventario;
+import diseñadores.negocios.objetos.Producto;
+import diseñadores.negocios.objetos.Venta;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class VentasControl {
 
-  private final IProductos productosFacade;
-  private final IInventario inventario;
   private final INotificaciones servicioNotificaciones;
 
   private static final int STOCK_MINIMO = 3;
@@ -20,34 +21,69 @@ public class VentasControl {
   private static final String TELEFONO = "Tel: (555) 123-4567";
   private static final String CAJERO = "Juan Pérez - Caja #1";
 
-  public VentasControl(IProductos productosFacade, IInventario inventario, INotificaciones servicioNotificaciones) {
-    this.productosFacade = productosFacade;
-    this.inventario = inventario;
+  public VentasControl(INotificaciones servicioNotificaciones) {
     this.servicioNotificaciones = servicioNotificaciones;
   }
 
-  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
-    ProductoDTO productoDTO = productosFacade.buscarProductoPorCodigo(dto);
+  public List<ProductoDTO> obtenerCatalogo() {
+    return Producto.obtenerTodos();
+  }
 
-    if (productoDTO == null) {
+  public boolean existeProducto(EscanearProductoDTO dto) {
+    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
+      return false;
+    }
+    return Producto.obtenerPorCodigo(dto.getCodigo()) != null;
+  }
+
+  public boolean tieneStock(EscanearProductoDTO dto) {
+    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
+      return false;
+    }
+    ProductoDTO p = Producto.obtenerPorCodigo(dto.getCodigo());
+    return p != null && p.getStock() >= 1;
+  }
+
+  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
+    if (ventaActual == null) {
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
+      throw new IllegalArgumentException("El código del producto no puede estar vacío.");
+    }
+
+    ProductoDTO producto = Producto.obtenerPorCodigo(dto.getCodigo());
+    if (producto == null) {
       return null;
     }
 
     int cantidadEnCarrito = ventaActual.getItems().stream()
-      .filter(i -> i.getCodigo().equals(productoDTO.getCodigo()))
+      .filter(i -> i.getCodigo().equals(producto.getCodigo()))
       .mapToInt(ItemVentaDTO::getCantidad)
       .sum();
 
-    if (productoDTO.getStock() <= cantidadEnCarrito) {
+    if (producto.getStock() <= cantidadEnCarrito) {
       return null;
     }
 
-    ventaActual.agregarProducto(productoDTO);
-
-    return productoDTO;
+    ventaActual.agregarProducto(producto);
+    return producto;
   }
 
   public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
+    if (ventaActual == null) {
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (dto == null || dto.getMontoRecibido() == null) {
+      throw new IllegalArgumentException("El monto recibido no puede ser nulo.");
+    }
+    if (dto.getMontoRecibido().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("El monto recibido debe ser mayor a cero.");
+    }
+    if (ventaActual.getItems().isEmpty()) {
+      throw new IllegalStateException("No se puede pagar una venta sin productos.");
+    }
+
     BigDecimal total = ventaActual.getTotal();
     BigDecimal recibido = dto.getMontoRecibido();
 
@@ -61,43 +97,60 @@ public class VentasControl {
   }
 
   public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
-    if (ventaActual == null) {
+    if (ventaActual == null || efectivo == null) {
       return BigDecimal.ZERO;
     }
+
     BigDecimal total = ventaActual.getTotal();
     return efectivo.compareTo(total) >= 0 ? efectivo.subtract(total) : BigDecimal.ZERO;
   }
 
   public void procesarFinalizarVenta(VentaDTO ventaActual) {
+    if (ventaActual == null) {
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (ventaActual.getItems().isEmpty()) {
+      throw new IllegalStateException("No se puede finalizar una venta sin productos.");
+    }
+    if (ventaActual.isPagada()) {
+      throw new IllegalStateException("La venta ya fue pagada anteriormente.");
+    }
+
     ventaActual.setPagada(true);
     ventaActual.setFolio(generarFolio());
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
-      inventario.descontarStock(item.getCodigo(), item.getCantidad());
-
-      ProductoDTO estadoActual = inventario.obtenerProductoPorCodigo(item.getCodigo());
+      Inventario.descontarStock(item.getCodigo(), item.getCantidad());
+      ProductoDTO estadoActual = Inventario.obtenerProductoPorCodigo(item.getCodigo());
       if (estadoActual != null && estadoActual.getStock() < STOCK_MINIMO) {
         ejecutarProtocoloReabastecimiento(estadoActual);
       }
     }
+
+    Venta.guardar(ventaActual);
   }
 
   public TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal ultimoEfectivo) {
     if (ventaActual == null) {
-      return null;
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (!ventaActual.isPagada()) {
+      throw new IllegalStateException("No se puede generar un ticket de una venta no pagada.");
+    }
+    if (ultimoEfectivo == null || ultimoEfectivo.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalArgumentException("El monto de efectivo no es válido.");
     }
 
     BigDecimal total = ventaActual.getTotal();
     BigDecimal subtotal = ventaActual.getSubtotal();
     BigDecimal iva = ventaActual.getIva();
     BigDecimal cambio = ultimoEfectivo.subtract(total);
-    LocalDateTime ahora = LocalDateTime.now();
 
     return new TicketDTO(
       ventaActual.getFolio(),
       ventaActual.getItems(),
       subtotal, iva, total, ultimoEfectivo, cambio,
-      ahora, CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
+      LocalDateTime.now(), CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
     );
   }
 
@@ -105,7 +158,6 @@ public class VentasControl {
     String mensaje = "Alerta: El stock se encuentra bajo para el producto " + p.getNombre()
       + ". Solo quedan " + p.getStock() + " unidades disponibles.";
     boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);
-
     if (enviado) {
       System.out.println("Notificación de stock bajo enviada satisfactoriamente para: " + p.getNombre());
     }

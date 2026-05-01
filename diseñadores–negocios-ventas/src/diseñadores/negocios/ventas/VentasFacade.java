@@ -2,27 +2,16 @@ package diseñadores.negocios.ventas;
 
 import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.productos.IProductos;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 public class VentasFacade implements IVentas {
 
-  private final IProductos productosSubsistema;
-  private final IInventario inventarioSubsistema;
   private final VentasControl ventasControl;
-  private final INotificaciones notificacionesSubsistema;
 
-  public VentasFacade(IProductos productosSubsistema, IInventario inventarioSubsistema, INotificaciones notificacionesSubsistema) {
-    this.productosSubsistema = productosSubsistema;
-    this.inventarioSubsistema = inventarioSubsistema;
-    this.notificacionesSubsistema = notificacionesSubsistema;
-    this.ventasControl = new VentasControl(
-      productosSubsistema,
-      inventarioSubsistema,
-      notificacionesSubsistema
-    );
+  public VentasFacade(INotificaciones notificacionesSubsistema) {
+    this.ventasControl = new VentasControl(notificacionesSubsistema);
   }
 
   @Override
@@ -32,12 +21,12 @@ public class VentasFacade implements IVentas {
 
   @Override
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return productosSubsistema.existeProducto(dto);
+    return ventasControl.existeProducto(dto);
   }
 
   @Override
   public boolean tieneStock(EscanearProductoDTO dto) {
-    return productosSubsistema.tieneStock(dto);
+    return ventasControl.tieneStock(dto);
   }
 
   @Override
@@ -72,7 +61,7 @@ public class VentasFacade implements IVentas {
 
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
-    return productosSubsistema.obtenerCatalogo();
+    return ventasControl.obtenerCatalogo();
   }
 
 }

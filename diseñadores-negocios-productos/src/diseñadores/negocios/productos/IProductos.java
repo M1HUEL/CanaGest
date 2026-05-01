@@ -2,6 +2,7 @@ package diseñadores.negocios.productos;
 
 import diseñadores.negocios.dto.EscanearProductoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
+
 import java.util.List;
 
 public interface IProductos {
@@ -13,5 +14,11 @@ public interface IProductos {
   boolean existeProducto(EscanearProductoDTO dto);
 
   boolean tieneStock(EscanearProductoDTO dto);
+
+  void guardarProducto(ProductoDTO producto);
+
+  void actualizarProducto(ProductoDTO producto);
+
+  void eliminarProducto(String codigo);
 
 }

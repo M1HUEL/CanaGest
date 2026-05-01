@@ -2,35 +2,50 @@ package diseñadores.negocios.productos;
 
 import diseñadores.negocios.dto.EscanearProductoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.inventario.IInventario;
+
 import java.util.List;
 
 public class ProductosFacade implements IProductos {
 
-  private final IInventario inventarioControl;
+  private final ProductosControl control;
 
-  public ProductosFacade(IInventario inventarioControl) {
-    this.inventarioControl = inventarioControl;
+  public ProductosFacade() {
+    this.control = new ProductosControl();
   }
 
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
-    return inventarioControl.obtenerTodos();
+    return control.obtenerCatalogo();
   }
 
   @Override
   public ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto) {
-    return inventarioControl.obtenerProductoPorCodigo(dto.getCodigo());
+    return control.buscarProductoPorCodigo(dto);
   }
 
   @Override
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return inventarioControl.obtenerProductoPorCodigo(dto.getCodigo()) != null;
+    return control.existeProducto(dto);
   }
 
   @Override
   public boolean tieneStock(EscanearProductoDTO dto) {
-    return inventarioControl.verificarStock(dto.getCodigo(), 1);
+    return control.tieneStock(dto);
+  }
+
+  @Override
+  public void guardarProducto(ProductoDTO producto) {
+    control.guardarProducto(producto);
+  }
+
+  @Override
+  public void actualizarProducto(ProductoDTO producto) {
+    control.actualizarProducto(producto);
+  }
+
+  @Override
+  public void eliminarProducto(String codigo) {
+    control.eliminarProducto(codigo);
   }
 
 }

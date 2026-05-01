@@ -1,13 +1,16 @@
 package diseñadores.persistencia;
 
+import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.persistencia.dao.IOrdenCompraDAO;
 import diseñadores.persistencia.dao.IProductoDAO;
 import diseñadores.persistencia.dao.IProveedorDAO;
 import diseñadores.persistencia.dao.IUsuarioDAO;
 import diseñadores.persistencia.dao.IVentaDAO;
+import diseñadores.persistencia.dao.impl.OrdenCompraDAOImpl;
 import diseñadores.persistencia.dao.impl.ProductoDAOImpl;
 import diseñadores.persistencia.dao.impl.ProveedorDAOImpl;
 import diseñadores.persistencia.dao.impl.UsuarioDAOImpl;
@@ -24,12 +27,14 @@ public class PersistenciaFacade implements IPersistencia {
   private final IVentaDAO ventaDAO;
   private final IUsuarioDAO usuarioDAO;
   private final IProveedorDAO proveedorDAO;
+  private final IOrdenCompraDAO ordenCompraDAO;
 
   private PersistenciaFacade() {
     this.productoDAO = new ProductoDAOImpl();
     this.ventaDAO = new VentaDAOImpl();
     this.usuarioDAO = new UsuarioDAOImpl();
     this.proveedorDAO = new ProveedorDAOImpl();
+    this.ordenCompraDAO = new OrdenCompraDAOImpl();
   }
 
   public static synchronized PersistenciaFacade getInstancia() {
@@ -138,6 +143,31 @@ public class PersistenciaFacade implements IPersistencia {
   @Override
   public void eliminarProveedor(String codigo) {
     proveedorDAO.eliminar(codigo);
+  }
+
+  @Override
+  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
+    return ordenCompraDAO.obtenerTodas();
+  }
+
+  @Override
+  public OrdenCompraDTO obtenerOrdenCompraPorNumero(String numero) {
+    return ordenCompraDAO.obtenerPorNumero(numero);
+  }
+
+  @Override
+  public void guardarOrdenCompra(OrdenCompraDTO orden) {
+    ordenCompraDAO.guardar(orden);
+  }
+
+  @Override
+  public void actualizarOrdenCompra(OrdenCompraDTO orden) {
+    ordenCompraDAO.actualizar(orden);
+  }
+
+  @Override
+  public void eliminarOrdenCompra(String numero) {
+    ordenCompraDAO.eliminar(numero);
   }
 
 }

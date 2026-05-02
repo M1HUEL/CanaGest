@@ -1,6 +1,7 @@
 package diseñadores.presentacion;
 
 import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
+import diseñadores.infraestructura.pagos.PagosFacade;
 import diseñadores.negocios.inventario.*;
 import diseñadores.negocios.proveedores.*;
 import diseñadores.negocios.usuarios.IUsuarios;
@@ -22,7 +23,8 @@ public class Main {
     IProveedores proveedoresFachada = new ProveedoresFacade();
 
     VentasFacade ventasFachada = new VentasFacade(
-      new NotificacionesFacade()
+      new NotificacionesFacade(),
+      new PagosFacade()
     );
 
     SwingUtilities.invokeLater(() -> {

@@ -1,6 +1,8 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
+import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
 
 import java.math.BigDecimal;
@@ -10,8 +12,8 @@ public class VentasFacade implements IVentas {
 
   private final VentasControl ventasControl;
 
-  public VentasFacade(INotificaciones notificacionesSubsistema) {
-    this.ventasControl = new VentasControl(notificacionesSubsistema);
+  public VentasFacade(INotificaciones notificaciones, IPagos pagos) {
+    this.ventasControl = new VentasControl(notificaciones, pagos);
   }
 
   @Override
@@ -37,6 +39,11 @@ public class VentasFacade implements IVentas {
   @Override
   public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
     return ventasControl.procesarPagoEfectivo(ventaActual, dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
+    return ventasControl.procesarPagoElectronico(ventaActual, tipo, datos);
   }
 
   @Override

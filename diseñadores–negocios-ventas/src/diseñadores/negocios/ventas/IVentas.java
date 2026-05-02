@@ -1,6 +1,8 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.negocios.dto.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -15,6 +17,8 @@ public interface IVentas {
   ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto);
 
   ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto);
+
+  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos);
 
   BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo);
 

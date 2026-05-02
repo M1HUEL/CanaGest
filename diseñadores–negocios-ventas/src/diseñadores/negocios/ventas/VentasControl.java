@@ -1,6 +1,9 @@
 package diseñadores.negocios.ventas;
 
+import diseñadores.infraestructura.dto.RespuestaPagoDTO;
+import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
+import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.objetos.Inventario;
 import diseñadores.negocios.objetos.Producto;
@@ -13,6 +16,7 @@ import java.util.List;
 public class VentasControl {
 
   private final INotificaciones servicioNotificaciones;
+  private final IPagos serviciosPagos;
 
   private static final int STOCK_MINIMO = 3;
   private static final String NOMBRE_TIENDA = "La Canasta";
@@ -21,8 +25,9 @@ public class VentasControl {
   private static final String TELEFONO = "Tel: (555) 123-4567";
   private static final String CAJERO = "Juan Pérez - Caja #1";
 
-  public VentasControl(INotificaciones servicioNotificaciones) {
+  public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos) {
     this.servicioNotificaciones = servicioNotificaciones;
+    this.serviciosPagos = serviciosPagos;
   }
 
   public List<ProductoDTO> obtenerCatalogo() {
@@ -96,11 +101,40 @@ public class VentasControl {
     return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
+  public ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
+    if (ventaActual == null) {
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (tipo == null) {
+      throw new IllegalArgumentException("El tipo de pago no puede ser nulo.");
+    }
+    if (datos == null || datos.isBlank()) {
+      throw new IllegalArgumentException("Los datos del pago no pueden estar vacíos.");
+    }
+    if (ventaActual.getItems().isEmpty()) {
+      throw new IllegalStateException("No se puede pagar una venta sin productos.");
+    }
+
+    String referencia = "VENTA-" + System.currentTimeMillis();
+
+    RespuestaPagoDTO response = serviciosPagos.procesarPago(
+      tipo,
+      ventaActual.getTotal(),
+      referencia,
+      datos
+    );
+
+    if (response.isExitoso()) {
+      return ResultadoPagoDTO.aprobado(BigDecimal.ZERO);
+    } else {
+      return ResultadoPagoDTO.rechazado(response.getMensaje());
+    }
+  }
+
   public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
     if (ventaActual == null || efectivo == null) {
       return BigDecimal.ZERO;
     }
-
     BigDecimal total = ventaActual.getTotal();
     return efectivo.compareTo(total) >= 0 ? efectivo.subtract(total) : BigDecimal.ZERO;
   }
@@ -137,19 +171,22 @@ public class VentasControl {
     if (!ventaActual.isPagada()) {
       throw new IllegalStateException("No se puede generar un ticket de una venta no pagada.");
     }
-    if (ultimoEfectivo == null || ultimoEfectivo.compareTo(BigDecimal.ZERO) <= 0) {
+    if (ultimoEfectivo == null || ultimoEfectivo.compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("El monto de efectivo no es válido.");
     }
 
-    BigDecimal total = ventaActual.getTotal();
-    BigDecimal subtotal = ventaActual.getSubtotal();
-    BigDecimal iva = ventaActual.getIva();
-    BigDecimal cambio = ultimoEfectivo.subtract(total);
+    BigDecimal cambio = ultimoEfectivo.compareTo(BigDecimal.ZERO) > 0
+      ? ultimoEfectivo.subtract(ventaActual.getTotal())
+      : BigDecimal.ZERO;
 
     return new TicketDTO(
       ventaActual.getFolio(),
       ventaActual.getItems(),
-      subtotal, iva, total, ultimoEfectivo, cambio,
+      ventaActual.getSubtotal(),
+      ventaActual.getIva(),
+      ventaActual.getTotal(),
+      ultimoEfectivo,
+      cambio,
       LocalDateTime.now(), CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
     );
   }

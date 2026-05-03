@@ -20,9 +20,7 @@ import java.util.Map;
 public class SeleccionarMetodoPago extends JFrame {
 
   private final VentaDTO ventaActual;
-
   private final JFrame frame;
-
   private final UsuarioDTO usuarioActivo;
 
   private final IVentas ventasFachada;
@@ -31,7 +29,6 @@ public class SeleccionarMetodoPago extends JFrame {
   private final IProveedores proveedoresFachada;
 
   private final BigDecimal total;
-
   private final Runnable onVentaFinalizada;
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
@@ -49,17 +46,14 @@ public class SeleccionarMetodoPago extends JFrame {
     IUsuarios usuariosFachada, IInventario inventarioFachada,
     IProveedores proveedoresFachada, IVentas ventasFachada,
     UsuarioDTO usuarioActivo) {
+
     super("Metodo de pago");
 
     this.ventaActual = ventaActual;
-
     this.usuarioActivo = usuarioActivo;
-
     this.frame = frame;
-
     this.total = total;
     this.onVentaFinalizada = onVentaFinalizada;
-
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
@@ -81,6 +75,7 @@ public class SeleccionarMetodoPago extends JFrame {
     root.setOpaque(false);
     root.add(crearTopBar(), BorderLayout.NORTH);
     root.add(crearCentrado(buildCard(), 280, 30), BorderLayout.CENTER);
+
     setContentPane(root);
     setVisible(true);
   }
@@ -90,40 +85,8 @@ public class SeleccionarMetodoPago extends JFrame {
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
 
-    JButton btnMenu = new JButton("Menu Principal") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AMARILLO_BTN_HOVER : Colores.AMARILLO_BTN);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
+    JButton btnMenu = crearBotonAccion("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
     btnMenu.setForeground(Colores.TEXTO_OSCURO);
-    btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
     btnMenu.setPreferredSize(new Dimension(160, 38));
     btnMenu.addActionListener(e -> {
       dispose();
@@ -178,7 +141,8 @@ public class SeleccionarMetodoPago extends JFrame {
   private JPanel gridMetodos() {
     JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
     grid.setOpaque(false);
-    COLORES_METODO.forEach((nombre, colores) -> grid.add(botonMetodo(nombre, colores[0], colores[1])));
+    COLORES_METODO.forEach((nombre, colores)
+      -> grid.add(botonMetodo(nombre, colores[0], colores[1])));
     return grid;
   }
 
@@ -254,11 +218,32 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private void seleccionarMetodo(String nombre) {
     this.setVisible(false);
+
     switch (nombre) {
       case "Efectivo" ->
-        new RegistrarMetodoPagoEfectivo(this, frame, ventasFachada, inventarioFachada,
-          usuariosFachada, proveedoresFachada, ventaActual, total,
-          onVentaFinalizada, usuarioActivo);
+        new RegistrarMetodoPagoEfectivo(
+          this, frame, ventasFachada, inventarioFachada,
+          usuariosFachada, proveedoresFachada,
+          ventaActual, total, onVentaFinalizada, usuarioActivo);
+
+      case "Tarjeta" ->
+        new RegistrarMetodoPagoTarjeta(
+          this, frame, ventasFachada, inventarioFachada,
+          usuariosFachada, proveedoresFachada,
+          ventaActual, total, onVentaFinalizada, usuarioActivo);
+
+      case "CoDi" ->
+        new RegistrarMetodoPagoCoDi(
+          this, frame, ventasFachada, inventarioFachada,
+          usuariosFachada, proveedoresFachada,
+          ventaActual, total, onVentaFinalizada, usuarioActivo);
+
+      case "Transferencia" ->
+        new RegistrarMetodoPagoTransferencia(
+          this, frame, ventasFachada, inventarioFachada,
+          usuariosFachada, proveedoresFachada,
+          ventaActual, total, onVentaFinalizada, usuarioActivo);
+
       default -> {
         JOptionPane.showMessageDialog(frame,
           "El metodo '" + nombre + "' no esta disponible aun.",
@@ -273,7 +258,7 @@ public class SeleccionarMetodoPago extends JFrame {
     frame.setVisible(true);
   }
 
-  private JButton crearBotonAccion(String texto, Color base, Color hover) {
+  JButton crearBotonAccion(String texto, Color base, Color hover) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 

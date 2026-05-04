@@ -8,6 +8,7 @@ import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -16,24 +17,35 @@ import java.awt.geom.RoundRectangle2D;
 public class MenuPrincipal extends JFrame {
 
   private final UsuarioDTO usuarioActivo;
-
   private final IUsuarios usuariosFachada;
   private final IVentas ventasFachada;
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
 
-  public MenuPrincipal(UsuarioDTO usuarioActivo, IUsuarios usuariosFachada, IVentas ventasFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  public MenuPrincipal(
+    UsuarioDTO usuarioActivo,
+    IUsuarios usuariosFachada,
+    IVentas ventasFachada,
+    IInventario inventarioFachada,
+    IProveedores proveedoresFachada) {
     this.usuarioActivo = usuarioActivo;
     this.usuariosFachada = usuariosFachada;
     this.ventasFachada = ventasFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
 
+    configurarVentana();
+    inicializarComponentes();
+  }
+
+  private void configurarVentana() {
     setTitle("La Canasta");
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
+  }
 
+  private void inicializarComponentes() {
     JPanel root = new JPanel(new GridBagLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -45,6 +57,23 @@ public class MenuPrincipal extends JFrame {
     };
     root.setOpaque(false);
 
+    JPanel tarjeta = crearTarjetaPrincipal();
+
+    JPanel centrado = new JPanel(new GridBagLayout());
+    centrado.setOpaque(false);
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.weightx = 1;
+    gbc.weighty = 1;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    gbc.insets = new Insets(20, 0, 20, 0);
+    centrado.add(tarjeta, gbc);
+
+    root.add(centrado, new GridBagConstraints());
+    setContentPane(root);
+  }
+
+  private JPanel crearTarjetaPrincipal() {
     JPanel tarjeta = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -58,11 +87,22 @@ public class MenuPrincipal extends JFrame {
       }
 
     };
+
     tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
     tarjeta.setOpaque(false);
     tarjeta.setBorder(new EmptyBorder(36, 52, 36, 52));
-    tarjeta.setPreferredSize(new Dimension(420, 660));
+    tarjeta.setPreferredSize(new Dimension(420, 720));
 
+    agregarCabecera(tarjeta);
+    agregarSeccionVentas(tarjeta);
+    agregarSeccionInventario(tarjeta);
+    agregarSeccionProveedores(tarjeta);
+    agregarSeccionSesion(tarjeta);
+
+    return tarjeta;
+  }
+
+  private void agregarCabecera(JPanel tarjeta) {
     JPanel panelTitulo = new JPanel();
     panelTitulo.setLayout(new BoxLayout(panelTitulo, BoxLayout.Y_AXIS));
     panelTitulo.setOpaque(false);
@@ -74,9 +114,8 @@ public class MenuPrincipal extends JFrame {
     titulo.setForeground(new Color(30, 50, 200));
     titulo.setAlignmentX(CENTER_ALIGNMENT);
 
-    JLabel lblUsuario = new JLabel(
-      usuarioActivo.getNombre() + "  ·  " + formatearRol(usuarioActivo.getRol().name()),
-      SwingConstants.CENTER);
+    String infoUsuario = usuarioActivo.getNombre() + "  ·  " + formatearRol(usuarioActivo.getRol().name());
+    JLabel lblUsuario = new JLabel(infoUsuario, SwingConstants.CENTER);
     lblUsuario.setFont(Fuentes.r(12));
     lblUsuario.setForeground(Colores.GRIS_TEXTO);
     lblUsuario.setAlignmentX(CENTER_ALIGNMENT);
@@ -87,7 +126,9 @@ public class MenuPrincipal extends JFrame {
 
     tarjeta.add(panelTitulo);
     tarjeta.add(Box.createVerticalStrut(28));
+  }
 
+  private void agregarSeccionVentas(JPanel tarjeta) {
     tarjeta.add(seccionLabel("Ventas"));
     tarjeta.add(Box.createVerticalStrut(8));
 
@@ -97,9 +138,12 @@ public class MenuPrincipal extends JFrame {
       Fuentes.cargar();
       new RegistrarVenta(ventasFachada, usuarioActivo, usuariosFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
+
     tarjeta.add(btnVender);
     tarjeta.add(Box.createVerticalStrut(20));
+  }
 
+  private void agregarSeccionInventario(JPanel tarjeta) {
     tarjeta.add(seccionLabel("Inventario"));
     tarjeta.add(Box.createVerticalStrut(8));
 
@@ -108,17 +152,20 @@ public class MenuPrincipal extends JFrame {
       this.setVisible(false);
       new ExistenciaProductos(this, inventarioFachada).setVisible(true);
     });
-    tarjeta.add(btnExistencia);
-    tarjeta.add(Box.createVerticalStrut(10));
 
     JButton btnConsolidar = Botones.menuAzul("Consolidar Inventario");
     btnConsolidar.addActionListener(e -> {
       this.setVisible(false);
       new ConsolidarInventario(this, inventarioFachada).setVisible(true);
     });
+
+    tarjeta.add(btnExistencia);
+    tarjeta.add(Box.createVerticalStrut(10));
     tarjeta.add(btnConsolidar);
     tarjeta.add(Box.createVerticalStrut(20));
+  }
 
+  private void agregarSeccionProveedores(JPanel tarjeta) {
     tarjeta.add(seccionLabel("Proveedores"));
     tarjeta.add(Box.createVerticalStrut(8));
 
@@ -127,43 +174,34 @@ public class MenuPrincipal extends JFrame {
       this.setVisible(false);
       new AdministrarProveedores(this, proveedoresFachada).setVisible(true);
     });
-    tarjeta.add(btnProveedores);
-    tarjeta.add(Box.createVerticalStrut(10));
 
     JButton btnOrdenes = Botones.menuAzul("Órdenes de Compra");
     btnOrdenes.addActionListener(e -> {
       this.setVisible(false);
       new OrdenesCompras(this, proveedoresFachada).setVisible(true);
     });
-    tarjeta.add(btnOrdenes);
-    tarjeta.add(Box.createVerticalStrut(10));
 
     JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
       new AsociarProductosProveedores(this, inventarioFachada, proveedoresFachada).setVisible(true);
     });
+
+    tarjeta.add(btnProveedores);
+    tarjeta.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnOrdenes);
+    tarjeta.add(Box.createVerticalStrut(10));
     tarjeta.add(btnAsociar);
     tarjeta.add(Box.createVerticalStrut(24));
+  }
 
+  private void agregarSeccionSesion(JPanel tarjeta) {
     JButton btnCerrar = Botones.menuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
       new PantallaAutenticacion(usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     tarjeta.add(btnCerrar);
-
-    JPanel centrado = new JPanel(new GridBagLayout());
-    centrado.setOpaque(false);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.weightx = 1;
-    gbc.weighty = 1;
-    gbc.fill = GridBagConstraints.VERTICAL;
-    gbc.insets = new Insets(20, 0, 20, 0);
-    centrado.add(tarjeta, gbc);
-
-    root.add(centrado, new GridBagConstraints());
-    setContentPane(root);
   }
 
   private String formatearRol(String rol) {

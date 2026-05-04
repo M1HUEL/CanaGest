@@ -7,6 +7,7 @@ import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -22,48 +23,73 @@ public class PantallaTicket extends JFrame {
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
 
-  public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado,
-    IUsuarios usuariosFachada, IVentas ventasFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  public PantallaTicket(
+    JFrame frame,
+    TicketDTO ticket,
+    Runnable onConfirmado,
+    IUsuarios usuariosFachada,
+    IVentas ventasFachada,
+    IInventario inventarioFachada,
+    IProveedores proveedoresFachada) {
     super("Ticket de Venta");
+
     this.usuariosFachada = usuariosFachada;
     this.ventasFachada = ventasFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
-    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+
+    configurarVentana(frame);
 
     JPanel root = fondoAmarillo();
     root.add(topBar(), BorderLayout.NORTH);
 
     JPanel ticketPanel = buildTicket(ticket);
-    JScrollPane scroll = new JScrollPane(ticketPanel);
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    scroll.setOpaque(false);
-    scroll.getViewport().setOpaque(false);
-    scroll.getVerticalScrollBar().setUnitIncrement(16);
-    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane scroll = configurarScroll(ticketPanel);
 
     JPanel centrado = new JPanel(new GridBagLayout());
     centrado.setOpaque(false);
     centrado.setBorder(new EmptyBorder(20, 0, 6, 0));
+
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 1;
     gbc.weighty = 1;
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets = new Insets(0, 340, 0, 340);
     centrado.add(scroll, gbc);
-    root.add(centrado, BorderLayout.CENTER);
 
+    root.add(centrado, BorderLayout.CENTER);
+    root.add(crearBarraInferior(frame, onConfirmado), BorderLayout.SOUTH);
+
+    setContentPane(root);
+    setVisible(true);
+  }
+
+  private void configurarVentana(JFrame mainFrame) {
+    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    setSize(mainFrame.getWidth(), mainFrame.getHeight());
+    setLocation(mainFrame.getLocation());
+  }
+
+  private JScrollPane configurarScroll(JPanel contenido) {
+    JScrollPane scroll = new JScrollPane(contenido);
+    scroll.setBorder(BorderFactory.createEmptyBorder());
+    scroll.setOpaque(false);
+    scroll.getViewport().setOpaque(false);
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    return scroll;
+  }
+
+  private JPanel crearBarraInferior(JFrame mainFrame, Runnable onConfirmado) {
     JPanel barraInf = new JPanel(new GridLayout(1, 2, 12, 0));
     barraInf.setOpaque(false);
     barraInf.setBorder(new EmptyBorder(8, 340, 16, 340));
     barraInf.setPreferredSize(new Dimension(0, 66));
 
     JButton btnDescargar = accionBtn("Descargar Ticket", Colores.AZUL, Colores.AZUL_HOVER);
-    btnDescargar.addActionListener(e
-      -> JOptionPane.showMessageDialog(this, "Funcion de descarga pendiente de implementar.",
-        "Descargar", JOptionPane.INFORMATION_MESSAGE));
+    btnDescargar.addActionListener(e -> JOptionPane.showMessageDialog(this,
+      "Función de descarga pendiente de implementar.", "Descargar",
+      JOptionPane.INFORMATION_MESSAGE));
 
     JButton btnFinalizar = accionBtn("Finalizar Venta", Colores.VERDE, Colores.VERDE_HOVER);
     btnFinalizar.addActionListener(e -> {
@@ -74,10 +100,7 @@ public class PantallaTicket extends JFrame {
 
     barraInf.add(btnDescargar);
     barraInf.add(btnFinalizar);
-    root.add(barraInf, BorderLayout.SOUTH);
-
-    setContentPane(root);
-    setVisible(true);
+    return barraInf;
   }
 
   private JPanel buildTicket(TicketDTO t) {
@@ -96,6 +119,13 @@ public class PantallaTicket extends JFrame {
     };
     p.setOpaque(false);
 
+    p.add(crearCabeceraTicket(), BorderLayout.NORTH);
+    p.add(crearCuerpoTicket(t), BorderLayout.CENTER);
+
+    return p;
+  }
+
+  private JPanel crearCabeceraTicket() {
     JPanel cab = new JPanel(new GridLayout(2, 1, 0, 6)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -110,16 +140,21 @@ public class PantallaTicket extends JFrame {
     cab.setOpaque(false);
     cab.setBorder(new EmptyBorder(20, 20, 20, 20));
     cab.setPreferredSize(new Dimension(0, 112));
+
     JLabel lblTit = new JLabel("TICKET DE VENTA", SwingConstants.CENTER);
     lblTit.setFont(Fuentes.b(20));
     lblTit.setForeground(Colores.BLANCO);
+
     JLabel lblSub = new JLabel("Sistema de Punto de Venta", SwingConstants.CENTER);
     lblSub.setFont(Fuentes.r(12));
     lblSub.setForeground(new Color(180, 210, 255));
+
     cab.add(lblTit);
     cab.add(lblSub);
-    p.add(cab, BorderLayout.NORTH);
+    return cab;
+  }
 
+  private JPanel crearCuerpoTicket(TicketDTO t) {
     JPanel body = new JPanel(new GridBagLayout());
     body.setOpaque(false);
     body.setBorder(new EmptyBorder(20, 28, 24, 28));
@@ -128,26 +163,89 @@ public class PantallaTicket extends JFrame {
     c.gridx = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.weightx = 1.0;
-    c.anchor = GridBagConstraints.WEST;
     int row = 0;
 
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 2, 0);
     body.add(fullLabel(t.getNombreTienda(), 17, true, Colores.TEXTO_OSCURO, SwingConstants.CENTER), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 1, 0);
+    c.gridy = ++row;
     body.add(fullLabel("RFC: " + t.getRfc(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 1, 0);
+    c.gridy = ++row;
     body.add(fullLabel(t.getDireccion(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 0, 0);
+    c.gridy = ++row;
     body.add(fullLabel(t.getTelefono(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
 
-    c.gridy = row++;
+    c.gridy = ++row;
     c.insets = new Insets(14, 0, 12, 0);
     body.add(sepLine(), c);
 
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 6, 0);
+    body.add(crearFilaMeta(t), c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 12, 0);
+    body.add(new JLabel("Cajero: " + t.getCajero()) {
+      {
+        setFont(Fuentes.r(12));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
+
+    }, c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 14, 0);
+    body.add(crearCajaFolio(t.getFolio()), c);
+
+    c.gridy = ++row;
+    body.add(sepLine(), c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(10, 0, 10, 0);
+    body.add(fullLabel("Productos", 15, true, Colores.TEXTO_OSCURO, SwingConstants.LEFT), c);
+
+    for (ItemVentaDTO item : t.getItems()) {
+      c.gridy = ++row;
+      c.insets = new Insets(0, 0, 8, 0);
+      body.add(filaProducto(item), c);
+    }
+
+    c.gridy = ++row;
+    c.insets = new Insets(4, 0, 12, 0);
+    body.add(sepLine(), c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 6, 0);
+    body.add(filaResumen("Subtotal", t.getSubtotal(), false), c);
+
+    c.gridy = ++row;
+    body.add(filaResumen("IVA (16%)", t.getIva(), false), c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 8, 0);
+    body.add(filaResumen("TOTAL", t.getTotal(), true), c);
+
+    if (t.getEfectivoRecibido().compareTo(BigDecimal.ZERO) > 0) {
+      c.gridy = ++row;
+      body.add(filaResumen("Efectivo recibido", t.getEfectivoRecibido(), false), c);
+      c.gridy = ++row;
+      body.add(filaResumen("Cambio", t.getCambio(), false), c);
+    }
+
+    c.gridy = ++row;
+    c.insets = new Insets(12, 0, 16, 0);
+    body.add(sepLine(), c);
+
+    c.gridy = ++row;
+    c.insets = new Insets(0, 0, 3, 0);
+    body.add(fullLabel("¡Gracias por su compra!", 12, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    c.gridy = ++row;
+    body.add(fullLabel("Conserve este ticket para cualquier aclaración", 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+    c.gridy = ++row;
+    body.add(fullLabel("*** TICKET VÁLIDO ***", 10, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
+
+    return body;
+  }
+
+  private JPanel crearFilaMeta(TicketDTO t) {
     JPanel metaRow = new JPanel(new BorderLayout());
     metaRow.setOpaque(false);
     JLabel lFecha = new JLabel("Fecha: " + t.getFechaFormateada());
@@ -158,18 +256,10 @@ public class PantallaTicket extends JFrame {
     lHora.setForeground(Colores.TEXTO_OSCURO);
     metaRow.add(lFecha, BorderLayout.WEST);
     metaRow.add(lHora, BorderLayout.EAST);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 6, 0);
-    body.add(metaRow, c);
+    return metaRow;
+  }
 
-    JLabel lCajero = new JLabel("Cajero: " + t.getCajero());
-    lCajero.setFont(Fuentes.r(12));
-    lCajero.setForeground(Colores.TEXTO_OSCURO);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 12, 0);
-    body.add(lCajero, c);
-
-    // Folio — desde TicketDTO
+  private JPanel crearCajaFolio(String folio) {
     JPanel folioBox = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -183,74 +273,9 @@ public class PantallaTicket extends JFrame {
     };
     folioBox.setOpaque(false);
     folioBox.setBorder(new EmptyBorder(10, 14, 10, 14));
-    JLabel fTxt = new JLabel("Folio de venta");
-    fTxt.setFont(Fuentes.r(11));
-    fTxt.setForeground(Colores.GRIS_TEXTO);
-    JLabel fVal = new JLabel(t.getFolio());
-    fVal.setFont(Fuentes.b(15));
-    fVal.setForeground(Colores.TEXTO_OSCURO);
-    folioBox.add(fTxt);
-    folioBox.add(fVal);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 14, 0);
-    body.add(folioBox, c);
-
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 14, 0);
-    body.add(sepLine(), c);
-
-    JLabel lblProd = new JLabel("Productos");
-    lblProd.setFont(Fuentes.b(15));
-    lblProd.setForeground(Colores.TEXTO_OSCURO);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 10, 0);
-    body.add(lblProd, c);
-
-    for (ItemVentaDTO item : t.getItems()) {
-      c.gridy = row++;
-      c.insets = new Insets(0, 0, 8, 0);
-      body.add(filaProducto(item), c);
-    }
-
-    c.gridy = row++;
-    c.insets = new Insets(4, 0, 12, 0);
-    body.add(sepLine(), c);
-
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 6, 0);
-    body.add(filaResumen("Subtotal", t.getSubtotal(), false), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 8, 0);
-    body.add(filaResumen("IVA (16%)", t.getIva(), false), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 6, 0);
-    body.add(filaResumen("TOTAL", t.getTotal(), true), c);
-
-    if (t.getEfectivoRecibido().compareTo(BigDecimal.ZERO) > 0) {
-      c.gridy = row++;
-      c.insets = new Insets(0, 0, 6, 0);
-      body.add(filaResumen("Efectivo recibido", t.getEfectivoRecibido(), false), c);
-      c.gridy = row++;
-      c.insets = new Insets(0, 0, 8, 0);
-      body.add(filaResumen("Cambio", t.getCambio(), false), c);
-    }
-
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 16, 0);
-    body.add(sepLine(), c);
-
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 3, 0);
-    body.add(fullLabel("¡Gracias por su compra!", 12, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 3, 0);
-    body.add(fullLabel("Conserve este ticket para cualquier aclaracion", 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 6, 0);
-    body.add(fullLabel("*** TICKET VALIDO ***", 10, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-
-    p.add(body, BorderLayout.CENTER);
-    return p;
+    folioBox.add(fullLabel("Folio de venta", 11, false, Colores.GRIS_TEXTO, SwingConstants.LEFT));
+    folioBox.add(fullLabel(folio, 15, true, Colores.TEXTO_OSCURO, SwingConstants.LEFT));
+    return folioBox;
   }
 
   private JPanel filaProducto(ItemVentaDTO item) {
@@ -274,37 +299,45 @@ public class PantallaTicket extends JFrame {
 
     c.gridx = 0;
     c.weightx = 1;
-    c.anchor = GridBagConstraints.WEST;
-    c.insets = new Insets(0, 0, 0, 0);
-    JLabel lNom = new JLabel(item.getNombre());
-    lNom.setFont(Fuentes.b(13));
-    lNom.setForeground(Colores.TEXTO_OSCURO);
-    row.add(lNom, c);
+    row.add(new JLabel(item.getNombre()) {
+      {
+        setFont(Fuentes.b(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
+
+    }, c);
 
     c.gridx = 1;
     c.weightx = 0;
-    c.anchor = GridBagConstraints.EAST;
-    JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue()));
-    lSub.setFont(Fuentes.b(13));
-    lSub.setForeground(Colores.TEXTO_OSCURO);
-    row.add(lSub, c);
+    row.add(new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue())) {
+      {
+        setFont(Fuentes.b(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
+
+    }, c);
 
     c.gridx = 0;
     c.gridy = 1;
-    c.weightx = 1;
     c.gridwidth = 2;
     c.insets = new Insets(3, 0, 0, 0);
-    JLabel lCod = new JLabel(item.getCodigo());
-    lCod.setFont(Fuentes.r(10));
-    lCod.setForeground(Colores.GRIS_TEXTO);
-    row.add(lCod, c);
+    row.add(new JLabel(item.getCodigo()) {
+      {
+        setFont(Fuentes.r(10));
+        setForeground(Colores.GRIS_TEXTO);
+      }
+
+    }, c);
 
     c.gridy = 2;
     c.insets = new Insets(2, 0, 0, 0);
-    JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue()));
-    lCant.setFont(Fuentes.r(11));
-    lCant.setForeground(Colores.GRIS_TEXTO);
-    row.add(lCant, c);
+    row.add(new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue())) {
+      {
+        setFont(Fuentes.r(11));
+        setForeground(Colores.GRIS_TEXTO);
+      }
+
+    }, c);
 
     return row;
   }

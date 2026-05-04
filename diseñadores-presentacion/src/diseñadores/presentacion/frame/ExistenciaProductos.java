@@ -5,6 +5,7 @@ import diseñadores.negocios.inventario.IInventario;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -24,14 +25,21 @@ public class ExistenciaProductos extends JFrame {
   public ExistenciaProductos(JFrame menuOrigen, IInventario facade) {
     this.menuOrigen = menuOrigen;
     this.facade = facade;
+
+    configurarVentana();
+    productos.addAll(facade.obtenerTodos());
+    inicializarComponentes();
+  }
+
+  private void configurarVentana() {
     setTitle("La Canasta - Existencia de Productos");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
+  }
 
-    productos.addAll(facade.obtenerTodos());
-
+  private void inicializarComponentes() {
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -39,6 +47,7 @@ public class ExistenciaProductos extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
+
     };
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
@@ -54,9 +63,6 @@ public class ExistenciaProductos extends JFrame {
       new EmptyBorder(0, 24, 0, 24)));
     bar.setPreferredSize(new Dimension(0, 66));
 
-    JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
-    izq.setOpaque(false);
-
     JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
@@ -67,7 +73,6 @@ public class ExistenciaProductos extends JFrame {
     der.setOpaque(false);
     der.add(btnMenu);
 
-    bar.add(izq, BorderLayout.WEST);
     bar.add(der, BorderLayout.EAST);
     return bar;
   }
@@ -77,6 +82,22 @@ public class ExistenciaProductos extends JFrame {
     contenido.setOpaque(false);
     contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
 
+    JPanel header = crearHeader();
+    JPanel busquedaWrap = crearPanelBusqueda();
+
+    JPanel topRow = new JPanel(new BorderLayout());
+    topRow.setOpaque(false);
+    topRow.add(header, BorderLayout.WEST);
+    topRow.add(busquedaWrap, BorderLayout.EAST);
+
+    JPanel wrapTabla = crearContenedorTabla();
+
+    contenido.add(topRow, BorderLayout.NORTH);
+    contenido.add(wrapTabla, BorderLayout.CENTER);
+    return contenido;
+  }
+
+  private JPanel crearHeader() {
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
     header.setBorder(new EmptyBorder(0, 0, 20, 0));
@@ -84,17 +105,23 @@ public class ExistenciaProductos extends JFrame {
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
+
     JLabel lblTitulo = new JLabel("Existencia de Productos");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel lblDesc = new JLabel("Control de inventario y niveles de stock");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
+
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
     header.add(tituloCol, BorderLayout.WEST);
+    return header;
+  }
 
+  private JPanel crearPanelBusqueda() {
     campoBusqueda = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -104,7 +131,9 @@ public class ExistenciaProductos extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
         super.paintComponent(g2d);
       }
+
     };
+
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -112,6 +141,7 @@ public class ExistenciaProductos extends JFrame {
     campoBusqueda.setFont(Fuentes.r(14));
     campoBusqueda.setForeground(Colores.GRIS_TEXTO);
     campoBusqueda.setText("Buscar producto...");
+
     campoBusqueda.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
@@ -120,6 +150,7 @@ public class ExistenciaProductos extends JFrame {
           campoBusqueda.setForeground(Colores.TEXTO_OSCURO);
         }
       }
+
       @Override
       public void focusLost(FocusEvent e) {
         if (campoBusqueda.getText().isEmpty()) {
@@ -127,25 +158,33 @@ public class ExistenciaProductos extends JFrame {
           campoBusqueda.setForeground(Colores.GRIS_TEXTO);
         }
       }
+
     });
+
     campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
       @Override
-      public void insertUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
+      public void insertUpdate(javax.swing.event.DocumentEvent e) {
+        filtrar();
+      }
+
       @Override
-      public void removeUpdate(javax.swing.event.DocumentEvent e) { filtrar(); }
+      public void removeUpdate(javax.swing.event.DocumentEvent e) {
+        filtrar();
+      }
+
       @Override
-      public void changedUpdate(javax.swing.event.DocumentEvent e) {}
+      public void changedUpdate(javax.swing.event.DocumentEvent e) {
+      }
+
     });
 
     JPanel busquedaWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
     busquedaWrap.setOpaque(false);
     busquedaWrap.add(campoBusqueda);
+    return busquedaWrap;
+  }
 
-    JPanel topRow = new JPanel(new BorderLayout());
-    topRow.setOpaque(false);
-    topRow.add(header, BorderLayout.WEST);
-    topRow.add(busquedaWrap, BorderLayout.EAST);
-
+  private JPanel crearContenedorTabla() {
     JPanel wrapTabla = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -157,36 +196,11 @@ public class ExistenciaProductos extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
         super.paintComponent(g2d);
       }
+
     };
     wrapTabla.setOpaque(false);
 
-    JPanel headerTabla = new JPanel(new GridLayout(1, 8));
-    headerTabla.setOpaque(false);
-    headerTabla.setBorder(new EmptyBorder(16, 24, 16, 24));
-    String[] cols = {"Código", "Producto", "Stock Actual", "Stock Mín", "Stock Máx", "Estado", "Última Act.", "Acciones"};
-    for (String col : cols) {
-      JLabel lbl = new JLabel(col);
-      lbl.setFont(Fuentes.b(13));
-      lbl.setForeground(Colores.TEXTO_OSCURO);
-      headerTabla.add(lbl);
-    }
-
-    JPanel sepHeader = new JPanel() {
-      @Override
-      protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Colores.BORDE_GRIS);
-        g.drawLine(0, 0, getWidth(), 0);
-      }
-    };
-    sepHeader.setOpaque(false);
-    sepHeader.setPreferredSize(new Dimension(0, 1));
-    sepHeader.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-
-    JPanel headerWrap = new JPanel(new BorderLayout());
-    headerWrap.setOpaque(false);
-    headerWrap.add(headerTabla, BorderLayout.CENTER);
-    headerWrap.add(sepHeader, BorderLayout.SOUTH);
+    JPanel headerWrap = crearEncabezadoTabla();
 
     panelTabla = new JPanel();
     panelTabla.setLayout(new BoxLayout(panelTabla, BoxLayout.Y_AXIS));
@@ -202,10 +216,39 @@ public class ExistenciaProductos extends JFrame {
 
     wrapTabla.add(headerWrap, BorderLayout.NORTH);
     wrapTabla.add(scroll, BorderLayout.CENTER);
+    return wrapTabla;
+  }
 
-    contenido.add(topRow, BorderLayout.NORTH);
-    contenido.add(wrapTabla, BorderLayout.CENTER);
-    return contenido;
+  private JPanel crearEncabezadoTabla() {
+    JPanel headerTabla = new JPanel(new GridLayout(1, 8));
+    headerTabla.setOpaque(false);
+    headerTabla.setBorder(new EmptyBorder(16, 24, 16, 24));
+
+    String[] cols = {"Código", "Producto", "Stock Actual", "Stock Mín", "Stock Máx", "Estado", "Última Act.", "Acciones"};
+    for (String col : cols) {
+      JLabel lbl = new JLabel(col);
+      lbl.setFont(Fuentes.b(13));
+      lbl.setForeground(Colores.TEXTO_OSCURO);
+      headerTabla.add(lbl);
+    }
+
+    JPanel sepHeader = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.BORDE_GRIS);
+        g.drawLine(0, 0, getWidth(), 0);
+      }
+
+    };
+    sepHeader.setOpaque(false);
+    sepHeader.setPreferredSize(new Dimension(0, 1));
+
+    JPanel headerWrap = new JPanel(new BorderLayout());
+    headerWrap.setOpaque(false);
+    headerWrap.add(headerTabla, BorderLayout.CENTER);
+    headerWrap.add(sepHeader, BorderLayout.SOUTH);
+    return headerWrap;
   }
 
   private void filtrar() {
@@ -228,21 +271,26 @@ public class ExistenciaProductos extends JFrame {
     panelTabla.removeAll();
     for (ProductoDTO p : lista) {
       panelTabla.add(filaProducto(p));
-      JPanel sep = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-          super.paintComponent(g);
-          g.setColor(Colores.BORDE_GRIS);
-          g.drawLine(0, 0, getWidth(), 0);
-        }
-      };
-      sep.setOpaque(false);
-      sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-      sep.setPreferredSize(new Dimension(0, 1));
-      panelTabla.add(sep);
+      panelTabla.add(crearSeparador());
     }
     panelTabla.revalidate();
     panelTabla.repaint();
+  }
+
+  private JPanel crearSeparador() {
+    JPanel sep = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.BORDE_GRIS);
+        g.drawLine(0, 0, getWidth(), 0);
+      }
+
+    };
+    sep.setOpaque(false);
+    sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+    sep.setPreferredSize(new Dimension(0, 1));
+    return sep;
   }
 
   private JPanel filaProducto(ProductoDTO p) {
@@ -251,95 +299,85 @@ public class ExistenciaProductos extends JFrame {
     fila.setBorder(new EmptyBorder(16, 24, 16, 24));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 
-    JLabel lblCodigo = new JLabel(p.getCodigo());
-    lblCodigo.setFont(Fuentes.r(13));
-    lblCodigo.setForeground(Colores.GRIS_TEXTO);
+    fila.add(new JLabel(p.getCodigo()) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.GRIS_TEXTO);
+      }
 
-    JLabel lblNombre = new JLabel(p.getNombre());
-    lblNombre.setFont(Fuentes.r(13));
-    lblNombre.setForeground(Colores.TEXTO_OSCURO);
+    });
+    fila.add(new JLabel(p.getNombre()) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
 
-    JLabel lblStock = new JLabel(String.valueOf(p.getStock()));
-    lblStock.setFont(Fuentes.b(14));
-    lblStock.setForeground(Colores.TEXTO_OSCURO);
+    });
+    fila.add(new JLabel(String.valueOf(p.getStock())) {
+      {
+        setFont(Fuentes.b(14));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
 
-    JLabel lblMin = new JLabel(String.valueOf(p.getStockMinimo()));
-    lblMin.setFont(Fuentes.r(13));
-    lblMin.setForeground(Colores.TEXTO_OSCURO);
+    });
+    fila.add(new JLabel(String.valueOf(p.getStockMinimo())) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
 
-    JLabel lblMax = new JLabel(String.valueOf(p.getStockMaximo()));
-    lblMax.setFont(Fuentes.r(13));
-    lblMax.setForeground(Colores.TEXTO_OSCURO);
+    });
+    fila.add(new JLabel(String.valueOf(p.getStockMaximo())) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
 
-    String estado = p.estaBajoMinimo() ? "Bajo" : (p.estaSobreMaximo() ? "Alto" : "Normal");
-    Color estadoColor = p.estaBajoMinimo() ? new Color(185, 28, 28) : (p.estaSobreMaximo() ? new Color(161, 110, 0) : new Color(21, 128, 61));
-    Color estadoBg = p.estaBajoMinimo() ? new Color(254, 226, 226) : (p.estaSobreMaximo() ? new Color(254, 243, 199) : new Color(220, 252, 231));
-    JLabel lblEstado = new JLabel(estado, SwingConstants.CENTER);
-    lblEstado.setFont(Fuentes.b(11));
-    lblEstado.setForeground(estadoColor);
-    lblEstado.setOpaque(true);
-    lblEstado.setBackground(estadoBg);
-    lblEstado.setBorder(new EmptyBorder(4, 10, 4, 10));
-    JPanel wrapEstado = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    wrapEstado.setOpaque(false);
-    wrapEstado.add(lblEstado);
+    });
 
-    JLabel lblUlt = new JLabel(p.getFechaModificacion() != null ? p.getFechaModificacion() : "-");
-    lblUlt.setFont(Fuentes.r(13));
-    lblUlt.setForeground(Colores.TEXTO_OSCURO);
+    fila.add(crearBadgeEstado(p));
+
+    String fecha = p.getFechaModificacion() != null ? p.getFechaModificacion() : "-";
+    fila.add(new JLabel(fecha) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
+
+    });
 
     JPanel wrapAccion = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     wrapAccion.setOpaque(false);
     JButton btnEditar = crearBotonTabla("Editar");
     btnEditar.addActionListener(e -> abrirDialogoActualizar(p));
     wrapAccion.add(btnEditar);
-
-    fila.add(lblCodigo);
-    fila.add(lblNombre);
-    fila.add(lblStock);
-    fila.add(lblMin);
-    fila.add(lblMax);
-    fila.add(wrapEstado);
-    fila.add(lblUlt);
     fila.add(wrapAccion);
+
     return fila;
   }
 
-  private JButton crearBotonTabla(String texto) {
-    JButton b = new JButton(texto) {
-      boolean ov = false;
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
-          @Override
-          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
-        });
-      }
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-        super.paintComponent(g2d);
-      }
-    };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(12));
-    b.setPreferredSize(new Dimension(100, 34));
-    return b;
+  private JPanel crearBadgeEstado(ProductoDTO p) {
+    String estado = p.estaBajoMinimo() ? "Bajo" : (p.estaSobreMaximo() ? "Alto" : "Normal");
+    Color color = p.estaBajoMinimo() ? new Color(185, 28, 28) : (p.estaSobreMaximo() ? new Color(161, 110, 0) : new Color(21, 128, 61));
+    Color bg = p.estaBajoMinimo() ? new Color(254, 226, 226) : (p.estaSobreMaximo() ? new Color(254, 243, 199) : new Color(220, 252, 231));
+
+    JLabel lbl = new JLabel(estado, SwingConstants.CENTER);
+    lbl.setFont(Fuentes.b(11));
+    lbl.setForeground(color);
+    lbl.setOpaque(true);
+    lbl.setBackground(bg);
+    lbl.setBorder(new EmptyBorder(4, 10, 4, 10));
+
+    JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    wrap.setOpaque(false);
+    wrap.add(lbl);
+    return wrap;
   }
 
   private void abrirDialogoActualizar(ProductoDTO p) {
     JDialog dlg = new JDialog(this, "Actualizar Stock: " + p.getNombre(), true);
     dlg.setSize(564, 480);
     dlg.setLocationRelativeTo(this);
-    dlg.setResizable(true);
 
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -348,7 +386,6 @@ public class ExistenciaProductos extends JFrame {
 
     JLabel titulo = new JLabel("Actualizar: " + p.getNombre());
     titulo.setFont(Fuentes.b(18));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
@@ -360,15 +397,14 @@ public class ExistenciaProductos extends JFrame {
     for (int i = 0; i < etqs.length; i++) {
       JLabel lbl = new JLabel(etqs[i]);
       lbl.setFont(Fuentes.b(12));
-      lbl.setForeground(Colores.TEXTO_OSCURO);
       lbl.setAlignmentX(LEFT_ALIGNMENT);
+
       JTextField tf = new JTextField(vals[i]);
       tf.setFont(Fuentes.r(13));
-      tf.setBorder(BorderFactory.createCompoundBorder(
-        new Bordes(Colores.BORDE_GRIS, 1, 8),
-        new EmptyBorder(8, 12, 8, 12)));
+      tf.setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 8), new EmptyBorder(8, 12, 8, 12)));
       tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
       tf.setAlignmentX(LEFT_ALIGNMENT);
+
       campos[i] = tf;
       panel.add(lbl);
       panel.add(Box.createVerticalStrut(4));
@@ -381,81 +417,136 @@ public class ExistenciaProductos extends JFrame {
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
     btnGuardar.addActionListener(e -> {
       try {
-        int nuevoStock = Integer.parseInt(campos[0].getText().trim());
-        int nuevoMin = Integer.parseInt(campos[1].getText().trim());
-        int nuevoMax = Integer.parseInt(campos[2].getText().trim());
-        facade.actualizarStockCompleto(p.getCodigo(), nuevoStock, nuevoMin, nuevoMax);
+        int stock = Integer.parseInt(campos[0].getText().trim());
+        int min = Integer.parseInt(campos[1].getText().trim());
+        int max = Integer.parseInt(campos[2].getText().trim());
+        facade.actualizarStockCompleto(p.getCodigo(), stock, min, max);
         productos.clear();
         productos.addAll(facade.obtenerTodos());
         construirTabla(productos);
         dlg.dispose();
       } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(dlg, "Ingrese valores numéricos válidos.", "Error", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(dlg, "Valores no válidos.", "Error", JOptionPane.WARNING_MESSAGE);
       }
     });
-    panel.add(btnGuardar);
 
+    panel.add(Box.createVerticalGlue());
+    panel.add(btnGuardar);
     dlg.setContentPane(panel);
     dlg.setVisible(true);
   }
 
-  private JButton crearBotonGuardar() {
-    JButton b = new JButton("Guardar") {
-      boolean ov = false;
+  private JButton crearBotonTabla(String texto) {
+    return new JButton(texto) {
+      boolean hover = false;
+
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setForeground(Colores.BLANCO);
+        setFont(Fuentes.b(12));
+        setPreferredSize(new Dimension(100, 34));
         addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
-          @Override
-          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
+          public void mouseEntered(MouseEvent e) {
+            hover = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            hover = false;
+            repaint();
+          }
+
         });
       }
+
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+        super.paintComponent(g2d);
+      }
+
+    };
+  }
+
+  private JButton crearBotonGuardar() {
+    return new JButton("Guardar") {
+      boolean hover = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setForeground(Colores.BLANCO);
+        setFont(Fuentes.b(14));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            hover = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            hover = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
+
     };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(14));
-    return b;
   }
 
   private JButton btnAmarillo(String texto) {
-    JButton b = new JButton(texto) {
-      boolean ov = false;
+    return new JButton(texto) {
+      boolean hover = false;
+
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setForeground(new Color(30, 30, 30));
+        setFont(Fuentes.b(13));
+        setPreferredSize(new Dimension(180, 42));
         addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) { ov = true; repaint(); }
-          @Override
-          public void mouseExited(MouseEvent e) { ov = false; repaint(); }
+          public void mouseEntered(MouseEvent e) {
+            hover = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            hover = false;
+            repaint();
+          }
+
         });
       }
+
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? new Color(240, 180, 0) : new Color(255, 200, 0));
+        g.setColor(hover ? new Color(240, 180, 0) : new Color(255, 200, 0));
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
+
     };
-    b.setForeground(new Color(30, 30, 30));
-    b.setFont(Fuentes.b(13));
-    b.setPreferredSize(new Dimension(180, 42));
-    return b;
   }
 
 }

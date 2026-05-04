@@ -1,11 +1,12 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.ventas.IVentas;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -23,28 +24,39 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
   private static final String BANCO = "BBVA México";
   private static final String BENEFICIARIO = "La Canasta SA de CV";
 
+  private final JFrame frame;
+
   private final SeleccionarMetodoPago seleccionarMetodoPago;
-  private final JFrame mainFrame;
+
   private final IVentas ventasFachada;
   private final IInventario inventarioFachada;
   private final IUsuarios usuariosFachada;
   private final IProveedores proveedoresFachada;
+
   private final VentaDTO ventaActual;
+
   private final BigDecimal total;
   private final Runnable onVentaFinalizada;
+
   private final UsuarioDTO usuarioActivo;
-  private final String referencia;  // generada al abrir la pantalla
+
+  private final String referencia;
 
   public RegistrarMetodoPagoTransferencia(
-    SeleccionarMetodoPago seleccionarMetodoPago, JFrame mainFrame,
-    IVentas ventasFachada, IInventario inventarioFachada,
-    IUsuarios usuariosFachada, IProveedores proveedoresFachada,
-    VentaDTO ventaActual, BigDecimal total,
-    Runnable onVentaFinalizada, UsuarioDTO usuarioActivo) {
+    SeleccionarMetodoPago seleccionarMetodoPago,
+    JFrame frame,
+    IVentas ventasFachada,
+    IInventario inventarioFachada,
+    IUsuarios usuariosFachada,
+    IProveedores proveedoresFachada,
+    VentaDTO ventaActual,
+    BigDecimal total,
+    Runnable onVentaFinalizada,
+    UsuarioDTO usuarioActivo) {
 
     super("Transferencia Bancaria");
     this.seleccionarMetodoPago = seleccionarMetodoPago;
-    this.mainFrame = mainFrame;
+    this.frame = frame;
     this.ventasFachada = ventasFachada;
     this.inventarioFachada = inventarioFachada;
     this.usuariosFachada = usuariosFachada;
@@ -55,10 +67,17 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     this.usuarioActivo = usuarioActivo;
     this.referencia = generarReferencia();
 
-    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+    configurarVentana();
+    inicializarComponentes();
+  }
 
+  private void configurarVentana() {
+    setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
+  }
+
+  private void inicializarComponentes() {
     JPanel root = fondo();
     root.add(topBar(), BorderLayout.NORTH);
 
@@ -67,8 +86,8 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
     cuerpo.add(btnVolverRow(), BorderLayout.NORTH);
     cuerpo.add(centrar(scroll(buildCard()), 240, 10), BorderLayout.CENTER);
-    root.add(cuerpo, BorderLayout.CENTER);
 
+    root.add(cuerpo, BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
   }
@@ -130,7 +149,8 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         ventasFachada.procesarFinalizarVenta(ventaActual);
         TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
         this.setVisible(false);
-        PantallaTicket pantallaTicket = new PantallaTicket(mainFrame, ticketDTO, onConfirmado, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
+        new PantallaTicket(frame, ticketDTO, onConfirmado, usuariosFachada,
+          ventasFachada, inventarioFachada, proveedoresFachada);
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(this,
           "Transferencia aprobada, pero error al cerrar la venta:\n" + ex.getMessage(),
@@ -159,12 +179,15 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     c.setBorder(new EmptyBorder(22, 20, 22, 20));
     c.setAlignmentX(LEFT_ALIGNMENT);
     c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+
     JLabel lt = new JLabel("Total a pagar", SwingConstants.CENTER);
     lt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     lt.setForeground(Colores.GRIS_TEXTO);
+
     JLabel lv = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
     lv.setFont(new Font("Segoe UI", Font.BOLD, 38));
     lv.setForeground(Colores.NARANJA);
+
     c.add(lt);
     c.add(lv);
     return c;
@@ -294,10 +317,13 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     box.add(tit);
     box.add(Box.createVerticalStrut(10));
 
-    String[] pasos = {"Realiza la transferencia desde tu banca en línea o app móvil",
+    String[] pasos = {
+      "Realiza la transferencia desde tu banca en línea o app móvil",
       "Usa la CLABE o número de cuenta proporcionados",
       "Incluye la referencia exacta en tu transferencia",
-      "Espera la confirmación automática del pago"};
+      "Espera la confirmación automática del pago"
+    };
+
     for (int i = 0; i < pasos.length; i++) {
       JPanel f = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
       f.setOpaque(false);
@@ -375,7 +401,6 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
         g.setColor(Colores.BLANCO);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
-        super.paintComponent(g2d);
       }
 
     };
@@ -391,7 +416,6 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(bg);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), arc, arc));
-        super.paintComponent(g2d);
       }
 
     };

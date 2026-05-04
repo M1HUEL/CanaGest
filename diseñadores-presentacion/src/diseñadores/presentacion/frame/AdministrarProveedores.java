@@ -5,6 +5,7 @@ import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -16,8 +17,11 @@ import java.util.List;
 public class AdministrarProveedores extends JFrame {
 
   private final JFrame frame;
+
   private final IProveedores fachada;
+
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
+
   private JPanel panelGrid;
   private JLabel lblActivos;
   private JTextField campoBusqueda;
@@ -25,6 +29,7 @@ public class AdministrarProveedores extends JFrame {
   public AdministrarProveedores(JFrame frame, IProveedores fachada) {
     this.frame = frame;
     this.fachada = fachada;
+
     setTitle("La Canasta - Administrar Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
@@ -42,6 +47,7 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
     root.add(buildContenido(), BorderLayout.CENTER);
@@ -86,12 +92,15 @@ public class AdministrarProveedores extends JFrame {
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
+
     JLabel lblTitulo = new JLabel("Administrar Proveedores");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel lblDesc = new JLabel("Gestiona la información de tus proveedores");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
+
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
@@ -109,6 +118,7 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     cardActivos.setOpaque(false);
     cardActivos.setLayout(new BoxLayout(cardActivos, BoxLayout.Y_AXIS));
     cardActivos.setBorder(new EmptyBorder(14, 24, 14, 24));
@@ -118,10 +128,12 @@ public class AdministrarProveedores extends JFrame {
     lblActivosTxt.setFont(Fuentes.r(12));
     lblActivosTxt.setForeground(Colores.GRIS_TEXTO);
     lblActivosTxt.setAlignmentX(CENTER_ALIGNMENT);
+
     lblActivos = new JLabel(String.valueOf(fachada.contarProveedoresActivos()), SwingConstants.CENTER);
     lblActivos.setFont(Fuentes.b(36));
     lblActivos.setForeground(Colores.AZUL);
     lblActivos.setAlignmentX(CENTER_ALIGNMENT);
+
     cardActivos.add(lblActivosTxt);
     cardActivos.add(Box.createVerticalStrut(4));
     cardActivos.add(lblActivos);
@@ -142,6 +154,7 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     barBusqueda.setOpaque(false);
     barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
     barBusqueda.setPreferredSize(new Dimension(0, 68));
@@ -157,6 +170,7 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -164,6 +178,7 @@ public class AdministrarProveedores extends JFrame {
     campoBusqueda.setFont(Fuentes.r(14));
     campoBusqueda.setForeground(Colores.GRIS_TEXTO);
     campoBusqueda.setText("Buscar por nombre, código o contacto...");
+
     campoBusqueda.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
@@ -182,6 +197,7 @@ public class AdministrarProveedores extends JFrame {
       }
 
     });
+
     campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
       @Override
       public void insertUpdate(javax.swing.event.DocumentEvent e) {
@@ -250,7 +266,8 @@ public class AdministrarProveedores extends JFrame {
     String ql = q.toLowerCase();
     List<ProveedorDTO> f = new ArrayList<>();
     for (ProveedorDTO p : proveedores) {
-      if (p.getNombre().toLowerCase().contains(ql) || p.getCodigo().toLowerCase().contains(ql)
+      if (p.getNombre().toLowerCase().contains(ql)
+        || p.getCodigo().toLowerCase().contains(ql)
         || p.getContacto().toLowerCase().contains(ql)) {
         f.add(p);
       }
@@ -272,20 +289,25 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(20, 22, 20, 22));
 
     JPanel topRow = new JPanel(new BorderLayout());
     topRow.setOpaque(false);
+
     JPanel nombreCol = new JPanel();
     nombreCol.setLayout(new BoxLayout(nombreCol, BoxLayout.Y_AXIS));
     nombreCol.setOpaque(false);
+
     JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(16));
     lblN.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel lblC = new JLabel(p.getCodigo());
     lblC.setFont(Fuentes.r(12));
     lblC.setForeground(Colores.GRIS_TEXTO);
+
     nombreCol.add(lblN);
     nombreCol.add(Box.createVerticalStrut(3));
     nombreCol.add(lblC);
@@ -296,9 +318,11 @@ public class AdministrarProveedores extends JFrame {
     badge.setOpaque(true);
     badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
+
     JPanel badgeW = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     badgeW.setOpaque(false);
     badgeW.add(badge);
+
     topRow.add(nombreCol, BorderLayout.CENTER);
     topRow.add(badgeW, BorderLayout.EAST);
 
@@ -335,8 +359,10 @@ public class AdministrarProveedores extends JFrame {
 
     JButton btnEditar = crearBotonCard("Editar", Colores.AZUL, Colores.AZUL_HOVER, true);
     btnEditar.addActionListener(e -> abrirFormulario(p));
+
     JButton btnDetalle = crearBotonCard("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
     btnDetalle.addActionListener(e -> abrirDetalle(p));
+
     botonesRow.add(btnEditar);
     botonesRow.add(btnDetalle);
 
@@ -510,15 +536,18 @@ public class AdministrarProveedores extends JFrame {
 
     JPanel headerRow = new JPanel(new BorderLayout(10, 0));
     headerRow.setOpaque(false);
+
     JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(22));
     lblN.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
     badge.setForeground(p.isActivo() ? new Color(21, 128, 61) : new Color(100, 100, 100));
     badge.setOpaque(true);
     badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
+
     headerRow.add(lblN, BorderLayout.WEST);
     headerRow.add(badge, BorderLayout.EAST);
 
@@ -570,6 +599,7 @@ public class AdministrarProveedores extends JFrame {
     tf.setAlignmentX(LEFT_ALIGNMENT);
     tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
     tf.setPreferredSize(new Dimension(0, 40));
+
     if (limite > 0) {
       tf.setDocument(new javax.swing.text.PlainDocument() {
         @Override
@@ -594,10 +624,12 @@ public class AdministrarProveedores extends JFrame {
     row.setOpaque(false);
     row.setAlignmentX(LEFT_ALIGNMENT);
     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
+
     JLabel l = new JLabel(label);
     l.setFont(Fuentes.b(12));
     l.setForeground(Colores.TEXTO_OSCURO);
     l.setAlignmentX(LEFT_ALIGNMENT);
+
     row.add(l);
     row.add(Box.createVerticalStrut(5));
     row.add(campo);
@@ -616,16 +648,20 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
+
     row.setOpaque(false);
     row.setBorder(new EmptyBorder(12, 14, 12, 14));
     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
     row.setAlignmentX(LEFT_ALIGNMENT);
+
     JLabel l = new JLabel(label);
     l.setFont(Fuentes.r(12));
     l.setForeground(Colores.GRIS_TEXTO);
+
     JLabel v = new JLabel(valor != null ? valor : "-");
     v.setFont(Fuentes.r(14));
     v.setForeground(Colores.TEXTO_OSCURO);
+
     row.add(l, BorderLayout.WEST);
     row.add(v, BorderLayout.EAST);
     return row;

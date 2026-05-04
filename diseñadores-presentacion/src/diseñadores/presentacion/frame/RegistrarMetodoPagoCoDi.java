@@ -7,6 +7,7 @@ import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -19,18 +20,46 @@ import java.util.Random;
 public class RegistrarMetodoPagoCoDi extends JFrame {
 
   public RegistrarMetodoPagoCoDi(
-    SeleccionarMetodoPago seleccionarMetodoPago, JFrame mainFrame,
-    IVentas ventasFachada, IInventario inventarioFachada,
-    IUsuarios usuariosFachada, IProveedores proveedoresFachada,
-    VentaDTO ventaActual, BigDecimal total,
-    Runnable onVentaFinalizada, UsuarioDTO usuarioActivo) {
+    SeleccionarMetodoPago seleccionarMetodoPago,
+    JFrame frame,
+    IVentas ventasFachada,
+    IInventario inventarioFachada,
+    IUsuarios usuariosFachada,
+    IProveedores proveedoresFachada,
+    VentaDTO ventaActual,
+    BigDecimal total,
+    Runnable onVentaFinalizada,
+    UsuarioDTO usuarioActivo) {
 
     super("Registrar Pago CoDi");
+    configurarVentana(frame);
+
+    JPanel root = panelBase();
+    root.add(crearTopBar(frame, usuarioActivo, usuariosFachada,
+      ventasFachada, inventarioFachada, proveedoresFachada), BorderLayout.NORTH);
+
+    JPanel cuerpo = new JPanel(new BorderLayout());
+    cuerpo.setOpaque(false);
+    cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
+
+    cuerpo.add(seccionVolver(seleccionarMetodoPago), BorderLayout.NORTH);
+
+    JPanel card = buildCard(total, frame, onVentaFinalizada);
+    cuerpo.add(crearCentrado(crearScroll(card), 240, 10), BorderLayout.CENTER);
+
+    root.add(cuerpo, BorderLayout.CENTER);
+    setContentPane(root);
+    setVisible(true);
+  }
+
+  private void configurarVentana(JFrame mainFrame) {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
+  }
 
-    JPanel root = new JPanel(new BorderLayout()) {
+  private JPanel panelBase() {
+    JPanel p = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -39,15 +68,11 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
       }
 
     };
-    root.setOpaque(false);
+    p.setOpaque(false);
+    return p;
+  }
 
-    root.add(crearTopBar(mainFrame, usuarioActivo, usuariosFachada,
-      ventasFachada, inventarioFachada, proveedoresFachada), BorderLayout.NORTH);
-
-    JPanel cuerpo = new JPanel(new BorderLayout());
-    cuerpo.setOpaque(false);
-    cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
-
+  private JPanel seccionVolver(SeleccionarMetodoPago seleccionarMetodoPago) {
     JButton btnVolver = btnTexto("← Volver a métodos de pago");
     btnVolver.addActionListener(e -> {
       dispose();
@@ -56,21 +81,17 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     JPanel volverRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     volverRow.setOpaque(false);
     volverRow.add(btnVolver);
-    cuerpo.add(volverRow, BorderLayout.NORTH);
+    return volverRow;
+  }
 
-    JPanel card = buildCard(total, mainFrame, onVentaFinalizada);
-    JScrollPane scroll = new JScrollPane(card);
+  private JScrollPane crearScroll(JPanel contenido) {
+    JScrollPane scroll = new JScrollPane(contenido);
     scroll.setBorder(BorderFactory.createEmptyBorder());
     scroll.setOpaque(false);
     scroll.getViewport().setOpaque(false);
     scroll.getVerticalScrollBar().setUnitIncrement(12);
     scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-    cuerpo.add(crearCentrado(scroll, 240, 10), BorderLayout.CENTER);
-    root.add(cuerpo, BorderLayout.CENTER);
-
-    setContentPane(root);
-    setVisible(true);
+    return scroll;
   }
 
   private JPanel buildCard(BigDecimal total, JFrame mainFrame, Runnable onVentaFinalizada) {
@@ -94,7 +115,6 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     c.gridx = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.weightx = 1.0;
-    c.anchor = GridBagConstraints.CENTER;
     int row = 0;
 
     c.gridy = row++;
@@ -125,6 +145,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
       dispose();
       mainFrame.setVisible(true);
     });
+
     c.gridy = row++;
     c.insets = new Insets(0, 0, 0, 0);
     card.add(btnConfirmar, c);
@@ -149,6 +170,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     };
     icoBox.setOpaque(false);
     icoBox.setPreferredSize(new Dimension(52, 52));
+
     JLabel icoLbl = new JLabel("QR", SwingConstants.CENTER);
     icoLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
     icoLbl.setForeground(Colores.BLANCO);
@@ -177,12 +199,15 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     };
     caja.setOpaque(false);
     caja.setBorder(new EmptyBorder(22, 20, 22, 20));
+
     JLabel lTxt = new JLabel("Total a pagar", SwingConstants.CENTER);
     lTxt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     lTxt.setForeground(Colores.GRIS_TEXTO);
+
     JLabel lVal = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
     lVal.setFont(new Font("Segoe UI", Font.BOLD, 38));
     lVal.setForeground(Colores.MORADO);
+
     caja.add(lTxt);
     caja.add(lVal);
     return caja;
@@ -250,7 +275,6 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
 
     };
     qr.setOpaque(false);
-
     marco.add(qr, BorderLayout.CENTER);
 
     JLabel lblRef = new JLabel("Referencia: " + referencia, SwingConstants.CENTER);
@@ -272,12 +296,11 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
         m[y][x] = rnd.nextBoolean();
       }
     }
-    // Limpiar zonas de marcadores
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
-        m[i][j] = false;              // sup-izq
-        m[i][n - 1 - j] = false;     // sup-der
-        m[n - 1 - i][j] = false;     // inf-izq
+        m[i][j] = false;
+        m[i][n - 1 - j] = false;
+        m[n - 1 - i][j] = false;
       }
     }
     return m;
@@ -339,6 +362,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+
     JButton btn = crearBoton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
     btn.setForeground(Colores.TEXTO_OSCURO);
     btn.setPreferredSize(new Dimension(160, 38));

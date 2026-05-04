@@ -6,6 +6,7 @@ import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -18,37 +19,55 @@ import java.util.stream.Collectors;
 
 public class RegistrarVenta extends JFrame {
 
-  private final UsuarioDTO usuarioActivo;
-  private VentaDTO ventaActual;
   private final IVentas ventasFachada;
   private final IUsuarios usuariosFachada;
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
 
+  private final UsuarioDTO usuarioActivo;
+
+  private VentaDTO ventaActual;
+
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
   private JPanel panelCarritoItems;
-  private JLabel lblTotal, lblCantItems, lblProductosCount;
-  private JTextField campoBusqueda, campoEscanear;
   private JPanel panelGrid;
   private JScrollPane scrollGrid;
+  private JLabel lblTotal, lblCantItems, lblProductosCount;
+  private JTextField campoBusqueda, campoEscanear;
 
-  public RegistrarVenta(IVentas ventasFachada, UsuarioDTO usuarioActivo, IUsuarios usuariosFachada, IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  public RegistrarVenta(
+    IVentas ventasFachada,
+    UsuarioDTO usuarioActivo,
+    IUsuarios usuariosFachada,
+    IInventario inventarioFachada,
+    IProveedores proveedoresFachada) {
     super("Punto de Venta");
+
     this.ventasFachada = ventasFachada;
-    this.usuarioActivo = usuarioActivo;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
 
+    this.usuarioActivo = usuarioActivo;
+
+    this.ventaActual = new VentaDTO();
+
+    this.catalogoProductos = ventasFachada.obtenerCatalogo();
+
+    configurarVentana();
+    inicializarComponentes();
+    actualizarVista();
+  }
+
+  private void configurarVentana() {
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
     setLocationRelativeTo(null);
     setResizable(true);
+  }
 
-    catalogoProductos = ventasFachada.obtenerCatalogo();
-    ventaActual = new VentaDTO();
-
+  private void inicializarComponentes() {
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -60,8 +79,6 @@ public class RegistrarVenta extends JFrame {
     };
     root.setOpaque(false);
 
-    root.add(crearTopBar(), BorderLayout.NORTH);
-
     JPanel centro = new JPanel(new GridBagLayout());
     centro.setOpaque(false);
     centro.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -70,18 +87,20 @@ public class RegistrarVenta extends JFrame {
     gbc.fill = GridBagConstraints.BOTH;
     gbc.gridy = 0;
     gbc.weighty = 1.0;
+
     gbc.gridx = 0;
     gbc.weightx = 0.65;
     gbc.insets = new Insets(0, 0, 0, 16);
     centro.add(crearPanelIzquierdo(), gbc);
+
     gbc.gridx = 1;
     gbc.weightx = 0.35;
     gbc.insets = new Insets(0, 0, 0, 0);
     centro.add(panelDerecho(), gbc);
 
+    root.add(crearTopBar(), BorderLayout.NORTH);
     root.add(centro, BorderLayout.CENTER);
     setContentPane(root);
-    actualizarVista();
   }
 
   private JPanel crearTopBar() {
@@ -121,6 +140,7 @@ public class RegistrarVenta extends JFrame {
       }
 
     };
+
     btnMenu.setForeground(Colores.TEXTO_OSCURO);
     btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
     btnMenu.setPreferredSize(new Dimension(160, 38));
@@ -197,9 +217,7 @@ public class RegistrarVenta extends JFrame {
         int cols = 3;
         int count = getComponentCount();
         int rows = (int) Math.ceil((double) count / cols);
-        int btnH = 90;
-        int gap = 10;
-        int height = rows * btnH + Math.max(0, rows - 1) * gap;
+        int height = rows * 90 + Math.max(0, rows - 1) * 10;
         return new Dimension(getParent() != null ? getParent().getWidth() : 0, height);
       }
 
@@ -238,11 +256,6 @@ public class RegistrarVenta extends JFrame {
     }
   }
 
-  private void refrescarCatalogo() {
-    catalogoProductos = ventasFachada.obtenerCatalogo();
-    filtrarGrid(campoBusqueda != null ? campoBusqueda.getText().trim() : "");
-  }
-
   private void filtrarGrid(String query) {
     if (query.isEmpty()) {
       construirGrid(catalogoProductos);
@@ -250,8 +263,7 @@ public class RegistrarVenta extends JFrame {
     }
     String q = query.toLowerCase();
     construirGrid(catalogoProductos.stream()
-      .filter(p -> p.getNombre().toLowerCase().contains(q)
-      || p.getCodigo().toLowerCase().contains(q))
+      .filter(p -> p.getNombre().toLowerCase().contains(q) || p.getCodigo().toLowerCase().contains(q))
       .collect(Collectors.toList()));
   }
 
@@ -263,19 +275,16 @@ public class RegistrarVenta extends JFrame {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
-          @Override
           public void mouseEntered(MouseEvent e) {
             hover = true;
             repaint();
           }
 
-          @Override
           public void mouseExited(MouseEvent e) {
             hover = false;
             repaint();
           }
 
-          @Override
           public void mouseClicked(MouseEvent e) {
             escanearProducto(prod.getCodigo());
           }
@@ -419,9 +428,7 @@ public class RegistrarVenta extends JFrame {
       if (ventaActual.getItems().isEmpty()) {
         return;
       }
-      int op = JOptionPane.showConfirmDialog(this,
-        "¿Cancelar la venta y vaciar el carrito?", "Cancelar venta",
-        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+      int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar", JOptionPane.YES_NO_OPTION);
       if (op == JOptionPane.YES_OPTION) {
         cancelarVenta();
       }
@@ -445,43 +452,31 @@ public class RegistrarVenta extends JFrame {
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
 
     GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.HORIZONTAL;
 
     JLabel lblNombre = new JLabel(item.getNombre());
     lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    lblNombre.setForeground(Colores.TEXTO_OSCURO);
     c.gridx = 0;
     c.gridy = 0;
-    c.weightx = 1;
-    c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
+    c.weightx = 1.0;
     fila.add(lblNombre, c);
 
     JButton btnElim = crearBotonIcono("X", Colores.ROJO_BG, Colores.ROJO_BG_HOVER, Colores.ROJO_ICONO, 11);
     btnElim.addActionListener(e -> eliminarItem(item));
     c.gridx = 1;
     c.weightx = 0;
-    c.fill = GridBagConstraints.NONE;
-    c.anchor = GridBagConstraints.EAST;
     fila.add(btnElim, c);
 
     JLabel lblPrecio = new JLabel("Precio unitario: $" + String.format("%.2f", item.getPrecioUnitario()));
     lblPrecio.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-    lblPrecio.setForeground(Colores.GRIS_TEXTO);
     c.gridx = 0;
     c.gridy = 1;
-    c.weightx = 1;
-    c.anchor = GridBagConstraints.WEST;
-    c.fill = GridBagConstraints.HORIZONTAL;
     c.gridwidth = 2;
     fila.add(lblPrecio, c);
 
     JButton btnMenos = crearBotonIcono("-", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
     JLabel lblCant = new JLabel(String.valueOf(item.getCantidad()), SwingConstants.CENTER);
-    lblCant.setFont(new Font("Segoe UI", Font.BOLD, 15));
-    lblCant.setForeground(Colores.TEXTO_OSCURO);
-    lblCant.setPreferredSize(new Dimension(32, 32));
     JButton btnMas = crearBotonIcono("+", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
-
     btnMenos.addActionListener(e -> decrementarItem(item));
     btnMas.addActionListener(e -> incrementarItem(item));
 
@@ -491,75 +486,50 @@ public class RegistrarVenta extends JFrame {
     ctrlCant.add(lblCant);
     ctrlCant.add(btnMas);
 
-    JLabel lblSubTxt = new JLabel("Subtotal");
-    lblSubTxt.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-    lblSubTxt.setForeground(Colores.GRIS_TEXTO);
-    lblSubTxt.setHorizontalAlignment(SwingConstants.RIGHT);
-
     JLabel lblSub = new JLabel(String.format("$%.2f", item.getSubtotal()));
     lblSub.setFont(new Font("Segoe UI", Font.BOLD, 15));
     lblSub.setForeground(Colores.AZUL);
-    lblSub.setHorizontalAlignment(SwingConstants.RIGHT);
 
-    JPanel subPanel = new JPanel(new BorderLayout());
-    subPanel.setOpaque(false);
-    subPanel.add(lblSubTxt, BorderLayout.NORTH);
-    subPanel.add(lblSub, BorderLayout.SOUTH);
-
-    JPanel ctrlRow = new JPanel(new BorderLayout(8, 0));
+    JPanel ctrlRow = new JPanel(new BorderLayout());
     ctrlRow.setOpaque(false);
     ctrlRow.add(ctrlCant, BorderLayout.WEST);
-    ctrlRow.add(subPanel, BorderLayout.EAST);
+    ctrlRow.add(lblSub, BorderLayout.EAST);
 
-    c.gridx = 0;
     c.gridy = 2;
-    c.gridwidth = 2;
-    c.fill = GridBagConstraints.HORIZONTAL;
     c.insets = new Insets(6, 0, 0, 0);
     fila.add(ctrlRow, c);
+
     return fila;
   }
 
   private void escanearProducto(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
     if (!ventasFachada.existeProducto(dto)) {
-      mostrarError("<html>El producto <b>" + codigo + "</b> no existe en el catalogo.</html>",
-        "Producto no encontrado");
+      mostrarError("El producto no existe.", "Error");
       return;
     }
     if (!ventasFachada.tieneStock(dto)) {
-      mostrarAviso("<html>El producto <b>" + codigo + "</b> no tiene unidades disponibles.</html>",
-        "Sin stock");
-      return;
-    }
-    ProductoDTO p = ventasFachada.procesarProducto(ventaActual, dto);
-    if (p == null) {
-      return;
-    }
-    actualizarVista();
-  }
-
-  private void incrementarItem(ItemVentaDTO item) {
-    EscanearProductoDTO dto = new EscanearProductoDTO(item.getCodigo());
-    if (!ventasFachada.tieneStock(dto)) {
-      mostrarAviso("<html>No hay mas stock de <b>" + item.getNombre() + "</b>.</html>", "Sin stock");
+      mostrarAviso("Sin stock disponible.", "Aviso");
       return;
     }
     ventasFachada.procesarProducto(ventaActual, dto);
     actualizarVista();
   }
 
+  private void incrementarItem(ItemVentaDTO item) {
+    escanearProducto(item.getCodigo());
+  }
+
   private void decrementarItem(ItemVentaDTO item) {
     if (item.getCantidad() > 1) {
-      ItemVentaDTO itemEnVenta = ventaActual.getItems().stream()
+      ventaActual.getItems().stream()
         .filter(i -> i.getCodigo().equals(item.getCodigo()))
-        .findFirst().orElse(null);
-      if (itemEnVenta != null) {
-        int index = ventaActual.getItems().indexOf(itemEnVenta);
-        ventaActual.getItems().set(index, itemEnVenta.conCantidad(itemEnVenta.getCantidad() - 1));
-      }
+        .findFirst().ifPresent(i -> {
+          int idx = ventaActual.getItems().indexOf(i);
+          ventaActual.getItems().set(idx, i.conCantidad(i.getCantidad() - 1));
+        });
     } else {
-      ventaActual.getItems().removeIf(i -> i.getCodigo().equals(item.getCodigo()));
+      eliminarItem(item);
     }
     actualizarVista();
   }
@@ -570,34 +540,52 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void cancelarVenta() {
+    ventaActual.getItems().clear();
     actualizarVista();
   }
 
   private void continuarAPago() {
     if (ventaActual.getItems().isEmpty()) {
-      mostrarAviso("El carrito esta vacio.", "Sin productos");
+      mostrarAviso("El carrito esta vacio.", "Aviso");
       return;
     }
+
     BigDecimal total = ventaActual.getTotal();
+
     this.setVisible(false);
-    new SeleccionarMetodoPago(this, ventasFachada, ventaActual, total, () -> {
-      actualizarVista();
-      refrescarCatalogo();
-    }, usuariosFachada, inventarioFachada, proveedoresFachada, ventasFachada, usuarioActivo);
+    new SeleccionarMetodoPago(
+      this,
+      ventaActual,
+      total,
+      () -> {
+        actualizarVista();
+        refrescarCatalogo();
+      },
+      usuariosFachada,
+      inventarioFachada,
+      proveedoresFachada,
+      ventasFachada,
+      usuarioActivo
+    );
   }
 
   private void actualizarVista() {
     panelCarritoItems.removeAll();
-    for (ItemVentaDTO item : ventaActual.getItems()) {
+    ventaActual.getItems().forEach(item -> {
       panelCarritoItems.add(filaCarrito(item));
       panelCarritoItems.add(Box.createVerticalStrut(8));
-    }
+    });
     panelCarritoItems.revalidate();
     panelCarritoItems.repaint();
 
     lblTotal.setText(String.format("$%.2f", ventaActual.getTotal()));
     lblCantItems.setText(ventaActual.getTotalUnidades() + " items");
     lblProductosCount.setText(ventaActual.getTotalUnidades() + " productos");
+  }
+
+  private void refrescarCatalogo() {
+    catalogoProductos = ventasFachada.obtenerCatalogo();
+    filtrarGrid(campoBusqueda != null ? campoBusqueda.getText().trim() : "");
   }
 
   private void mostrarError(String msg, String titulo) {
@@ -646,8 +634,6 @@ public class RegistrarVenta extends JFrame {
     };
     tf.setOpaque(false);
     tf.setBorder(new EmptyBorder(8, 14, 8, 14));
-    tf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
     tf.setText(placeholder);
     tf.setForeground(Colores.GRIS_TEXTO);
     tf.addFocusListener(new FocusAdapter() {
@@ -704,7 +690,6 @@ public class RegistrarVenta extends JFrame {
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    b.setHorizontalAlignment(SwingConstants.CENTER);
     return b;
   }
 

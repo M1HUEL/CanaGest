@@ -1,11 +1,10 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.dto.*;
+import diseñadores.negocios.ventas.IVentas;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
-import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.utilidad.Colores;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -19,6 +18,23 @@ import java.util.Random;
 
 public class RegistrarMetodoPagoTransferencia extends JFrame {
 
+  private static final String CLABE_TIENDA = "012180001234567890";
+  private static final String CUENTA = "0123456789";
+  private static final String BANCO = "BBVA México";
+  private static final String BENEFICIARIO = "La Canasta SA de CV";
+
+  private final SeleccionarMetodoPago seleccionarMetodoPago;
+  private final JFrame mainFrame;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IUsuarios usuariosFachada;
+  private final IProveedores proveedoresFachada;
+  private final VentaDTO ventaActual;
+  private final BigDecimal total;
+  private final Runnable onVentaFinalizada;
+  private final UsuarioDTO usuarioActivo;
+  private final String referencia;  // generada al abrir la pantalla
+
   public RegistrarMetodoPagoTransferencia(
     SeleccionarMetodoPago seleccionarMetodoPago, JFrame mainFrame,
     IVentas ventasFachada, IInventario inventarioFachada,
@@ -26,172 +42,166 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     VentaDTO ventaActual, BigDecimal total,
     Runnable onVentaFinalizada, UsuarioDTO usuarioActivo) {
 
-    super("Registrar Transferencia Bancaria");
+    super("Transferencia Bancaria");
+    this.seleccionarMetodoPago = seleccionarMetodoPago;
+    this.mainFrame = mainFrame;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.usuariosFachada = usuariosFachada;
+    this.proveedoresFachada = proveedoresFachada;
+    this.ventaActual = ventaActual;
+    this.total = total;
+    this.onVentaFinalizada = onVentaFinalizada;
+    this.usuarioActivo = usuarioActivo;
+    this.referencia = generarReferencia();
+
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
 
-    JPanel root = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Colores.FONDO_AMARILLO);
-        g.fillRect(0, 0, getWidth(), getHeight());
-      }
-
-    };
-    root.setOpaque(false);
-
-    root.add(crearTopBar(mainFrame, usuarioActivo, usuariosFachada,
-      ventasFachada, inventarioFachada, proveedoresFachada), BorderLayout.NORTH);
+    JPanel root = fondo();
+    root.add(topBar(), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);
     cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
-
-    JButton btnVolver = btnTexto("← Volver a métodos de pago");
-    btnVolver.addActionListener(e -> {
-      dispose();
-      seleccionarMetodoPago.setVisible(true);
-    });
-    JPanel volverRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    volverRow.setOpaque(false);
-    volverRow.add(btnVolver);
-    cuerpo.add(volverRow, BorderLayout.NORTH);
-
-    JPanel card = buildCard(total, mainFrame, onVentaFinalizada);
-    JScrollPane scroll = new JScrollPane(card);
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    scroll.setOpaque(false);
-    scroll.getViewport().setOpaque(false);
-    scroll.getVerticalScrollBar().setUnitIncrement(12);
-    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-    cuerpo.add(crearCentrado(scroll, 240, 10), BorderLayout.CENTER);
+    cuerpo.add(btnVolverRow(), BorderLayout.NORTH);
+    cuerpo.add(centrar(scroll(buildCard()), 240, 10), BorderLayout.CENTER);
     root.add(cuerpo, BorderLayout.CENTER);
 
     setContentPane(root);
     setVisible(true);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Tarjeta de contenido
-  // ─────────────────────────────────────────────────────────────────────────
-  private JPanel buildCard(BigDecimal total, JFrame mainFrame, Runnable onVentaFinalizada) {
-    JPanel card = new JPanel(new GridBagLayout()) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.SOMBRA);
-        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
-        g.setColor(Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
-        super.paintComponent(g2d);
-      }
-
-    };
-    card.setOpaque(false);
+  private JPanel buildCard() {
+    JPanel card = tarjetaBlanca();
+    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setBorder(new EmptyBorder(28, 32, 32, 32));
 
-    GridBagConstraints c = new GridBagConstraints();
-    c.gridx = 0;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.weightx = 1.0;
-    c.anchor = GridBagConstraints.WEST;
-    int row = 0;
+    card.add(header("TR", "Transferencia Bancaria", Colores.NARANJA));
+    card.add(Box.createVerticalStrut(22));
+    card.add(cajaTotal());
+    card.add(Box.createVerticalStrut(20));
+    card.add(datosBancarios());
+    card.add(Box.createVerticalStrut(20));
+    card.add(instrucciones());
+    card.add(Box.createVerticalStrut(24));
 
-    // ── Header ────────────────────────────────────────────────────────────
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 22, 0);
-    card.add(crearHeader("TR", "Transferencia Bancaria", Colores.NARANJA), c);
-
-    // ── Caja total ────────────────────────────────────────────────────────
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 20, 0);
-    card.add(crearCajaTotal(total), c);
-
-    // ── Datos bancarios ───────────────────────────────────────────────────
-    String referencia = generarReferencia();
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 20, 0);
-    card.add(crearDatosBancarios(referencia), c);
-
-    // ── Instrucciones ─────────────────────────────────────────────────────
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 20, 0);
-    card.add(crearInstrucciones(), c);
-
-    // ── Botón confirmar ───────────────────────────────────────────────────
-    JButton btnConfirmar = crearBoton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
-    btnConfirmar.setPreferredSize(new Dimension(0, 54));
-    btnConfirmar.addActionListener(e -> {
-      JOptionPane.showMessageDialog(this,
-        String.format("Transferencia registrada\n\nReferencia: %s\nTotal: $%,.2f\n\nSu pago será confirmado en breve.",
-          referencia, total),
-        "Transferencia registrada", JOptionPane.INFORMATION_MESSAGE);
-      onVentaFinalizada.run();
-      dispose();
-      mainFrame.setVisible(true);
-    });
-    c.gridy = row++;
-    c.insets = new Insets(0, 0, 0, 0);
-    card.add(btnConfirmar, c);
+    JButton btnConfirmar = boton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
+    btnConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+    btnConfirmar.addActionListener(e -> procesarConBanco());
+    card.add(btnConfirmar);
 
     return card;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Bloque de datos bancarios con botones "Copiar"
-  // ─────────────────────────────────────────────────────────────────────────
-  private JPanel crearDatosBancarios(String referencia) {
-    JPanel box = new JPanel(new GridBagLayout()) {
+  private void procesarConBanco() {
+    setEnabled(false);
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
+      @Override
+      protected ResultadoPagoDTO doInBackground() {
+        return ventasFachada.procesarPagoTransferencia(
+          ventaActual,
+          new PagoTransferenciaDTO(CLABE_TIENDA, referencia));
+      }
+
+      @Override
+      protected void done() {
+        setCursor(Cursor.getDefaultCursor());
+        setEnabled(true);
+        try {
+          manejarResultado(get(), onVentaFinalizada);
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(RegistrarMetodoPagoTransferencia.this,
+            "Error al procesar la transferencia: " + ex.getMessage(),
+            "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+
+    };
+    worker.execute();
+  }
+
+  private void manejarResultado(ResultadoPagoDTO resultado, Runnable onConfirmado) {
+    if (resultado.isAprobado()) {
+      try {
+        ventasFachada.procesarFinalizarVenta(ventaActual);
+        TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
+        this.setVisible(false);
+        PantallaTicket pantallaTicket = new PantallaTicket(mainFrame, ticketDTO, onConfirmado, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this,
+          "Transferencia aprobada, pero error al cerrar la venta:\n" + ex.getMessage(),
+          "Error al finalizar", JOptionPane.ERROR_MESSAGE);
+      }
+    } else {
+      JOptionPane.showMessageDialog(this,
+        "❌ Transferencia rechazada:\n\n" + resultado.getMensaje(),
+        "Rechazada", JOptionPane.WARNING_MESSAGE);
+    }
+  }
+
+  private JPanel cajaTotal() {
+    JPanel c = new JPanel(new GridLayout(2, 1, 0, 8)) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_GRIS_CLARO);
+        g.setColor(Colores.NARANJA_BG);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
         super.paintComponent(g2d);
       }
 
     };
-    box.setOpaque(false);
-    box.setBorder(new EmptyBorder(16, 16, 16, 16));
+    c.setOpaque(false);
+    c.setBorder(new EmptyBorder(22, 20, 22, 20));
+    c.setAlignmentX(LEFT_ALIGNMENT);
+    c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+    JLabel lt = new JLabel("Total a pagar", SwingConstants.CENTER);
+    lt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    lt.setForeground(Colores.GRIS_TEXTO);
+    JLabel lv = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
+    lv.setFont(new Font("Segoe UI", Font.BOLD, 38));
+    lv.setForeground(Colores.NARANJA);
+    c.add(lt);
+    c.add(lv);
+    return c;
+  }
 
-    GridBagConstraints c = new GridBagConstraints();
-    c.gridx = 0;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.weightx = 1;
-    int r = 0;
+  private JPanel datosBancarios() {
+    JPanel box = panelFondo(Colores.FONDO_GRIS_CLARO, 14);
+    box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+    box.setBorder(new EmptyBorder(16, 16, 16, 16));
+    box.setAlignmentX(LEFT_ALIGNMENT);
+    box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 340));
 
     JLabel tit = new JLabel("Datos para transferencia");
     tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
     tit.setForeground(Colores.TEXTO_OSCURO);
-    c.gridy = r++;
-    c.insets = new Insets(0, 0, 12, 0);
-    box.add(tit, c);
+    tit.setAlignmentX(LEFT_ALIGNMENT);
+    box.add(tit);
+    box.add(Box.createVerticalStrut(12));
 
-    Object[][] datos = {
-      {"Banco", "BBVA México", null, false},
-      {"CLABE", "012180001234567890", "012180001234567890", true},
-      {"Número de cuenta", "0123456789", "0123456789", true},
-      {"Beneficiario", "La Canasta SA de CV", null, false},
-      {"Referencia", referencia, referencia, true},};
+    box.add(filaDato("Banco", BANCO, null, false));
+    box.add(Box.createVerticalStrut(8));
+    box.add(filaDato("CLABE", CLABE_TIENDA, CLABE_TIENDA, true));
+    box.add(Box.createVerticalStrut(8));
+    box.add(filaDato("Número de cuenta", CUENTA, CUENTA, true));
+    box.add(Box.createVerticalStrut(8));
+    box.add(filaDato("Beneficiario", BENEFICIARIO, null, false));
+    box.add(Box.createVerticalStrut(8));
+    box.add(filaDato("Referencia", referencia, referencia, true, Colores.NARANJA));
 
-    for (Object[] dato : datos) {
-      c.gridy = r++;
-      c.insets = new Insets(0, 0, 8, 0);
-      boolean esReferencia = ((String) dato[0]).equals("Referencia");
-      Color colorVal = esReferencia ? Colores.NARANJA : Colores.TEXTO_OSCURO;
-      box.add(filaDato((String) dato[0], (String) dato[1],
-        (String) dato[2], (boolean) dato[3], colorVal), c);
-    }
     return box;
   }
 
-  private JPanel filaDato(String etiqueta, String valor, String textoCopiar,
-    boolean conCopia, Color colorVal) {
+  private JPanel filaDato(String etq, String val, String copiar, boolean conCopia) {
+    return filaDato(etq, val, copiar, conCopia, Colores.TEXTO_OSCURO);
+  }
+
+  private JPanel filaDato(String etq, String val, String copiar, boolean conCopia, Color colorVal) {
     JPanel row = new JPanel(new BorderLayout(10, 0)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -207,21 +217,23 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     };
     row.setOpaque(false);
     row.setBorder(new EmptyBorder(12, 16, 12, 12));
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+    row.setAlignmentX(LEFT_ALIGNMENT);
 
-    JPanel textos = new JPanel(new GridLayout(2, 1, 0, 4));
-    textos.setOpaque(false);
-    JLabel lEtq = new JLabel(etiqueta);
-    lEtq.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-    lEtq.setForeground(Colores.GRIS_TEXTO);
-    JLabel lVal = new JLabel(valor);
-    lVal.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    lVal.setForeground(colorVal);
-    textos.add(lEtq);
-    textos.add(lVal);
-    row.add(textos, BorderLayout.CENTER);
+    JPanel txt = new JPanel(new GridLayout(2, 1, 0, 4));
+    txt.setOpaque(false);
+    JLabel le = new JLabel(etq);
+    le.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+    le.setForeground(Colores.GRIS_TEXTO);
+    JLabel lv = new JLabel(val);
+    lv.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    lv.setForeground(colorVal);
+    txt.add(le);
+    txt.add(lv);
+    row.add(txt, BorderLayout.CENTER);
 
     if (conCopia) {
-      JButton btnCopy = new JButton("Copiar") {
+      JButton btn = new JButton("Copiar") {
         boolean ov = false;
 
         {
@@ -253,165 +265,182 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         }
 
       };
-      btnCopy.setForeground(Colores.BLANCO);
-      btnCopy.setFont(new Font("Segoe UI", Font.BOLD, 12));
-      btnCopy.setPreferredSize(new Dimension(64, 36));
-      btnCopy.addActionListener(e -> {
-        Toolkit.getDefaultToolkit().getSystemClipboard()
-          .setContents(new StringSelection(textoCopiar), null);
-        JOptionPane.showMessageDialog(this,
-          "Copiado: " + textoCopiar, "Copiado", JOptionPane.INFORMATION_MESSAGE);
+      btn.setForeground(Colores.BLANCO);
+      btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+      btn.setPreferredSize(new Dimension(64, 36));
+      btn.addActionListener(e -> {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copiar), null);
+        JOptionPane.showMessageDialog(this, "Copiado: " + copiar, "Copiado", JOptionPane.INFORMATION_MESSAGE);
       });
-      JPanel wrapper = new JPanel(new GridBagLayout());
-      wrapper.setOpaque(false);
-      wrapper.add(btnCopy);
-      row.add(wrapper, BorderLayout.EAST);
+      JPanel w = new JPanel(new GridBagLayout());
+      w.setOpaque(false);
+      w.add(btn);
+      row.add(w, BorderLayout.EAST);
     }
     return row;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Bloque de instrucciones
-  // ─────────────────────────────────────────────────────────────────────────
-  private JPanel crearInstrucciones() {
-    JPanel box = new JPanel(new GridBagLayout()) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.NARANJA_INST_BG);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    box.setOpaque(false);
+  private JPanel instrucciones() {
+    JPanel box = panelFondo(Colores.NARANJA_INST_BG, 12);
+    box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
     box.setBorder(new EmptyBorder(16, 18, 16, 18));
-    GridBagConstraints ci = new GridBagConstraints();
-    ci.gridx = 0;
-    ci.fill = GridBagConstraints.HORIZONTAL;
-    ci.weightx = 1;
+    box.setAlignmentX(LEFT_ALIGNMENT);
+    box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
 
     JLabel tit = new JLabel("Instrucciones:");
     tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
     tit.setForeground(Colores.TEXTO_OSCURO);
-    ci.gridy = 0;
-    ci.insets = new Insets(0, 0, 10, 0);
-    box.add(tit, ci);
+    tit.setAlignmentX(LEFT_ALIGNMENT);
+    box.add(tit);
+    box.add(Box.createVerticalStrut(10));
 
-    Object[][] pasos = {
-      {"Realiza la transferencia desde tu banca en línea o app móvil", false},
-      {"Usa la CLABE o número de cuenta proporcionados", false},
-      {"No olvides incluir la referencia en tu transferencia", true},
-      {"Espera la confirmación automática del pago", false},};
+    String[] pasos = {"Realiza la transferencia desde tu banca en línea o app móvil",
+      "Usa la CLABE o número de cuenta proporcionados",
+      "Incluye la referencia exacta en tu transferencia",
+      "Espera la confirmación automática del pago"};
     for (int i = 0; i < pasos.length; i++) {
-      JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-      fila.setOpaque(false);
-      JLabel num = new JLabel((i + 1) + ".");
-      num.setFont(new Font("Segoe UI", Font.BOLD, 13));
-      num.setForeground(Colores.NARANJA);
-      JLabel txt = new JLabel((String) pasos[i][0]);
-      txt.setFont((boolean) pasos[i][1]
-        ? new Font("Segoe UI", Font.BOLD, 13)
-        : new Font("Segoe UI", Font.PLAIN, 13));
-      txt.setForeground(Colores.TEXTO_OSCURO);
-      fila.add(num);
-      fila.add(txt);
-      ci.gridy = i + 1;
-      ci.insets = new Insets(0, 0, i < pasos.length - 1 ? 6 : 0, 0);
-      box.add(fila, ci);
+      JPanel f = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+      f.setOpaque(false);
+      f.setAlignmentX(LEFT_ALIGNMENT);
+      JLabel n = new JLabel((i + 1) + ".");
+      n.setFont(new Font("Segoe UI", Font.BOLD, 13));
+      n.setForeground(Colores.NARANJA);
+      JLabel t = new JLabel(pasos[i]);
+      t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+      t.setForeground(Colores.TEXTO_OSCURO);
+      f.add(n);
+      f.add(t);
+      box.add(f);
+      if (i < pasos.length - 1) {
+        box.add(Box.createVerticalStrut(6));
+      }
     }
     return box;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Utilidades UI
-  // ─────────────────────────────────────────────────────────────────────────
-  private JPanel crearTopBar(JFrame mainFrame, UsuarioDTO usuarioActivo,
-    IUsuarios usuariosFachada, IVentas ventasFachada,
-    IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  private JPanel topBar() {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    JButton btn = crearBoton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
+    JButton btn = boton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
     btn.setForeground(Colores.TEXTO_OSCURO);
     btn.setPreferredSize(new Dimension(160, 38));
     btn.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada,
-        inventarioFachada, proveedoresFachada).setVisible(true);
+      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
     });
     bar.add(btn);
     return bar;
   }
 
-  private JPanel crearCentrado(JComponent contenido, int margenH, int margenV) {
+  private JPanel btnVolverRow() {
+    JButton b = new JButton("← Volver a métodos de pago");
+    b.setContentAreaFilled(false);
+    b.setBorderPainted(false);
+    b.setFocusPainted(false);
+    b.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    b.setForeground(Colores.TEXTO_OSCURO);
+    b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    b.addActionListener(e -> {
+      dispose();
+      seleccionarMetodoPago.setVisible(true);
+    });
+    JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    p.setOpaque(false);
+    p.add(b);
+    return p;
+  }
+
+  private JPanel fondo() {
+    JPanel p = new JPanel(new BorderLayout()) {
+      @Override
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Colores.FONDO_AMARILLO);
+        g.fillRect(0, 0, getWidth(), getHeight());
+      }
+
+    };
+    p.setOpaque(false);
+    return p;
+  }
+
+  private JPanel tarjetaBlanca() {
+    JPanel p = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.SOMBRA);
+        g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
+        g.setColor(Colores.BLANCO);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
+        super.paintComponent(g2d);
+      }
+
+    };
+    p.setOpaque(false);
+    return p;
+  }
+
+  private JPanel panelFondo(Color bg, int arc) {
+    return new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(bg);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), arc, arc));
+        super.paintComponent(g2d);
+      }
+
+    };
+  }
+
+  private JPanel centrar(JComponent c, int mH, int mV) {
     JPanel p = new JPanel(new GridBagLayout());
     p.setOpaque(false);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 1;
     gbc.weighty = 1;
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.insets = new Insets(margenV, margenH, margenV, margenH);
-    p.add(contenido, gbc);
+    gbc.insets = new Insets(mV, mH, mV, mH);
+    p.add(c, gbc);
     return p;
   }
 
-  private JPanel crearHeader(String icono, String titulo, Color colorIcono) {
-    JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
-    header.setOpaque(false);
-    JPanel icoBox = new JPanel(new BorderLayout()) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(colorIcono);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
-        super.paintComponent(g2d);
-      }
-
-    };
-    icoBox.setOpaque(false);
-    icoBox.setPreferredSize(new Dimension(52, 52));
-    JLabel icoLbl = new JLabel(icono, SwingConstants.CENTER);
-    icoLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
-    icoLbl.setForeground(Colores.BLANCO);
-    icoBox.add(icoLbl);
-    JLabel titLbl = new JLabel(titulo);
-    titLbl.setFont(new Font("Segoe UI", Font.BOLD, 24));
-    titLbl.setForeground(Colores.TEXTO_OSCURO);
-    header.add(icoBox);
-    header.add(titLbl);
-    return header;
+  private JScrollPane scroll(JPanel c) {
+    JScrollPane sp = new JScrollPane(c);
+    sp.setBorder(BorderFactory.createEmptyBorder());
+    sp.setOpaque(false);
+    sp.getViewport().setOpaque(false);
+    sp.getVerticalScrollBar().setUnitIncrement(12);
+    sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    return sp;
   }
 
-  private JPanel crearCajaTotal(BigDecimal total) {
-    JPanel caja = new JPanel(new GridLayout(2, 1, 0, 8)) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.NARANJA_BG);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
-        super.paintComponent(g2d);
-      }
-
-    };
-    caja.setOpaque(false);
-    caja.setBorder(new EmptyBorder(22, 20, 22, 20));
-    JLabel lTxt = new JLabel("Total a pagar", SwingConstants.CENTER);
-    lTxt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-    lTxt.setForeground(Colores.GRIS_TEXTO);
-    JLabel lVal = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
-    lVal.setFont(new Font("Segoe UI", Font.BOLD, 38));
-    lVal.setForeground(Colores.NARANJA);
-    caja.add(lTxt);
-    caja.add(lVal);
-    return caja;
+  private JPanel header(String ico, String tit, Color col) {
+    JPanel h = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
+    h.setOpaque(false);
+    h.setAlignmentX(LEFT_ALIGNMENT);
+    JPanel ib = panelFondo(col, 14);
+    ib.setLayout(new BorderLayout());
+    ib.setOpaque(false);
+    ib.setPreferredSize(new Dimension(52, 52));
+    JLabel il = new JLabel(ico, SwingConstants.CENTER);
+    il.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    il.setForeground(Colores.BLANCO);
+    ib.add(il);
+    JLabel tl = new JLabel(tit);
+    tl.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    tl.setForeground(Colores.TEXTO_OSCURO);
+    h.add(ib);
+    h.add(tl);
+    return h;
   }
 
-  private JButton crearBoton(String texto, Color base, Color hover) {
-    JButton b = new JButton(texto) {
+  private JButton boton(String txt, Color base, Color hover) {
+    JButton b = new JButton(txt) {
       boolean ov = false;
 
       {
@@ -449,22 +478,10 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     return b;
   }
 
-  private JButton btnTexto(String texto) {
-    JButton b = new JButton(texto);
-    b.setContentAreaFilled(false);
-    b.setBorderPainted(false);
-    b.setFocusPainted(false);
-    b.setForeground(Colores.TEXTO_OSCURO);
-    b.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-    b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    return b;
-  }
-
   private String generarReferencia() {
-    LocalDate hoy = LocalDate.now();
+    LocalDate h = LocalDate.now();
     int r = new Random().nextInt(9000) + 1000;
-    return String.format("TRANS-%d-%02d%02d-%d",
-      hoy.getYear(), hoy.getMonthValue(), hoy.getDayOfMonth(), r);
+    return String.format("TRANS-%d-%02d%02d-%d", h.getYear(), h.getMonthValue(), h.getDayOfMonth(), r);
   }
 
 }

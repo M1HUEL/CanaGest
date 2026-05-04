@@ -1,6 +1,5 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
@@ -10,65 +9,65 @@ import java.util.List;
 
 public class VentasFacade implements IVentas {
 
-  private final VentasControl ventasControl;
+  private final VentasControl control;
 
   public VentasFacade(INotificaciones notificaciones, IPagos pagos) {
-    this.ventasControl = new VentasControl(notificaciones, pagos);
-  }
-
-  @Override
-  public VentaDTO iniciarNuevaVenta() {
-    return new VentaDTO();
-  }
-
-  @Override
-  public boolean existeProducto(EscanearProductoDTO dto) {
-    return ventasControl.existeProducto(dto);
-  }
-
-  @Override
-  public boolean tieneStock(EscanearProductoDTO dto) {
-    return ventasControl.tieneStock(dto);
-  }
-
-  @Override
-  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
-    return ventasControl.procesarProducto(ventaActual, dto);
-  }
-
-  @Override
-  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
-    return ventasControl.procesarPagoEfectivo(ventaActual, dto);
-  }
-
-  @Override
-  public ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
-    return ventasControl.procesarPagoElectronico(ventaActual, tipo, datos);
-  }
-
-  @Override
-  public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
-    return ventasControl.procesarCalcularCambio(ventaActual, efectivo);
-  }
-
-  @Override
-  public void procesarFinalizarVenta(VentaDTO ventaActual) {
-    ventasControl.procesarFinalizarVenta(ventaActual);
-  }
-
-  @Override
-  public VentaDTO obtenerResumenVenta(VentaDTO ventaActual) {
-    return ventaActual;
-  }
-
-  @Override
-  public TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal montoRecibido) {
-    return ventasControl.generarTicket(ventaActual, montoRecibido);
+    this.control = new VentasControl(notificaciones, pagos);
   }
 
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
-    return ventasControl.obtenerCatalogo();
+    return control.obtenerCatalogo();
+  }
+
+  @Override
+  public boolean existeProducto(EscanearProductoDTO dto) {
+    return control.existeProducto(dto);
+  }
+
+  @Override
+  public boolean tieneStock(EscanearProductoDTO dto) {
+    return control.tieneStock(dto);
+  }
+
+  @Override
+  public ProductoDTO procesarProducto(VentaDTO v, EscanearProductoDTO dto) {
+    return control.procesarProducto(v, dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO v, PagoEfectivoDTO dto) {
+    return control.procesarPagoEfectivo(v, dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO v, PagoTarjetaDTO dto) {
+    return control.procesarPagoTarjeta(v, dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO v, PagoTransferenciaDTO dto) {
+    return control.procesarPagoTransferencia(v, dto);
+  }
+
+  @Override
+  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO v, PagoQrDTO dto) {
+    return control.procesarPagoCoDi(v, dto);
+  }
+
+  @Override
+  public BigDecimal procesarCalcularCambio(VentaDTO v, BigDecimal ef) {
+    return control.procesarCalcularCambio(v, ef);
+  }
+
+  @Override
+  public void procesarFinalizarVenta(VentaDTO v) {
+    control.procesarFinalizarVenta(v);
+  }
+
+  @Override
+  public TicketDTO generarTicket(VentaDTO v, BigDecimal ef) {
+    return control.generarTicket(v, ef);
   }
 
 }

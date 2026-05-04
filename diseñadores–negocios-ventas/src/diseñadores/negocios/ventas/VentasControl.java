@@ -70,23 +70,17 @@ public class VentasControl {
     if (producto.getStock() <= cantidadEnCarrito) {
       return null;
     }
-
     ventaActual.agregarProducto(producto);
     return producto;
   }
 
   public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
-    if (ventaActual == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula.");
-    }
+    validarVentaConItems(ventaActual);
     if (dto == null || dto.getMontoRecibido() == null) {
       throw new IllegalArgumentException("El monto recibido no puede ser nulo.");
     }
     if (dto.getMontoRecibido().compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalArgumentException("El monto recibido debe ser mayor a cero.");
-    }
-    if (ventaActual.getItems().isEmpty()) {
-      throw new IllegalStateException("No se puede pagar una venta sin productos.");
     }
 
     BigDecimal total = ventaActual.getTotal();
@@ -97,37 +91,49 @@ public class VentasControl {
       return ResultadoPagoDTO.rechazado(
         String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
     }
-
     return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
-  public ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
-    if (ventaActual == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula.");
-    }
-    if (tipo == null) {
-      throw new IllegalArgumentException("El tipo de pago no puede ser nulo.");
-    }
-    if (datos == null || datos.isBlank()) {
-      throw new IllegalArgumentException("Los datos del pago no pueden estar vacíos.");
-    }
-    if (ventaActual.getItems().isEmpty()) {
-      throw new IllegalStateException("No se puede pagar una venta sin productos.");
+  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO ventaActual, PagoTarjetaDTO dto) {
+    validarVentaConItems(ventaActual);
+    if (dto == null) {
+      throw new IllegalArgumentException("Los datos de tarjeta no pueden ser nulos.");
     }
 
+    String datos = "numero=" + dto.getNumero() + "|titular=" + dto.getTitular();
+    return procesarPagoElectronico(ventaActual, TipoPago.TARJETA, datos);
+  }
+
+  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO ventaActual, PagoTransferenciaDTO dto) {
+    validarVentaConItems(ventaActual);
+    if (dto == null) {
+      throw new IllegalArgumentException("Los datos de transferencia no pueden ser nulos.");
+    }
+
+    String datos = "clabe=" + dto.getClabe() + "|referencia=" + dto.getReferencia();
+    return procesarPagoElectronico(ventaActual, TipoPago.TRANSACCION, datos);
+  }
+
+  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO ventaActual, PagoQrDTO dto) {
+    validarVentaConItems(ventaActual);
+    if (dto == null) {
+      throw new IllegalArgumentException("Los datos de CoDi no pueden ser nulos.");
+    }
+
+    String datos = "referencia=" + dto.getReferencia();
+    return procesarPagoElectronico(ventaActual, TipoPago.QR, datos);
+  }
+
+  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
     String referencia = "VENTA-" + System.currentTimeMillis();
 
-    RespuestaPagoDTO response = serviciosPagos.procesarPago(
-      tipo,
-      ventaActual.getTotal(),
-      referencia,
-      datos
-    );
+    RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(
+      tipo, ventaActual.getTotal(), referencia, datos);
 
-    if (response.isExitoso()) {
-      return ResultadoPagoDTO.aprobado(BigDecimal.ZERO);
+    if (respuesta.isExitoso()) {
+      return ResultadoPagoDTO.aprobado(respuesta.getCodigoAutorizacion());
     } else {
-      return ResultadoPagoDTO.rechazado(response.getMensaje());
+      return ResultadoPagoDTO.rechazado(respuesta.getMensaje());
     }
   }
 
@@ -144,10 +150,10 @@ public class VentasControl {
       throw new IllegalArgumentException("La venta no puede ser nula.");
     }
     if (ventaActual.getItems().isEmpty()) {
-      throw new IllegalStateException("No se puede finalizar una venta sin productos.");
+      throw new IllegalStateException("Venta sin productos.");
     }
     if (ventaActual.isPagada()) {
-      throw new IllegalStateException("La venta ya fue pagada anteriormente.");
+      throw new IllegalStateException("La venta ya fue pagada.");
     }
 
     ventaActual.setPagada(true);
@@ -155,12 +161,11 @@ public class VentasControl {
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
       Inventario.descontarStock(item.getCodigo(), item.getCantidad());
-      ProductoDTO estadoActual = Inventario.obtenerProductoPorCodigo(item.getCodigo());
-      if (estadoActual != null && estadoActual.getStock() < STOCK_MINIMO) {
-        ejecutarProtocoloReabastecimiento(estadoActual);
+      ProductoDTO estado = Inventario.obtenerProductoPorCodigo(item.getCodigo());
+      if (estado != null && estado.getStock() < STOCK_MINIMO) {
+        ejecutarProtocoloReabastecimiento(estado);
       }
     }
-
     Venta.guardar(ventaActual);
   }
 
@@ -169,10 +174,10 @@ public class VentasControl {
       throw new IllegalArgumentException("La venta no puede ser nula.");
     }
     if (!ventaActual.isPagada()) {
-      throw new IllegalStateException("No se puede generar un ticket de una venta no pagada.");
+      throw new IllegalStateException("La venta no ha sido pagada.");
     }
     if (ultimoEfectivo == null || ultimoEfectivo.compareTo(BigDecimal.ZERO) < 0) {
-      throw new IllegalArgumentException("El monto de efectivo no es válido.");
+      throw new IllegalArgumentException("Monto de efectivo inválido.");
     }
 
     BigDecimal cambio = ultimoEfectivo.compareTo(BigDecimal.ZERO) > 0
@@ -187,16 +192,26 @@ public class VentasControl {
       ventaActual.getTotal(),
       ultimoEfectivo,
       cambio,
-      LocalDateTime.now(), CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO
+      LocalDateTime.now(),
+      CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO,
+      ventaActual.getTipoPago()
     );
   }
 
+  private void validarVentaConItems(VentaDTO venta) {
+    if (venta == null) {
+      throw new IllegalArgumentException("La venta no puede ser nula.");
+    }
+    if (venta.getItems().isEmpty()) {
+      throw new IllegalStateException("No se puede pagar una venta sin productos.");
+    }
+  }
+
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    String mensaje = "Alerta: El stock se encuentra bajo para el producto " + p.getNombre()
-      + ". Solo quedan " + p.getStock() + " unidades disponibles.";
-    boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), mensaje);
+    String msg = "Alerta: stock bajo para " + p.getNombre() + ". Quedan " + p.getStock() + " unidades.";
+    boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), msg);
     if (enviado) {
-      System.out.println("Notificación de stock bajo enviada satisfactoriamente para: " + p.getNombre());
+      System.out.println("[Stock] Notificación enviada: " + p.getNombre());
     }
   }
 

@@ -14,6 +14,7 @@ public class VentaDTO {
   private int totalUnidades;
   private boolean pagada;
   private String folio;
+  private TipoPago tipoPago;
 
   public VentaDTO() {
     this.items = new ArrayList<>();
@@ -104,6 +105,14 @@ public class VentaDTO {
 
   public void setFolio(String folio) {
     this.folio = folio;
+  }
+
+  public TipoPago getTipoPago() {
+    return tipoPago;
+  }
+
+  public void setTipoPago(TipoPago tipoPago) {
+    this.tipoPago = tipoPago;
   }
 
 }

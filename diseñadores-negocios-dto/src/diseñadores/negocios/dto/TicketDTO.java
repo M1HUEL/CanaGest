@@ -22,13 +22,15 @@ public class TicketDTO {
   private final String rfc;
   private final String direccion;
   private final String telefono;
+  private final TipoPago tipoPago;
 
   public TicketDTO(String folio, List<ItemVentaDTO> items,
     BigDecimal subtotal, BigDecimal iva, BigDecimal total,
     BigDecimal efectivoRecibido, BigDecimal cambio,
     LocalDateTime fechaHora,
     String cajero, String nombreTienda,
-    String rfc, String direccion, String telefono) {
+    String rfc, String direccion, String telefono,
+    TipoPago tipoPago) {
     this.folio = folio;
     this.items = items;
     this.subtotal = subtotal;
@@ -43,6 +45,7 @@ public class TicketDTO {
     this.rfc = rfc;
     this.direccion = direccion;
     this.telefono = telefono;
+    this.tipoPago = tipoPago;
   }
 
   public String getFolio() {
@@ -99,6 +102,10 @@ public class TicketDTO {
 
   public String getTelefono() {
     return telefono;
+  }
+
+  public TipoPago getTipoPago() {
+    return tipoPago;
   }
 
 }

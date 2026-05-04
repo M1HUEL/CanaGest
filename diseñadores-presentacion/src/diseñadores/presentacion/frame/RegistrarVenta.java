@@ -46,8 +46,8 @@ public class RegistrarVenta extends JFrame {
     setLocationRelativeTo(null);
     setResizable(true);
 
-    ventaActual = ventasFachada.iniciarNuevaVenta();
     catalogoProductos = ventasFachada.obtenerCatalogo();
+    ventaActual = new VentaDTO();
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -570,7 +570,6 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void cancelarVenta() {
-    ventaActual = ventasFachada.iniciarNuevaVenta();
     actualizarVista();
   }
 
@@ -582,7 +581,6 @@ public class RegistrarVenta extends JFrame {
     BigDecimal total = ventaActual.getTotal();
     this.setVisible(false);
     new SeleccionarMetodoPago(this, ventasFachada, ventaActual, total, () -> {
-      ventaActual = ventasFachada.iniciarNuevaVenta();
       actualizarVista();
       refrescarCatalogo();
     }, usuariosFachada, inventarioFachada, proveedoresFachada, ventasFachada, usuarioActivo);

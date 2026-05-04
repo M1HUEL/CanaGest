@@ -1,6 +1,5 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.negocios.dto.*;
 
 import java.math.BigDecimal;
@@ -8,26 +7,26 @@ import java.util.List;
 
 public interface IVentas {
 
-  VentaDTO iniciarNuevaVenta();
+  List<ProductoDTO> obtenerCatalogo();
 
   boolean existeProducto(EscanearProductoDTO dto);
 
   boolean tieneStock(EscanearProductoDTO dto);
 
-  ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto);
+  ProductoDTO procesarProducto(VentaDTO venta, EscanearProductoDTO dto);
 
-  ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto);
+  ResultadoPagoDTO procesarPagoEfectivo(VentaDTO venta, PagoEfectivoDTO dto);
 
-  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos);
+  ResultadoPagoDTO procesarPagoTarjeta(VentaDTO venta, PagoTarjetaDTO dto);
 
-  BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo);
+  ResultadoPagoDTO procesarPagoTransferencia(VentaDTO venta, PagoTransferenciaDTO dto);
 
-  void procesarFinalizarVenta(VentaDTO ventaActual);
+  ResultadoPagoDTO procesarPagoCoDi(VentaDTO venta, PagoQrDTO dto);
 
-  VentaDTO obtenerResumenVenta(VentaDTO ventaActual);
+  BigDecimal procesarCalcularCambio(VentaDTO venta, BigDecimal efectivo);
 
-  TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal montoRecibido);
+  void procesarFinalizarVenta(VentaDTO venta);
 
-  List<ProductoDTO> obtenerCatalogo();
+  TicketDTO generarTicket(VentaDTO venta, BigDecimal efectivoRecibido);
 
 }

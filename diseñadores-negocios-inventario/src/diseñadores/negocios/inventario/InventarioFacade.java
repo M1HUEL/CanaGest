@@ -7,6 +7,10 @@ public class InventarioFacade implements IInventario {
 
   private final InventarioControl control;
 
+  public InventarioFacade() {
+    this.control = new InventarioControl();
+  }
+
   public InventarioFacade(InventarioControl control) {
     this.control = control;
   }

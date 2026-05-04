@@ -13,6 +13,10 @@ public class ProductosFacade implements IProductos {
     this.control = new ProductosControl();
   }
 
+  public ProductosFacade(ProductosControl control) {
+    this.control = control;
+  }
+
   @Override
   public List<ProductoDTO> obtenerCatalogo() {
     return control.obtenerCatalogo();

@@ -12,6 +12,10 @@ public class PagosFacade implements IPagos {
     this.control = new PagosControl();
   }
 
+  public PagosFacade(PagosControl control) {
+    this.control = control;
+  }
+
   @Override
   public RespuestaPagoDTO procesarPago(TipoPago tipo, BigDecimal monto, String referencia, String datos) {
     return control.procesarPago(tipo, monto, referencia, datos);

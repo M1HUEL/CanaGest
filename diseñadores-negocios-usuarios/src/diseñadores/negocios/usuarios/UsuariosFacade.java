@@ -14,6 +14,10 @@ public class UsuariosFacade implements IUsuarios {
     this.control = new UsuariosControl();
   }
 
+  public UsuariosFacade(UsuariosControl control) {
+    this.control = control;
+  }
+
   @Override
   public Optional<UsuarioDTO> autenticarse(String nombre, String contrasena) {
     return control.autenticar(nombre, contrasena);

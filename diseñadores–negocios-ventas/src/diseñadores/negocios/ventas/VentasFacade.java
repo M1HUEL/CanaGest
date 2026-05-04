@@ -11,6 +11,10 @@ public class VentasFacade implements IVentas {
 
   private final VentasControl control;
 
+  public VentasFacade() {
+    this.control = new VentasControl();
+  }
+
   public VentasFacade(INotificaciones notificaciones, IPagos pagos) {
     this.control = new VentasControl(notificaciones, pagos);
   }

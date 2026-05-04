@@ -3,7 +3,9 @@ package diseñadores.negocios.ventas;
 import diseñadores.infraestructura.dto.RespuestaPagoDTO;
 import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
+import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
 import diseñadores.infraestructura.pagos.IPagos;
+import diseñadores.infraestructura.pagos.PagosFacade;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.objetos.Inventario;
 import diseñadores.negocios.objetos.Producto;
@@ -24,6 +26,11 @@ public class VentasControl {
   private static final String DIRECCION = "Av. Principal #123, Col. Centro";
   private static final String TELEFONO = "Tel: (555) 123-4567";
   private static final String CAJERO = "Juan Pérez - Caja #1";
+
+  public VentasControl() {
+    this.servicioNotificaciones = new NotificacionesFacade();
+    this.serviciosPagos = new PagosFacade();
+  }
 
   public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos) {
     this.servicioNotificaciones = servicioNotificaciones;

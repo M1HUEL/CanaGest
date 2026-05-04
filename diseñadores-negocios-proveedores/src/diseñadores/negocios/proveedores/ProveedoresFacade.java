@@ -13,6 +13,10 @@ public class ProveedoresFacade implements IProveedores {
     this.control = new ProveedoresControl();
   }
 
+  public ProveedoresFacade(ProveedoresControl control) {
+    this.control = control;
+  }
+
   @Override
   public List<ProveedorDTO> obtenerProveedores() {
     return control.obtenerTodos();

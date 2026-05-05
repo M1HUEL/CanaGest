@@ -401,6 +401,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         g.fill(new RoundRectangle2D.Float(3, 4, getWidth() - 4, getHeight() - 3, 20, 20));
         g.setColor(Colores.BLANCO);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
+        super.paintComponent(g2d);
       }
 
     };
@@ -416,6 +417,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(bg);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), arc, arc));
+        super.paintComponent(g2d);
       }
 
     };

@@ -45,7 +45,7 @@ public class VentasControl {
   }
 
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return serviciosProductos.existeProducto(dto);
+    return serviciosProductos.validarExistenciaProducto(dto);
   }
 
   public boolean tieneStock(EscanearProductoDTO dto) {

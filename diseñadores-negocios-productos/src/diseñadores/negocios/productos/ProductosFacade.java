@@ -27,8 +27,8 @@ public class ProductosFacade implements IProductos {
   }
 
   @Override
-  public boolean existeProducto(EscanearProductoDTO dto) {
-    return control.existeProducto(dto);
+  public boolean validarExistenciaProducto(EscanearProductoDTO dto) {
+    return control.validarExistenciaProducto(dto);
   }
 
   @Override

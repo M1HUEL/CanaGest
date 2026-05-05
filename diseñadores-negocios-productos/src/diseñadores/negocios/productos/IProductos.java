@@ -10,7 +10,7 @@ public interface IProductos {
 
   ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto);
 
-  boolean existeProducto(EscanearProductoDTO dto);
+  boolean validarExistenciaProducto(EscanearProductoDTO dto);
 
   boolean tieneStock(EscanearProductoDTO dto, int cantidad);
 

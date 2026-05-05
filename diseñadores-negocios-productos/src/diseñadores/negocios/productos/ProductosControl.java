@@ -39,7 +39,7 @@ public class ProductosControl {
     return p;
   }
 
-  public boolean existeProducto(EscanearProductoDTO dto) {
+  public boolean validarExistenciaProducto(EscanearProductoDTO dto) {
     if (dto == null || dto.getCodigo() == null) {
       return false;
     }

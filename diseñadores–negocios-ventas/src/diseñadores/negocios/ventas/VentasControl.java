@@ -7,8 +7,9 @@ import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.infraestructura.pagos.PagosFacade;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.objetos.Inventario;
-import diseñadores.negocios.objetos.Producto;
 import diseñadores.negocios.objetos.Venta;
+import diseñadores.negocios.productos.IProductos;
+import diseñadores.negocios.productos.ProductosFacade;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class VentasControl {
 
   private final INotificaciones servicioNotificaciones;
   private final IPagos serviciosPagos;
+  private final IProductos serviciosProductos;
 
   private static final int STOCK_MINIMO = 3;
   private static final String NOMBRE_TIENDA = "La Canasta";
@@ -29,41 +31,32 @@ public class VentasControl {
   public VentasControl() {
     this.servicioNotificaciones = new NotificacionesFacade();
     this.serviciosPagos = new PagosFacade();
+    this.serviciosProductos = new ProductosFacade();
   }
 
-  public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos) {
+  public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos, IProductos serviciosProductos) {
     this.servicioNotificaciones = servicioNotificaciones;
     this.serviciosPagos = serviciosPagos;
+    this.serviciosProductos = serviciosProductos;
   }
 
   public List<ProductoDTO> obtenerCatalogo() {
-    return Producto.obtenerTodos();
+    return serviciosProductos.obtenerCatalogo();
   }
 
   public boolean existeProducto(EscanearProductoDTO dto) {
-    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
-      return false;
-    }
-    return Producto.obtenerPorCodigo(dto.getCodigo()) != null;
+    return serviciosProductos.existeProducto(dto);
   }
 
   public boolean tieneStock(EscanearProductoDTO dto) {
-    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
-      return false;
-    }
-    ProductoDTO p = Producto.obtenerPorCodigo(dto.getCodigo());
-    return p != null && p.getStock() >= 1;
+    return serviciosProductos.tieneStock(dto);
   }
 
   public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
-    if (ventaActual == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula.");
-    }
-    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
-      throw new IllegalArgumentException("El código del producto no puede estar vacío.");
-    }
+    validarVentaNoNula(ventaActual);
 
-    ProductoDTO producto = Producto.obtenerPorCodigo(dto.getCodigo());
+    ProductoDTO producto = serviciosProductos.buscarProductoPorCodigo(dto);
+
     if (producto == null) {
       return null;
     }
@@ -75,6 +68,7 @@ public class VentasControl {
     if (producto.getStock() <= cantidadEnCarrito) {
       return null;
     }
+
     ventaActual.agregarProducto(producto);
     return producto;
   }
@@ -84,17 +78,12 @@ public class VentasControl {
     if (dto == null || dto.getMontoRecibido() == null) {
       throw new IllegalArgumentException("El monto recibido no puede ser nulo.");
     }
-    if (dto.getMontoRecibido().compareTo(BigDecimal.ZERO) <= 0) {
-      throw new IllegalArgumentException("El monto recibido debe ser mayor a cero.");
-    }
 
     BigDecimal total = ventaActual.getTotal();
     BigDecimal recibido = dto.getMontoRecibido();
 
     if (recibido.compareTo(total) < 0) {
-      BigDecimal faltante = total.subtract(recibido);
-      return ResultadoPagoDTO.rechazado(
-        String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
+      return ResultadoPagoDTO.rechazado("Monto insuficiente.");
     }
 
     ventaActual.setTipoPago(TipoPago.EFECTIVO);
@@ -173,12 +162,7 @@ public class VentasControl {
   }
 
   public void procesarFinalizarVenta(VentaDTO ventaActual) {
-    if (ventaActual == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula.");
-    }
-    if (ventaActual.getItems().isEmpty()) {
-      throw new IllegalStateException("Venta sin productos.");
-    }
+    validarVentaConItems(ventaActual);
     if (ventaActual.isPagada()) {
       throw new IllegalStateException("La venta ya fue pagada.");
     }
@@ -188,7 +172,11 @@ public class VentasControl {
 
     for (ItemVentaDTO item : ventaActual.getItems()) {
       Inventario.descontarStock(item.getCodigo(), item.getCantidad());
-      ProductoDTO estado = Inventario.obtenerProductoPorCodigo(item.getCodigo());
+
+      EscanearProductoDTO tempDto = new EscanearProductoDTO(item.getCodigo());
+
+      ProductoDTO estado = serviciosProductos.buscarProductoPorCodigo(tempDto);
+
       if (estado != null && estado.getStock() < STOCK_MINIMO) {
         ejecutarProtocoloReabastecimiento(estado);
       }
@@ -225,22 +213,22 @@ public class VentasControl {
     );
   }
 
-  private void validarVentaConItems(VentaDTO venta) {
+  private void validarVentaNoNula(VentaDTO venta) {
     if (venta == null) {
       throw new IllegalArgumentException("La venta no puede ser nula.");
     }
+  }
+
+  private void validarVentaConItems(VentaDTO venta) {
+    validarVentaNoNula(venta);
     if (venta.getItems().isEmpty()) {
-      throw new IllegalStateException("No se puede pagar una venta sin productos.");
+      throw new IllegalStateException("No se puede procesar una venta sin productos.");
     }
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    String msg = "Alerta: stock bajo para " + p.getNombre()
-      + ". Quedan " + p.getStock() + " unidades.";
-    boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), msg);
-    if (enviado) {
-      System.out.println("[Stock] Notificación enviada: " + p.getNombre());
-    }
+    String msg = "Alerta: stock bajo para " + p.getNombre() + ". Quedan " + p.getStock() + " unidades.";
+    servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), msg);
   }
 
   private String generarFolio() {

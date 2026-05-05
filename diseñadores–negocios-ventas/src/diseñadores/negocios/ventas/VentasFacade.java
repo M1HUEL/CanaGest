@@ -3,6 +3,7 @@ package diseñadores.negocios.ventas;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
+import diseñadores.negocios.productos.IProductos;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,8 +16,8 @@ public class VentasFacade implements IVentas {
     this.control = new VentasControl();
   }
 
-  public VentasFacade(INotificaciones notificaciones, IPagos pagos) {
-    this.control = new VentasControl(notificaciones, pagos);
+  public VentasFacade(INotificaciones notificaciones, IPagos pagos, IProductos productos) {
+    this.control = new VentasControl(notificaciones, pagos, productos);
   }
 
   @Override

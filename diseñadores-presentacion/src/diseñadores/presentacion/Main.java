@@ -22,10 +22,7 @@ public class Main {
     IInventario inventarioFachada = new InventarioFacade(inventarioControl);
     IProveedores proveedoresFachada = new ProveedoresFacade();
 
-    VentasFacade ventasFachada = new VentasFacade(
-      new NotificacionesFacade(),
-      new PagosFacade()
-    );
+    VentasFacade ventasFachada = new VentasFacade();
 
     SwingUtilities.invokeLater(() -> {
       new PantallaAutenticacion(usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);

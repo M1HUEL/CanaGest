@@ -24,12 +24,20 @@ public class TicketDTO {
   private final String telefono;
   private final TipoPago tipoPago;
 
-  public TicketDTO(String folio, List<ItemVentaDTO> items,
-    BigDecimal subtotal, BigDecimal iva, BigDecimal total,
-    BigDecimal efectivoRecibido, BigDecimal cambio,
+  public TicketDTO(
+    String folio,
+    List<ItemVentaDTO> items,
+    BigDecimal subtotal,
+    BigDecimal iva,
+    BigDecimal total,
+    BigDecimal efectivoRecibido,
+    BigDecimal cambio,
     LocalDateTime fechaHora,
-    String cajero, String nombreTienda,
-    String rfc, String direccion, String telefono,
+    String cajero,
+    String nombreTienda,
+    String rfc,
+    String direccion,
+    String telefono,
     TipoPago tipoPago) {
     this.folio = folio;
     this.items = items;

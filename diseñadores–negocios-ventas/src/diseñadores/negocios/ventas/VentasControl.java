@@ -1,7 +1,6 @@
 package diseñadores.negocios.ventas;
 
 import diseñadores.infraestructura.dto.RespuestaPagoDTO;
-import diseñadores.infraestructura.dto.TipoPago;
 import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
 import diseñadores.infraestructura.pagos.IPagos;
@@ -71,8 +70,7 @@ public class VentasControl {
 
     int cantidadEnCarrito = ventaActual.getItems().stream()
       .filter(i -> i.getCodigo().equals(producto.getCodigo()))
-      .mapToInt(ItemVentaDTO::getCantidad)
-      .sum();
+      .mapToInt(ItemVentaDTO::getCantidad).sum();
 
     if (producto.getStock() <= cantidadEnCarrito) {
       return null;
@@ -98,6 +96,8 @@ public class VentasControl {
       return ResultadoPagoDTO.rechazado(
         String.format("Monto insuficiente. Faltan $%.2f para completar el pago.", faltante));
     }
+
+    ventaActual.setTipoPago(TipoPago.EFECTIVO);
     return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
@@ -107,8 +107,15 @@ public class VentasControl {
       throw new IllegalArgumentException("Los datos de tarjeta no pueden ser nulos.");
     }
 
-    String datos = "numero=" + dto.getNumero() + "|titular=" + dto.getTitular();
-    return procesarPagoElectronico(ventaActual, TipoPago.TARJETA, datos);
+    ResultadoPagoDTO resultado = procesarPagoElectronico(
+      ventaActual,
+      diseñadores.infraestructura.dto.TipoPago.TARJETA,
+      "numero=" + dto.getNumero() + "|titular=" + dto.getTitular());
+
+    if (resultado.isAprobado()) {
+      ventaActual.setTipoPago(TipoPago.TARJETA);
+    }
+    return resultado;
   }
 
   public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO ventaActual, PagoTransferenciaDTO dto) {
@@ -117,8 +124,15 @@ public class VentasControl {
       throw new IllegalArgumentException("Los datos de transferencia no pueden ser nulos.");
     }
 
-    String datos = "clabe=" + dto.getClabe() + "|referencia=" + dto.getReferencia();
-    return procesarPagoElectronico(ventaActual, TipoPago.TRANSACCION, datos);
+    ResultadoPagoDTO resultado = procesarPagoElectronico(
+      ventaActual,
+      diseñadores.infraestructura.dto.TipoPago.TRANSACCION,
+      "clabe=" + dto.getClabe() + "|referencia=" + dto.getReferencia());
+
+    if (resultado.isAprobado()) {
+      ventaActual.setTipoPago(TipoPago.TRANSACCION);
+    }
+    return resultado;
   }
 
   public ResultadoPagoDTO procesarPagoCoDi(VentaDTO ventaActual, PagoQrDTO dto) {
@@ -127,21 +141,27 @@ public class VentasControl {
       throw new IllegalArgumentException("Los datos de CoDi no pueden ser nulos.");
     }
 
-    String datos = "referencia=" + dto.getReferencia();
-    return procesarPagoElectronico(ventaActual, TipoPago.QR, datos);
+    ResultadoPagoDTO resultado = procesarPagoElectronico(
+      ventaActual,
+      diseñadores.infraestructura.dto.TipoPago.QR,
+      "referencia=" + dto.getReferencia());
+
+    if (resultado.isAprobado()) {
+      ventaActual.setTipoPago(TipoPago.QR);
+    }
+    return resultado;
   }
 
-  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual, TipoPago tipo, String datos) {
+  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual,
+    diseñadores.infraestructura.dto.TipoPago tipoInfra,
+    String datos) {
     String referencia = "VENTA-" + System.currentTimeMillis();
-
     RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(
-      tipo, ventaActual.getTotal(), referencia, datos);
+      tipoInfra, ventaActual.getTotal(), referencia, datos);
 
-    if (respuesta.isExitoso()) {
-      return ResultadoPagoDTO.aprobado(respuesta.getCodigoAutorizacion());
-    } else {
-      return ResultadoPagoDTO.rechazado(respuesta.getMensaje());
-    }
+    return respuesta.isExitoso()
+      ? ResultadoPagoDTO.aprobado(respuesta.getCodigoAutorizacion())
+      : ResultadoPagoDTO.rechazado(respuesta.getMensaje());
   }
 
   public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
@@ -215,7 +235,8 @@ public class VentasControl {
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    String msg = "Alerta: stock bajo para " + p.getNombre() + ". Quedan " + p.getStock() + " unidades.";
+    String msg = "Alerta: stock bajo para " + p.getNombre()
+      + ". Quedan " + p.getStock() + " unidades.";
     boolean enviado = servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), msg);
     if (enviado) {
       System.out.println("[Stock] Notificación enviada: " + p.getNombre());

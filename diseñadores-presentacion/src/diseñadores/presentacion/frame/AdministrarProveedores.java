@@ -17,9 +17,7 @@ import java.util.List;
 public class AdministrarProveedores extends JFrame {
 
   private final JFrame frame;
-
   private final IProveedores fachada;
-
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
 
   private JPanel panelGrid;
@@ -47,7 +45,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
     root.add(buildContenido(), BorderLayout.CENTER);
@@ -62,9 +59,6 @@ public class AdministrarProveedores extends JFrame {
       new EmptyBorder(0, 24, 0, 24)));
     bar.setPreferredSize(new Dimension(0, 66));
 
-    JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
-    izq.setOpaque(false);
-
     JButton btnMenu = crearBotonAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
@@ -75,7 +69,6 @@ public class AdministrarProveedores extends JFrame {
     der.setOpaque(false);
     der.add(btnMenu);
 
-    bar.add(izq, BorderLayout.WEST);
     bar.add(der, BorderLayout.EAST);
     return bar;
   }
@@ -92,15 +85,12 @@ public class AdministrarProveedores extends JFrame {
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
-
     JLabel lblTitulo = new JLabel("Administrar Proveedores");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
-
     JLabel lblDesc = new JLabel("Gestiona la información de tus proveedores");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
-
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
@@ -118,7 +108,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     cardActivos.setOpaque(false);
     cardActivos.setLayout(new BoxLayout(cardActivos, BoxLayout.Y_AXIS));
     cardActivos.setBorder(new EmptyBorder(14, 24, 14, 24));
@@ -154,7 +143,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     barBusqueda.setOpaque(false);
     barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
     barBusqueda.setPreferredSize(new Dimension(0, 68));
@@ -170,7 +158,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -275,6 +262,13 @@ public class AdministrarProveedores extends JFrame {
     construirGrid(f);
   }
 
+  private void recargarLista() {
+    proveedores.clear();
+    proveedores.addAll(fachada.obtenerProveedores());
+    lblActivos.setText(String.valueOf(fachada.contarProveedoresActivos()));
+    filtrar();
+  }
+
   private JPanel cardProveedor(ProveedorDTO p) {
     JPanel card = new JPanel(new BorderLayout(0, 10)) {
       @Override
@@ -289,7 +283,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(20, 22, 20, 22));
 
@@ -299,15 +292,12 @@ public class AdministrarProveedores extends JFrame {
     JPanel nombreCol = new JPanel();
     nombreCol.setLayout(new BoxLayout(nombreCol, BoxLayout.Y_AXIS));
     nombreCol.setOpaque(false);
-
     JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(16));
     lblN.setForeground(Colores.TEXTO_OSCURO);
-
     JLabel lblC = new JLabel(p.getCodigo());
     lblC.setFont(Fuentes.r(12));
     lblC.setForeground(Colores.GRIS_TEXTO);
-
     nombreCol.add(lblN);
     nombreCol.add(Box.createVerticalStrut(3));
     nombreCol.add(lblC);
@@ -358,9 +348,8 @@ public class AdministrarProveedores extends JFrame {
     botonesRow.setPreferredSize(new Dimension(0, 40));
 
     JButton btnEditar = crearBotonCard("Editar", Colores.AZUL, Colores.AZUL_HOVER, true);
-    btnEditar.addActionListener(e -> abrirFormulario(p));
-
     JButton btnDetalle = crearBotonCard("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
+    btnEditar.addActionListener(e -> abrirFormulario(p));
     btnDetalle.addActionListener(e -> abrirDetalle(p));
 
     botonesRow.add(btnEditar);
@@ -383,7 +372,7 @@ public class AdministrarProveedores extends JFrame {
     JLabel lbl = new JLabel(etiqueta + ": ");
     lbl.setFont(Fuentes.b(13));
     lbl.setForeground(Colores.TEXTO_OSCURO);
-    JLabel val = new JLabel(valor);
+    JLabel val = new JLabel(valor != null ? valor : "-");
     val.setFont(Fuentes.r(13));
     val.setForeground(Colores.TEXTO_OSCURO);
     row.add(lbl);
@@ -393,6 +382,7 @@ public class AdministrarProveedores extends JFrame {
 
   private void abrirFormulario(ProveedorDTO prov) {
     boolean esNuevo = prov == null;
+
     JDialog dlg = new JDialog(this, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
     dlg.setSize(540, 680);
     dlg.setLocationRelativeTo(this);
@@ -403,7 +393,8 @@ public class AdministrarProveedores extends JFrame {
     panel.setBorder(new EmptyBorder(24, 28, 24, 28));
     panel.setBackground(Colores.BLANCO);
 
-    JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor" : "Editar: " + (prov != null ? prov.getNombre() : ""));
+    JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor"
+      : "Editar: " + (prov != null ? prov.getNombre() : ""));
     titulo.setFont(Fuentes.b(20));
     titulo.setForeground(Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
@@ -450,17 +441,17 @@ public class AdministrarProveedores extends JFrame {
 
     JTextField tfContacto = crearCampo(esNuevo ? "" : prov.getContacto(), 100);
     campos[2] = tfContacto;
-    panel.add(crearFilaCampo("Contacto", tfContacto));
+    panel.add(crearFilaCampo("Contacto *", tfContacto));
     panel.add(Box.createVerticalStrut(8));
 
     JTextField tfTelefono = crearCampo(esNuevo ? "" : prov.getTelefono(), 20);
     campos[3] = tfTelefono;
-    panel.add(crearFilaCampo("Teléfono", tfTelefono));
+    panel.add(crearFilaCampo("Teléfono *", tfTelefono));
     panel.add(Box.createVerticalStrut(8));
 
     JTextField tfEmail = crearCampo(esNuevo ? "" : prov.getEmail(), 100);
     campos[4] = tfEmail;
-    panel.add(crearFilaCampo("Email", tfEmail));
+    panel.add(crearFilaCampo("Email *", tfEmail));
     panel.add(Box.createVerticalStrut(8));
 
     JTextField tfDireccion = crearCampo(esNuevo ? "" : prov.getDireccion(), 200);
@@ -472,47 +463,84 @@ public class AdministrarProveedores extends JFrame {
     estadoRow.setOpaque(false);
     estadoRow.setAlignmentX(LEFT_ALIGNMENT);
     estadoRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-    JCheckBox chk = new JCheckBox("Proveedor activo", esNuevo || (prov != null && prov.isActivo()));
+
+    JCheckBox chk = new JCheckBox("Proveedor activo",
+      esNuevo || (prov != null && prov.isActivo()));
     chk.setFont(Fuentes.r(13));
     chk.setForeground(Colores.TEXTO_OSCURO);
     chk.setOpaque(false);
     estadoRow.add(chk);
+
     panel.add(estadoRow);
     panel.add(Box.createVerticalStrut(20));
 
-    JButton btnGuardar = crearBotonAzul(esNuevo ? "Agregar Proveedor" : "Guardar Cambios", Integer.MAX_VALUE, 44);
+    JButton btnGuardar = crearBotonAzul(
+      esNuevo ? "Agregar Proveedor" : "Guardar Cambios",
+      Integer.MAX_VALUE, 44);
     btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+
     btnGuardar.addActionListener(e -> {
-      if (campos[0].getText().trim().isEmpty()) {
-        JOptionPane.showMessageDialog(dlg, "El nombre es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
+
+      String nombre = campos[0].getText().trim();
+      String contacto = campos[2].getText().trim();
+      String telefono = campos[3].getText().trim();
+      String email = campos[4].getText().trim();
+
+      if (nombre.isEmpty()) {
+        JOptionPane.showMessageDialog(dlg,
+          "El nombre es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
         return;
       }
-      if (esNuevo) {
-        ProveedorDTO nuevo = new ProveedorDTO(
-          campos[0].getText().trim(),
-          campos[1].getText().trim().isEmpty() ? null : campos[1].getText().trim(),
-          campos[2].getText().trim(), campos[3].getText().trim(),
-          campos[4].getText().trim(), campos[5].getText().trim(),
-          campos[6].getText().trim(), chk.isSelected());
-        fachada.guardarProveedor(nuevo);
-        proveedores.clear();
-        proveedores.addAll(fachada.obtenerProveedores());
-      } else {
-        prov.setNombre(campos[0].getText().trim());
-        prov.setCodigo(campos[1].getText().trim());
-        prov.setContacto(campos[2].getText().trim());
-        prov.setTelefono(campos[3].getText().trim());
-        prov.setEmail(campos[4].getText().trim());
-        prov.setDireccion(campos[5].getText().trim());
-        prov.setTerminosPago(campos[6].getText().trim());
-        prov.setActivo(chk.isSelected());
-        fachada.actualizarProveedor(prov);
+      if (contacto.isEmpty()) {
+        JOptionPane.showMessageDialog(dlg,
+          "El contacto es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
+        return;
       }
-      lblActivos.setText(String.valueOf(fachada.contarProveedoresActivos()));
-      construirGrid(proveedores);
-      dlg.dispose();
+      if (telefono.isEmpty()) {
+        JOptionPane.showMessageDialog(dlg,
+          "El teléfono es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+      if (email.isEmpty()) {
+        JOptionPane.showMessageDialog(dlg,
+          "El email es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
+        return;
+      }
+
+      try {
+        if (esNuevo) {
+          ProveedorDTO nuevo = new ProveedorDTO(
+            nombre,
+            campos[1].getText().trim().isEmpty() ? null : campos[1].getText().trim(),
+            contacto, telefono, email,
+            campos[5].getText().trim(),
+            campos[6].getText().trim(),
+            chk.isSelected());
+          fachada.guardarProveedor(nuevo);
+        } else {
+          prov.setNombre(nombre);
+          prov.setCodigo(campos[1].getText().trim());
+          prov.setContacto(contacto);
+          prov.setTelefono(telefono);
+          prov.setEmail(email);
+          prov.setDireccion(campos[5].getText().trim());
+          prov.setTerminosPago(campos[6].getText().trim());
+          prov.setActivo(chk.isSelected());
+          fachada.actualizarProveedor(prov);
+        }
+        recargarLista();
+        dlg.dispose();
+
+      } catch (IllegalArgumentException | IllegalStateException ex) {
+        JOptionPane.showMessageDialog(dlg,
+          ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(dlg,
+          "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
     });
+
     panel.add(btnGuardar);
 
     JScrollPane sp = new JScrollPane(panel);
@@ -582,7 +610,6 @@ public class AdministrarProveedores extends JFrame {
     sep2.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(sep2);
     panel.add(Box.createVerticalStrut(12));
-
     panel.add(crearFilaInfo("Términos de pago", p.getTerminosPago()));
 
     dlg.setContentPane(panel);
@@ -603,7 +630,8 @@ public class AdministrarProveedores extends JFrame {
     if (limite > 0) {
       tf.setDocument(new javax.swing.text.PlainDocument() {
         @Override
-        public void insertString(int offs, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
+        public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
+          throws javax.swing.text.BadLocationException {
           if (getLength() + str.length() <= limite) {
             super.insertString(offs, str, a);
           }
@@ -648,7 +676,6 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-
     row.setOpaque(false);
     row.setBorder(new EmptyBorder(12, 14, 12, 14));
     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));

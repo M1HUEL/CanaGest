@@ -31,8 +31,8 @@ public class PantallaTicket extends JFrame {
     IVentas ventasFachada,
     IInventario inventarioFachada,
     IProveedores proveedoresFachada) {
-    super("Ticket de Venta");
 
+    super("Ticket de Venta");
     this.usuariosFachada = usuariosFachada;
     this.ventasFachada = ventasFachada;
     this.inventarioFachada = inventarioFachada;
@@ -49,7 +49,6 @@ public class PantallaTicket extends JFrame {
     JPanel centrado = new JPanel(new GridBagLayout());
     centrado.setOpaque(false);
     centrado.setBorder(new EmptyBorder(20, 0, 6, 0));
-
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.weightx = 1;
     gbc.weighty = 1;
@@ -118,10 +117,8 @@ public class PantallaTicket extends JFrame {
 
     };
     p.setOpaque(false);
-
     p.add(crearCabeceraTicket(), BorderLayout.NORTH);
     p.add(crearCuerpoTicket(t), BorderLayout.CENTER);
-
     return p;
   }
 
@@ -165,84 +162,171 @@ public class PantallaTicket extends JFrame {
     c.weightx = 1.0;
     int row = 0;
 
+    c.gridy = row++;
     body.add(fullLabel(t.getNombreTienda(), 17, true, Colores.TEXTO_OSCURO, SwingConstants.CENTER), c);
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(fullLabel("RFC: " + t.getRfc(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(fullLabel(t.getDireccion(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(fullLabel(t.getTelefono(), 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(14, 0, 12, 0);
     body.add(sepLine(), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
     body.add(crearFilaMeta(t), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 12, 0);
-    body.add(new JLabel("Cajero: " + t.getCajero()) {
-      {
-        setFont(Fuentes.r(12));
-        setForeground(Colores.TEXTO_OSCURO);
-      }
+    JLabel lblCajero = new JLabel("Cajero: " + t.getCajero());
+    lblCajero.setFont(Fuentes.r(12));
+    lblCajero.setForeground(Colores.TEXTO_OSCURO);
+    body.add(lblCajero, c);
 
-    }, c);
-
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 14, 0);
     body.add(crearCajaFolio(t.getFolio()), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
+    c.insets = new Insets(0, 0, 0, 0);
     body.add(sepLine(), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(10, 0, 10, 0);
     body.add(fullLabel("Productos", 15, true, Colores.TEXTO_OSCURO, SwingConstants.LEFT), c);
 
     for (ItemVentaDTO item : t.getItems()) {
-      c.gridy = ++row;
+      c.gridy = row++;
       c.insets = new Insets(0, 0, 8, 0);
       body.add(filaProducto(item), c);
     }
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(4, 0, 12, 0);
     body.add(sepLine(), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
     body.add(filaResumen("Subtotal", t.getSubtotal(), false), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(filaResumen("IVA (16%)", t.getIva(), false), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 8, 0);
     body.add(filaResumen("TOTAL", t.getTotal(), true), c);
 
     if (t.getEfectivoRecibido().compareTo(BigDecimal.ZERO) > 0) {
-      c.gridy = ++row;
+      c.gridy = row++;
+      c.insets = new Insets(0, 0, 4, 0);
       body.add(filaResumen("Efectivo recibido", t.getEfectivoRecibido(), false), c);
-      c.gridy = ++row;
+      c.gridy = row++;
+      c.insets = new Insets(0, 0, 8, 0);
       body.add(filaResumen("Cambio", t.getCambio(), false), c);
     }
 
-    c.gridy = ++row;
-    c.insets = new Insets(12, 0, 16, 0);
+    c.gridy = row++;
+    c.insets = new Insets(4, 0, 12, 0);
+    body.add(filaTipoPago(t.getTipoPago()), c);
+
+    c.gridy = row++;
+    c.insets = new Insets(0, 0, 16, 0);
     body.add(sepLine(), c);
 
-    c.gridy = ++row;
+    c.gridy = row++;
     c.insets = new Insets(0, 0, 3, 0);
     body.add(fullLabel("¡Gracias por su compra!", 12, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(fullLabel("Conserve este ticket para cualquier aclaración", 11, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
-    c.gridy = ++row;
+    c.gridy = row++;
     body.add(fullLabel("*** TICKET VÁLIDO ***", 10, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
 
     return body;
+  }
+
+  private JPanel filaTipoPago(TipoPago tipo) {
+    JPanel row = new JPanel(new BorderLayout()) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(colorFondoTipoPago(tipo));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    row.setOpaque(false);
+    row.setBorder(new EmptyBorder(10, 14, 10, 14));
+
+    JLabel lEtq = new JLabel("Método de pago");
+    lEtq.setFont(Fuentes.r(12));
+    lEtq.setForeground(Colores.GRIS_TEXTO);
+
+    JLabel lVal = new JLabel(nombreTipoPago(tipo));
+    lVal.setFont(Fuentes.b(13));
+    lVal.setForeground(colorTextoTipoPago(tipo));
+
+    row.add(lEtq, BorderLayout.WEST);
+    row.add(lVal, BorderLayout.EAST);
+    return row;
+  }
+
+  private String nombreTipoPago(TipoPago tipo) {
+    if (tipo == null) {
+      return "—";
+    }
+    return switch (tipo) {
+      case EFECTIVO ->
+        "Efectivo";
+      case TARJETA ->
+        "Tarjeta de crédito / débito";
+      case TRANSACCION ->
+        "Transferencia bancaria";
+      case QR ->
+        "CoDi / QR";
+      default ->
+        tipo.name();
+    };
+  }
+
+  private Color colorTextoTipoPago(TipoPago tipo) {
+    if (tipo == null) {
+      return Colores.GRIS_TEXTO;
+    }
+    switch (tipo) {
+      case EFECTIVO:
+        return Colores.VERDE;
+      case TARJETA:
+        return Colores.AZUL;
+      case TRANSACCION:
+        return Colores.NARANJA;
+      case QR:
+        return Colores.MORADO;
+      default:
+        return Colores.TEXTO_OSCURO;
+    }
+  }
+
+  private Color colorFondoTipoPago(TipoPago tipo) {
+    if (tipo == null) {
+      return Colores.FONDO_ITEM;
+    }
+    return switch (tipo) {
+      case EFECTIVO ->
+        new Color(240, 253, 244);
+      case TARJETA ->
+        Colores.AZUL_CLARO;
+      case TRANSACCION ->
+        Colores.NARANJA_BG;
+      case QR ->
+        new Color(245, 240, 255);
+      default ->
+        Colores.FONDO_ITEM;
+    };
   }
 
   private JPanel crearFilaMeta(TicketDTO t) {
@@ -299,45 +383,33 @@ public class PantallaTicket extends JFrame {
 
     c.gridx = 0;
     c.weightx = 1;
-    row.add(new JLabel(item.getNombre()) {
-      {
-        setFont(Fuentes.b(13));
-        setForeground(Colores.TEXTO_OSCURO);
-      }
-
-    }, c);
+    JLabel lNom = new JLabel(item.getNombre());
+    lNom.setFont(Fuentes.b(13));
+    lNom.setForeground(Colores.TEXTO_OSCURO);
+    row.add(lNom, c);
 
     c.gridx = 1;
     c.weightx = 0;
-    row.add(new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue())) {
-      {
-        setFont(Fuentes.b(13));
-        setForeground(Colores.TEXTO_OSCURO);
-      }
-
-    }, c);
+    JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue()));
+    lSub.setFont(Fuentes.b(13));
+    lSub.setForeground(Colores.TEXTO_OSCURO);
+    row.add(lSub, c);
 
     c.gridx = 0;
     c.gridy = 1;
     c.gridwidth = 2;
     c.insets = new Insets(3, 0, 0, 0);
-    row.add(new JLabel(item.getCodigo()) {
-      {
-        setFont(Fuentes.r(10));
-        setForeground(Colores.GRIS_TEXTO);
-      }
-
-    }, c);
+    JLabel lCod = new JLabel(item.getCodigo());
+    lCod.setFont(Fuentes.r(10));
+    lCod.setForeground(Colores.GRIS_TEXTO);
+    row.add(lCod, c);
 
     c.gridy = 2;
     c.insets = new Insets(2, 0, 0, 0);
-    row.add(new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue())) {
-      {
-        setFont(Fuentes.r(11));
-        setForeground(Colores.GRIS_TEXTO);
-      }
-
-    }, c);
+    JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue()));
+    lCant.setFont(Fuentes.r(11));
+    lCant.setForeground(Colores.GRIS_TEXTO);
+    row.add(lCant, c);
 
     return row;
   }
@@ -377,7 +449,8 @@ public class PantallaTicket extends JFrame {
     JButton btnCS = topBarBtn("Menu Principal");
     btnCS.addActionListener(e -> {
       dispose();
-      new MenuPrincipal(null, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
+      new MenuPrincipal(null, usuariosFachada, ventasFachada,
+        inventarioFachada, proveedoresFachada).setVisible(true);
     });
     bar.add(btnCS);
     return bar;

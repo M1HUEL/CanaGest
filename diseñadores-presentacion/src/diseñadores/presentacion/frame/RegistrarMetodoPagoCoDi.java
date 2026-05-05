@@ -1,7 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.dto.VentaDTO;
+import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
@@ -19,6 +18,18 @@ import java.util.Random;
 
 public class RegistrarMetodoPagoCoDi extends JFrame {
 
+  private final SeleccionarMetodoPago seleccionarMetodoPago;
+  private final JFrame frame;
+  private final IVentas ventasFachada;
+  private final IInventario inventarioFachada;
+  private final IUsuarios usuariosFachada;
+  private final IProveedores proveedoresFachada;
+  private final VentaDTO ventaActual;
+  private final BigDecimal total;
+  private final Runnable onVentaFinalizada;
+  private final UsuarioDTO usuarioActivo;
+  private final String referencia;
+
   public RegistrarMetodoPagoCoDi(
     SeleccionarMetodoPago seleccionarMetodoPago,
     JFrame frame,
@@ -32,30 +43,38 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     UsuarioDTO usuarioActivo) {
 
     super("Registrar Pago CoDi");
-    configurarVentana(frame);
+    this.seleccionarMetodoPago = seleccionarMetodoPago;
+    this.frame = frame;
+    this.ventasFachada = ventasFachada;
+    this.inventarioFachada = inventarioFachada;
+    this.usuariosFachada = usuariosFachada;
+    this.proveedoresFachada = proveedoresFachada;
+    this.ventaActual = ventaActual;
+    this.total = total;
+    this.onVentaFinalizada = onVentaFinalizada;
+    this.usuarioActivo = usuarioActivo;
+    this.referencia = generarReferencia();
+
+    configurarVentana();
 
     JPanel root = panelBase();
-    root.add(crearTopBar(frame, usuarioActivo, usuariosFachada,
-      ventasFachada, inventarioFachada, proveedoresFachada), BorderLayout.NORTH);
+    root.add(crearTopBar(), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);
     cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
-
-    cuerpo.add(seccionVolver(seleccionarMetodoPago), BorderLayout.NORTH);
-
-    JPanel card = buildCard(total, frame, onVentaFinalizada);
-    cuerpo.add(crearCentrado(crearScroll(card), 240, 10), BorderLayout.CENTER);
+    cuerpo.add(seccionVolver(), BorderLayout.NORTH);
+    cuerpo.add(crearCentrado(crearScroll(buildCard()), 240, 10), BorderLayout.CENTER);
 
     root.add(cuerpo, BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
   }
 
-  private void configurarVentana(JFrame mainFrame) {
+  private void configurarVentana() {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
   }
 
   private JPanel panelBase() {
@@ -72,16 +91,16 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     return p;
   }
 
-  private JPanel seccionVolver(SeleccionarMetodoPago seleccionarMetodoPago) {
+  private JPanel seccionVolver() {
     JButton btnVolver = btnTexto("← Volver a métodos de pago");
     btnVolver.addActionListener(e -> {
       dispose();
       seleccionarMetodoPago.setVisible(true);
     });
-    JPanel volverRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    volverRow.setOpaque(false);
-    volverRow.add(btnVolver);
-    return volverRow;
+    JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    row.setOpaque(false);
+    row.add(btnVolver);
+    return row;
   }
 
   private JScrollPane crearScroll(JPanel contenido) {
@@ -94,7 +113,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     return scroll;
   }
 
-  private JPanel buildCard(BigDecimal total, JFrame mainFrame, Runnable onVentaFinalizada) {
+  private JPanel buildCard() {
     JPanel card = new JPanel(new GridBagLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -123,12 +142,11 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
 
     c.gridy = row++;
     c.insets = new Insets(0, 0, 24, 0);
-    card.add(crearCajaTotal(total), c);
+    card.add(crearCajaTotal(), c);
 
-    String referencia = generarReferencia();
     c.gridy = row++;
     c.insets = new Insets(0, 0, 16, 0);
-    card.add(crearPanelQR(referencia), c);
+    card.add(crearPanelQR(), c);
 
     c.gridy = row++;
     c.insets = new Insets(0, 0, 24, 0);
@@ -136,21 +154,61 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
 
     JButton btnConfirmar = crearBoton("Confirmar Pago CoDi", Colores.MORADO, Colores.MORADO_HOVER);
     btnConfirmar.setPreferredSize(new Dimension(0, 54));
-    btnConfirmar.addActionListener(e -> {
-      JOptionPane.showMessageDialog(this,
-        String.format("Pago CoDi registrado\n\nReferencia: %s\nTotal: $%,.2f\n\nTransacción completada.",
-          referencia, total),
-        "Pago confirmado", JOptionPane.INFORMATION_MESSAGE);
-      onVentaFinalizada.run();
-      dispose();
-      mainFrame.setVisible(true);
-    });
+    btnConfirmar.addActionListener(e -> procesarConBanco());
 
     c.gridy = row++;
     c.insets = new Insets(0, 0, 0, 0);
     card.add(btnConfirmar, c);
 
     return card;
+  }
+
+  private void procesarConBanco() {
+    setEnabled(false);
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
+      @Override
+      protected ResultadoPagoDTO doInBackground() {
+        return ventasFachada.procesarPagoCoDi(
+          ventaActual, new PagoQrDTO(referencia));
+      }
+
+      @Override
+      protected void done() {
+        setCursor(Cursor.getDefaultCursor());
+        setEnabled(true);
+        try {
+          manejarResultado(get());
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(RegistrarMetodoPagoCoDi.this,
+            "Error al procesar el pago CoDi: " + ex.getMessage(),
+            "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+
+    };
+    worker.execute();
+  }
+
+  private void manejarResultado(ResultadoPagoDTO resultado) {
+    if (resultado.isAprobado()) {
+      try {
+        ventasFachada.procesarFinalizarVenta(ventaActual);
+        TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
+        this.setVisible(false);
+        new PantallaTicket(frame, ticketDTO, onVentaFinalizada,
+          usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this,
+          "Pago aprobado, pero error al cerrar la venta:\n" + ex.getMessage(),
+          "Error al finalizar", JOptionPane.ERROR_MESSAGE);
+      }
+    } else {
+      JOptionPane.showMessageDialog(this,
+        "❌ Pago CoDi rechazado:\n\n" + resultado.getMensaje(),
+        "Rechazado", JOptionPane.WARNING_MESSAGE);
+    }
   }
 
   private JPanel crearHeader() {
@@ -185,7 +243,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     return header;
   }
 
-  private JPanel crearCajaTotal(BigDecimal total) {
+  private JPanel crearCajaTotal() {
     JPanel caja = new JPanel(new GridLayout(2, 1, 0, 8)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -202,18 +260,18 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
 
     JLabel lTxt = new JLabel("Total a pagar", SwingConstants.CENTER);
     lTxt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-    lTxt.setForeground(Colores.GRIS_TEXTO);
+    lTxt.setForeground(new Color(220, 200, 255));
 
     JLabel lVal = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
     lVal.setFont(new Font("Segoe UI", Font.BOLD, 38));
-    lVal.setForeground(Colores.MORADO);
+    lVal.setForeground(Colores.BLANCO);
 
     caja.add(lTxt);
     caja.add(lVal);
     return caja;
   }
 
-  private JPanel crearPanelQR(String referencia) {
+  private JPanel crearPanelQR() {
     JPanel contenedor = new JPanel();
     contenedor.setLayout(new BoxLayout(contenedor, BoxLayout.Y_AXIS));
     contenedor.setOpaque(false);
@@ -320,6 +378,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     };
     box.setOpaque(false);
     box.setBorder(new EmptyBorder(16, 18, 16, 18));
+
     GridBagConstraints ci = new GridBagConstraints();
     ci.gridx = 0;
     ci.fill = GridBagConstraints.HORIZONTAL;
@@ -356,13 +415,10 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     return box;
   }
 
-  private JPanel crearTopBar(JFrame mainFrame, UsuarioDTO usuarioActivo,
-    IUsuarios usuariosFachada, IVentas ventasFachada,
-    IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  private JPanel crearTopBar() {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-
     JButton btn = crearBoton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
     btn.setForeground(Colores.TEXTO_OSCURO);
     btn.setPreferredSize(new Dimension(160, 38));

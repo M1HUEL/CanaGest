@@ -180,9 +180,14 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
         setEnabled(true);
         try {
           manejarResultado(get());
-        } catch (Exception ex) {
+        } catch (java.util.concurrent.ExecutionException ex) {
+          Throwable causa = ex.getCause();
           JOptionPane.showMessageDialog(RegistrarMetodoPagoCoDi.this,
-            "Error al procesar el pago CoDi: " + ex.getMessage(),
+            causa != null ? causa.getMessage() : ex.getMessage(),
+            "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (InterruptedException ex) {
+          JOptionPane.showMessageDialog(RegistrarMetodoPagoCoDi.this,
+            ex.getMessage(),
             "Error", JOptionPane.ERROR_MESSAGE);
         }
       }

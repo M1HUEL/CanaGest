@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
+import java.util.concurrent.ExecutionException;
 
 public class RegistrarMetodoPagoTarjeta extends JFrame {
 
@@ -135,9 +136,9 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
         setEnabled(true);
         try {
           manejarResultado(get(), onVentaFinalizada, BigDecimal.ZERO);
-        } catch (Exception ex) {
+        } catch (InterruptedException | ExecutionException ex) {
           JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
-            "Error al procesar el pago: " + ex.getMessage(),
+            ex.getMessage(),
             "Error", JOptionPane.ERROR_MESSAGE);
         }
       }

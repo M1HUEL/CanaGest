@@ -16,6 +16,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 public class RegistrarMetodoPagoTransferencia extends JFrame {
 
@@ -132,9 +133,9 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
         setEnabled(true);
         try {
           manejarResultado(get(), onVentaFinalizada);
-        } catch (Exception ex) {
+        } catch (InterruptedException | ExecutionException ex) {
           JOptionPane.showMessageDialog(RegistrarMetodoPagoTransferencia.this,
-            "Error al procesar la transferencia: " + ex.getMessage(),
+            ex.getMessage(),
             "Error", JOptionPane.ERROR_MESSAGE);
         }
       }

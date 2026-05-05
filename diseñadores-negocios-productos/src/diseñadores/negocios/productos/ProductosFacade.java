@@ -2,7 +2,6 @@ package diseñadores.negocios.productos;
 
 import diseñadores.negocios.dto.EscanearProductoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
-
 import java.util.List;
 
 public class ProductosFacade implements IProductos {
@@ -33,8 +32,13 @@ public class ProductosFacade implements IProductos {
   }
 
   @Override
-  public boolean tieneStock(EscanearProductoDTO dto) {
-    return control.tieneStock(dto);
+  public boolean tieneStock(EscanearProductoDTO dto, int cantidad) {
+    return control.tieneStock(dto, cantidad);
+  }
+
+  @Override
+  public void descontarStock(String codigo, int cantidad) {
+    control.descontarStock(codigo, cantidad);
   }
 
   @Override

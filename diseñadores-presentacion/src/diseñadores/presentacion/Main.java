@@ -1,7 +1,5 @@
 package diseñadores.presentacion;
 
-import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
-import diseñadores.infraestructura.pagos.PagosFacade;
 import diseñadores.negocios.inventario.*;
 import diseñadores.negocios.proveedores.*;
 import diseñadores.negocios.usuarios.IUsuarios;

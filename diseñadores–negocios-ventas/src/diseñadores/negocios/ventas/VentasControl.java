@@ -49,7 +49,7 @@ public class VentasControl {
   }
 
   public boolean tieneStock(EscanearProductoDTO dto) {
-    return serviciosProductos.tieneStock(dto);
+    return serviciosProductos.tieneStock(dto, 1);
   }
 
   public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {

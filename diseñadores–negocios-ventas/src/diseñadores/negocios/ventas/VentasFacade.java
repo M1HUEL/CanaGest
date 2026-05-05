@@ -4,7 +4,6 @@ import diseñadores.infraestructura.notificaciones.INotificaciones;
 import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.productos.IProductos;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -16,8 +15,8 @@ public class VentasFacade implements IVentas {
     this.control = new VentasControl();
   }
 
-  public VentasFacade(INotificaciones notificaciones, IPagos pagos, IProductos productos) {
-    this.control = new VentasControl(notificaciones, pagos, productos);
+  public VentasFacade(INotificaciones n, IPagos p, IProductos pr) {
+    this.control = new VentasControl(n, p, pr);
   }
 
   @Override
@@ -26,38 +25,38 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public boolean existeProducto(EscanearProductoDTO dto) {
-    return control.existeProducto(dto);
+  public boolean existeProducto(EscanearProductoDTO d) {
+    return control.existeProducto(d);
   }
 
   @Override
-  public boolean tieneStock(EscanearProductoDTO dto) {
-    return control.tieneStock(dto);
+  public boolean tieneStock(EscanearProductoDTO d) {
+    return control.tieneStock(d);
   }
 
   @Override
-  public ProductoDTO procesarProducto(VentaDTO v, EscanearProductoDTO dto) {
-    return control.procesarProducto(v, dto);
+  public ProductoDTO procesarProducto(VentaDTO v, EscanearProductoDTO d) {
+    return control.procesarProducto(v, d);
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO v, PagoEfectivoDTO dto) {
-    return control.procesarPagoEfectivo(v, dto);
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO v, PagoEfectivoDTO d) {
+    return control.procesarPagoEfectivo(v, d);
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO v, PagoTarjetaDTO dto) {
-    return control.procesarPagoTarjeta(v, dto);
+  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO v, PagoTarjetaDTO d) {
+    return control.procesarPagoTarjeta(v, d);
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO v, PagoTransferenciaDTO dto) {
-    return control.procesarPagoTransferencia(v, dto);
+  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO v, PagoTransferenciaDTO d) {
+    return control.procesarPagoTransferencia(v, d);
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO v, PagoQrDTO dto) {
-    return control.procesarPagoCoDi(v, dto);
+  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO v, PagoQrDTO d) {
+    return control.procesarPagoCoDi(v, d);
   }
 
   @Override

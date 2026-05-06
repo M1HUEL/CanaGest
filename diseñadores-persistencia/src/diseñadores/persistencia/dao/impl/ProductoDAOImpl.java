@@ -28,40 +28,94 @@ public class ProductoDAOImpl implements IProductoDAO {
   public List<ProductoDTO> obtenerTodos() {
     List<ProductoDTO> lista = new ArrayList<>();
     for (Document doc : coleccion.find()) {
-      lista.add(toDTO(doc));
+      lista.add(convertirADTO(doc));
     }
     return lista;
   }
 
   @Override
   public ProductoDTO obtenerPorCodigo(String codigo) {
-    Document doc = coleccion.find(Filters.eq("codigo", codigo)).first();
-    return (doc != null) ? toDTO(doc) : null;
+    validarCodigoRequerido(codigo);
+    Document doc = buscarDocumentoPorCodigo(codigo);
+    return (doc != null) ? convertirADTO(doc) : null;
   }
 
   @Override
   public void guardar(ProductoDTO producto) {
-    coleccion.insertOne(toDocument(producto));
+    validarDatosProducto(producto);
+    validarCodigoDisponible(producto.getCodigo());
+    ejecutarInsercion(producto);
   }
 
   @Override
   public void actualizar(ProductoDTO producto) {
-    coleccion.replaceOne(
-      Filters.eq("codigo", producto.getCodigo()),
-      toDocument(producto),
-      new ReplaceOptions().upsert(true)
-    );
+    validarDatosProducto(producto);
+    validarProductoExiste(producto.getCodigo());
+    ejecutarReemplazo(producto);
   }
 
   @Override
   public void eliminar(String codigo) {
+    validarCodigoRequerido(codigo);
+    validarProductoExiste(codigo);
+    ejecutarEliminacion(codigo);
+  }
+
+  private void validarCodigoRequerido(String codigo) {
+    if (codigo == null || codigo.isBlank()) {
+      throw new IllegalArgumentException("El código del producto es obligatorio");
+    }
+  }
+
+  private void validarDatosProducto(ProductoDTO producto) {
+    if (producto == null) {
+      throw new IllegalArgumentException("El producto no puede ser nulo");
+    }
+    validarCodigoRequerido(producto.getCodigo());
+    if (producto.getNombre() == null || producto.getNombre().isBlank()) {
+      throw new IllegalArgumentException("El nombre del producto es obligatorio");
+    }
+    if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
+      throw new IllegalArgumentException("El precio debe ser un valor positivo");
+    }
+  }
+
+  private void validarCodigoDisponible(String codigo) {
+    if (buscarDocumentoPorCodigo(codigo) != null) {
+      throw new IllegalStateException("El código de producto ya está registrado");
+    }
+  }
+
+  private void validarProductoExiste(String codigo) {
+    if (buscarDocumentoPorCodigo(codigo) == null) {
+      throw new IllegalStateException("El producto no existe");
+    }
+  }
+
+  private Document buscarDocumentoPorCodigo(String codigo) {
+    return coleccion.find(Filters.eq("codigo", codigo)).first();
+  }
+
+  private void ejecutarInsercion(ProductoDTO producto) {
+    coleccion.insertOne(convertirADocumento(producto));
+  }
+
+  private void ejecutarReemplazo(ProductoDTO producto) {
+    coleccion.replaceOne(
+      Filters.eq("codigo", producto.getCodigo()),
+      convertirADocumento(producto),
+      new ReplaceOptions().upsert(true)
+    );
+  }
+
+  private void ejecutarEliminacion(String codigo) {
     coleccion.deleteOne(Filters.eq("codigo", codigo));
   }
 
-  private ProductoDTO toDTO(Document doc) {
+  private ProductoDTO convertirADTO(Document doc) {
     ProveedorDTO proveedor = null;
-
     Document provDoc = doc.get("proveedor", Document.class);
+
     if (provDoc != null) {
       proveedor = new ProveedorDTO(
         provDoc.getString("nombre"),
@@ -89,7 +143,7 @@ public class ProductoDAOImpl implements IProductoDAO {
     return dto;
   }
 
-  private Document toDocument(ProductoDTO dto) {
+  private Document convertirADocumento(ProductoDTO dto) {
     Document doc = new Document()
       .append("codigo", dto.getCodigo())
       .append("nombre", dto.getNombre())

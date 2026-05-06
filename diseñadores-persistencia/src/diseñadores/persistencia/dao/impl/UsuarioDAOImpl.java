@@ -27,37 +27,91 @@ public class UsuarioDAOImpl implements IUsuarioDAO {
   public List<UsuarioDTO> obtenerTodos() {
     List<UsuarioDTO> lista = new ArrayList<>();
     for (Document doc : coleccion.find()) {
-      lista.add(toDTO(doc));
+      lista.add(convertirADTO(doc));
     }
     return lista;
   }
 
   @Override
   public UsuarioDTO obtenerPorNombre(String nombre) {
-    Document doc = coleccion.find(Filters.eq("nombre", nombre.toLowerCase().trim())).first();
-    return (doc != null) ? toDTO(doc) : null;
+    validarNombreRequerido(nombre);
+    Document doc = buscarDocumentoPorNombre(nombre);
+    return (doc != null) ? convertirADTO(doc) : null;
   }
 
   @Override
   public void guardar(UsuarioDTO usuario) {
-    coleccion.insertOne(toDocument(usuario));
+    validarDatosUsuario(usuario);
+    validarNombreDisponible(usuario.getNombre());
+    ejecutarInsercion(usuario);
   }
 
   @Override
   public void actualizar(UsuarioDTO usuario) {
-    coleccion.replaceOne(
-      Filters.eq("nombre", usuario.getNombre()),
-      toDocument(usuario),
-      new ReplaceOptions().upsert(true)
-    );
+    validarDatosUsuario(usuario);
+    validarUsuarioExiste(usuario.getNombre());
+    ejecutarReemplazo(usuario);
   }
 
   @Override
   public void eliminar(String nombre) {
+    validarNombreRequerido(nombre);
+    validarUsuarioExiste(nombre);
+    ejecutarEliminacion(nombre);
+  }
+
+  private void validarNombreRequerido(String nombre) {
+    if (nombre == null || nombre.isBlank()) {
+      throw new IllegalArgumentException("El nombre de usuario es obligatorio");
+    }
+  }
+
+  private void validarDatosUsuario(UsuarioDTO usuario) {
+    if (usuario == null) {
+      throw new IllegalArgumentException("El usuario no puede ser nulo");
+    }
+    validarNombreRequerido(usuario.getNombre());
+    if (usuario.getContrasena() == null || usuario.getContrasena().isBlank()) {
+      throw new IllegalArgumentException("La contraseña es obligatoria");
+    }
+    if (usuario.getRol() == null) {
+      throw new IllegalArgumentException("El rol del usuario es obligatorio");
+    }
+  }
+
+  private void validarNombreDisponible(String nombre) {
+    if (buscarDocumentoPorNombre(nombre) != null) {
+      throw new IllegalStateException("El nombre de usuario ya está registrado");
+    }
+  }
+
+  private void validarUsuarioExiste(String nombre) {
+    if (buscarDocumentoPorNombre(nombre) == null) {
+      throw new IllegalStateException("El usuario no existe");
+    }
+  }
+
+  private Document buscarDocumentoPorNombre(String nombre) {
+    return coleccion.find(Filters.eq("nombre", nombre.toLowerCase().trim())).first();
+  }
+
+  private void ejecutarInsercion(UsuarioDTO usuario) {
+    coleccion.insertOne(convertirADocumento(usuario));
+  }
+
+  private void ejecutarReemplazo(UsuarioDTO usuario) {
+    coleccion.replaceOne(
+      Filters.eq("nombre", usuario.getNombre()),
+      convertirADocumento(usuario),
+      new ReplaceOptions().upsert(true)
+    );
+  }
+
+  private void ejecutarEliminacion(String nombre) {
     coleccion.deleteOne(Filters.eq("nombre", nombre));
   }
 
-  private UsuarioDTO toDTO(Document doc) {
+  private UsuarioDTO convertirADTO(Document doc) {
     return new UsuarioDTO(
       doc.getString("nombre"),
       doc.getString("contrasena"),
@@ -65,9 +119,9 @@ public class UsuarioDAOImpl implements IUsuarioDAO {
     );
   }
 
-  private Document toDocument(UsuarioDTO dto) {
+  private Document convertirADocumento(UsuarioDTO dto) {
     return new Document()
-      .append("nombre", dto.getNombre())
+      .append("nombre", dto.getNombre().toLowerCase().trim())
       .append("contrasena", dto.getContrasena())
       .append("rol", dto.getRol().name());
   }

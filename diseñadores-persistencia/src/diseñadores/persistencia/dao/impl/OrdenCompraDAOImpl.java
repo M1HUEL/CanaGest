@@ -28,40 +28,94 @@ public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
   public List<OrdenCompraDTO> obtenerTodas() {
     List<OrdenCompraDTO> lista = new ArrayList<>();
     for (Document doc : coleccion.find()) {
-      lista.add(toDTO(doc));
+      lista.add(convertirADTO(doc));
     }
     return lista;
   }
 
   @Override
   public OrdenCompraDTO obtenerPorNumero(String numero) {
-    Document doc = coleccion.find(Filters.eq("numero", numero)).first();
-    return (doc != null) ? toDTO(doc) : null;
+    validarNumeroRequerido(numero);
+    Document doc = buscarDocumentoPorNumero(numero);
+    return (doc != null) ? convertirADTO(doc) : null;
   }
 
   @Override
   public void guardar(OrdenCompraDTO orden) {
-    coleccion.insertOne(toDocument(orden));
+    validarDatosOrden(orden);
+    validarNumeroDisponible(orden.getNumero());
+    ejecutarInsercion(orden);
   }
 
   @Override
   public void actualizar(OrdenCompraDTO orden) {
-    coleccion.replaceOne(
-      Filters.eq("numero", orden.getNumero()),
-      toDocument(orden),
-      new ReplaceOptions().upsert(true)
-    );
+    validarDatosOrden(orden);
+    validarOrdenExiste(orden.getNumero());
+    ejecutarReemplazo(orden);
   }
 
   @Override
   public void eliminar(String numero) {
+    validarNumeroRequerido(numero);
+    validarOrdenExiste(numero);
+    ejecutarEliminacion(numero);
+  }
+
+  private void validarNumeroRequerido(String numero) {
+    if (numero == null || numero.isBlank()) {
+      throw new IllegalArgumentException("El número de orden es obligatorio");
+    }
+  }
+
+  private void validarDatosOrden(OrdenCompraDTO orden) {
+    if (orden == null) {
+      throw new IllegalArgumentException("La orden de compra no puede ser nula");
+    }
+    validarNumeroRequerido(orden.getNumero());
+    if (orden.getProveedor() == null) {
+      throw new IllegalArgumentException("La orden debe tener un proveedor asignado");
+    }
+    if (orden.getTotal() == null || orden.getTotal().compareTo(BigDecimal.ZERO) < 0) {
+      throw new IllegalArgumentException("El total de la orden no puede ser negativo");
+    }
+  }
+
+  private void validarNumeroDisponible(String numero) {
+    if (buscarDocumentoPorNumero(numero) != null) {
+      throw new IllegalStateException("El número de orden ya está registrado");
+    }
+  }
+
+  private void validarOrdenExiste(String numero) {
+    if (buscarDocumentoPorNumero(numero) == null) {
+      throw new IllegalStateException("La orden de compra no existe");
+    }
+  }
+
+  private Document buscarDocumentoPorNumero(String numero) {
+    return coleccion.find(Filters.eq("numero", numero)).first();
+  }
+
+  private void ejecutarInsercion(OrdenCompraDTO orden) {
+    coleccion.insertOne(convertirADocumento(orden));
+  }
+
+  private void ejecutarReemplazo(OrdenCompraDTO orden) {
+    coleccion.replaceOne(
+      Filters.eq("numero", orden.getNumero()),
+      convertirADocumento(orden),
+      new ReplaceOptions().upsert(true)
+    );
+  }
+
+  private void ejecutarEliminacion(String numero) {
     coleccion.deleteOne(Filters.eq("numero", numero));
   }
 
-  private OrdenCompraDTO toDTO(Document doc) {
+  private OrdenCompraDTO convertirADTO(Document doc) {
     ProveedorDTO proveedor = null;
-
     Document provDoc = doc.get("proveedor", Document.class);
+
     if (provDoc != null) {
       proveedor = new ProveedorDTO(
         provDoc.getString("nombre"),
@@ -91,7 +145,7 @@ public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
     );
   }
 
-  private Document toDocument(OrdenCompraDTO dto) {
+  private Document convertirADocumento(OrdenCompraDTO dto) {
     Document doc = new Document()
       .append("numero", dto.getNumero())
       .append("fecha", dto.getFecha())
@@ -115,10 +169,8 @@ public class OrdenCompraDAOImpl implements IOrdenCompraDAO {
       if (prov.getPrecioProveedor() != null) {
         provDoc.append("precioProveedor", prov.getPrecioProveedor().doubleValue());
       }
-
       doc.append("proveedor", provDoc);
     }
-
     return doc;
   }
 

@@ -27,37 +27,88 @@ public class ProveedorDAOImpl implements IProveedorDAO {
   public List<ProveedorDTO> obtenerTodos() {
     List<ProveedorDTO> lista = new ArrayList<>();
     for (Document doc : coleccion.find()) {
-      lista.add(toDTO(doc));
+      lista.add(convertirADTO(doc));
     }
     return lista;
   }
 
   @Override
   public ProveedorDTO obtenerPorCodigo(String codigo) {
-    Document doc = coleccion.find(Filters.eq("codigo", codigo)).first();
-    return (doc != null) ? toDTO(doc) : null;
+    validarCodigoRequerido(codigo);
+    Document doc = buscarDocumentoPorCodigo(codigo);
+    return (doc != null) ? convertirADTO(doc) : null;
   }
 
   @Override
   public void guardar(ProveedorDTO proveedor) {
-    coleccion.insertOne(toDocument(proveedor));
+    validarDatosProveedor(proveedor);
+    validarCodigoDisponible(proveedor.getCodigo());
+    ejecutarInsercion(proveedor);
   }
 
   @Override
   public void actualizar(ProveedorDTO proveedor) {
-    coleccion.replaceOne(
-      Filters.eq("codigo", proveedor.getCodigo()),
-      toDocument(proveedor),
-      new ReplaceOptions().upsert(true)
-    );
+    validarDatosProveedor(proveedor);
+    validarProveedorExiste(proveedor.getCodigo());
+    ejecutarReemplazo(proveedor);
   }
 
   @Override
   public void eliminar(String codigo) {
+    validarCodigoRequerido(codigo);
+    validarProveedorExiste(codigo);
+    ejecutarEliminacion(codigo);
+  }
+
+  private void validarCodigoRequerido(String codigo) {
+    if (codigo == null || codigo.isBlank()) {
+      throw new IllegalArgumentException("El código del proveedor es obligatorio");
+    }
+  }
+
+  private void validarDatosProveedor(ProveedorDTO proveedor) {
+    if (proveedor == null) {
+      throw new IllegalArgumentException("El proveedor no puede ser nulo");
+    }
+    validarCodigoRequerido(proveedor.getCodigo());
+    if (proveedor.getNombre() == null || proveedor.getNombre().isBlank()) {
+      throw new IllegalArgumentException("El nombre del proveedor es obligatorio");
+    }
+  }
+
+  private void validarCodigoDisponible(String codigo) {
+    if (buscarDocumentoPorCodigo(codigo) != null) {
+      throw new IllegalStateException("El código de proveedor ya está registrado");
+    }
+  }
+
+  private void validarProveedorExiste(String codigo) {
+    if (buscarDocumentoPorCodigo(codigo) == null) {
+      throw new IllegalStateException("El proveedor no existe");
+    }
+  }
+
+  private Document buscarDocumentoPorCodigo(String codigo) {
+    return coleccion.find(Filters.eq("codigo", codigo)).first();
+  }
+
+  private void ejecutarInsercion(ProveedorDTO proveedor) {
+    coleccion.insertOne(convertirADocumento(proveedor));
+  }
+
+  private void ejecutarReemplazo(ProveedorDTO proveedor) {
+    coleccion.replaceOne(
+      Filters.eq("codigo", proveedor.getCodigo()),
+      convertirADocumento(proveedor),
+      new ReplaceOptions().upsert(true)
+    );
+  }
+
+  private void ejecutarEliminacion(String codigo) {
     coleccion.deleteOne(Filters.eq("codigo", codigo));
   }
 
-  private ProveedorDTO toDTO(Document doc) {
+  private ProveedorDTO convertirADTO(Document doc) {
     ProveedorDTO dto = new ProveedorDTO(
       doc.getString("nombre"),
       doc.getString("codigo"),
@@ -78,7 +129,7 @@ public class ProveedorDAOImpl implements IProveedorDAO {
     return dto;
   }
 
-  private Document toDocument(ProveedorDTO dto) {
+  private Document convertirADocumento(ProveedorDTO dto) {
     Document doc = new Document()
       .append("nombre", dto.getNombre())
       .append("codigo", dto.getCodigo())

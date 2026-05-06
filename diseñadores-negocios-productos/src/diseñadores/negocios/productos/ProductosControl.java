@@ -50,7 +50,12 @@ public class ProductosControl {
   }
 
   public void descontarStock(String codigo, int cantidad) {
-    serviciosInventario.descontarStock(codigo, cantidad);
+    validarCodigoRequerido(codigo);
+    validarCantidadPositiva(cantidad);
+    validarExistenciaParaDescuento(codigo);
+    validarDisponibilidadStock(codigo, cantidad);
+
+    ejecutarDescuentoStock(codigo, cantidad);
   }
 
   public void guardarProducto(ProductoDTO producto) {
@@ -96,6 +101,24 @@ public class ProductosControl {
     }
   }
 
+  private void validarCantidadPositiva(int cantidad) {
+    if (cantidad <= 0) {
+      throw new IllegalArgumentException("La cantidad a descontar debe ser mayor a cero");
+    }
+  }
+
+  private void validarExistenciaParaDescuento(String codigo) {
+    if (obtenerProductoBase(codigo) == null) {
+      throw new IllegalStateException("No se puede descontar stock de un producto inexistente");
+    }
+  }
+
+  private void validarDisponibilidadStock(String codigo, int cantidad) {
+    if (!verificarStockServicio(codigo, cantidad)) {
+      throw new IllegalStateException("Stock insuficiente para realizar el descuento");
+    }
+  }
+
   private ProductoDTO obtenerProductoBase(String codigo) {
     return Producto.obtenerPorCodigo(codigo);
   }
@@ -110,6 +133,10 @@ public class ProductosControl {
     return serviciosInventario.verificarStock(codigo, cantidad);
   }
 
+  private void ejecutarDescuentoStock(String codigo, int cantidad) {
+    serviciosInventario.descontarStock(codigo, cantidad);
+  }
+
   private void registrarNuevoProducto(ProductoDTO producto) {
     Producto.guardar(producto);
   }
@@ -122,9 +149,9 @@ public class ProductosControl {
     Producto.eliminar(codigo);
   }
 
-  private void actualizarStockSiExiste(ProductoDTO p, ProductoDTO infoInventario) {
-    if (infoInventario != null) {
-      p.setStock(infoInventario.getStock());
+  private void actualizarStockSiExiste(ProductoDTO producto, ProductoDTO productoInventario) {
+    if (productoInventario != null) {
+      producto.setStock(productoInventario.getStock());
     }
   }
 

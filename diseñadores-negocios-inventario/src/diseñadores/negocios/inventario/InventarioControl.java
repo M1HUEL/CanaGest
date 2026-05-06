@@ -7,7 +7,7 @@ import java.util.List;
 public class InventarioControl {
 
   public ProductoDTO obtenerProductoPorCodigo(String codigo) {
-    return ejecutarObtencionPorCodigo(codigo);
+    return Inventario.obtenerProductoPorCodigo(codigo);
   }
 
   public List<ProductoDTO> obtenerTodos() {
@@ -32,18 +32,18 @@ public class InventarioControl {
   public void descontarStock(String codigo, int cantidad) {
     validarCantidadPositiva(cantidad);
 
-    ProductoDTO producto = ejecutarObtencionPorCodigo(codigo);
+    ProductoDTO producto = Inventario.obtenerProductoPorCodigo(codigo);
     validarExistenciaProducto(producto);
     validarSuficienciaStock(producto, cantidad);
 
-    ejecutarDescuentoStock(codigo, cantidad);
+    Inventario.descontarStock(codigo, cantidad);
   }
 
   public void actualizarStock(String codigo, int nuevaCantidad) {
     validarStockNoNegativo(nuevaCantidad);
     validarExistenciaProductoPorCodigo(codigo);
 
-    ejecutarActualizacionStock(codigo, nuevaCantidad);
+    Inventario.actualizarStock(codigo, nuevaCantidad);
   }
 
   public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
@@ -58,7 +58,7 @@ public class InventarioControl {
     validarStockFisicoNoNegativo(stockFisico);
     validarExistenciaProductoPorCodigo(codigo);
 
-    ejecutarAjusteStock(codigo, stockFisico);
+    Inventario.ajustarStock(codigo, stockFisico);
   }
 
   public int[] obtenerEstadisticasConteo() {
@@ -87,14 +87,14 @@ public class InventarioControl {
     }
   }
 
-  private void validarValoresNoNegativos(int s, int min, int max) {
-    if (s < 0 || min < 0 || max < 0) {
+  private void validarValoresNoNegativos(int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+    if (nuevoStock < 0 || nuevoMinimo < 0 || nuevoMaximo < 0) {
       throw new IllegalArgumentException("Valores negativos no permitidos");
     }
   }
 
-  private void validarJerarquiaStock(int min, int max) {
-    if (min > max) {
+  private void validarJerarquiaStock(int minimo, int maximo) {
+    if (minimo > maximo) {
       throw new IllegalArgumentException("Mínimo mayor al máximo");
     }
   }
@@ -125,20 +125,8 @@ public class InventarioControl {
     return Inventario.verificarStock(codigo, cantidad);
   }
 
-  private void ejecutarDescuentoStock(String codigo, int cantidad) {
-    Inventario.descontarStock(codigo, cantidad);
-  }
-
-  private void ejecutarActualizacionStock(String codigo, int nuevaCantidad) {
-    Inventario.actualizarStock(codigo, nuevaCantidad);
-  }
-
   private void ejecutarActualizacionCompleta(String c, int s, int min, int max) {
     Inventario.actualizarStockCompleto(c, s, min, max);
-  }
-
-  private void ejecutarAjusteStock(String codigo, int stockFisico) {
-    Inventario.ajustarStock(codigo, stockFisico);
   }
 
 }

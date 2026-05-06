@@ -10,25 +10,49 @@ public class TransaccionStrategy implements IPagoStrategy {
 
   @Override
   public RespuestaPagoDTO procesar(IngresarPagoDTO request) {
-    System.out.println("[TransaccionStrategy] Procesando transferencia bancaria...");
-    System.out.println("                      Monto:      $" + request.getMonto());
-    System.out.println("                      Referencia: " + request.getReferencia());
+    imprimirInicio("[TransaccionStrategy] Procesando transferencia bancaria...", request);
 
     String clabe = extraer(request.getDatos(), "clabe");
-    String referencia = extraer(request.getDatos(), "referencia");
-    System.out.println("                      CLABE:      " + enmascarar(clabe));
+    String referenciaBancaria = extraer(request.getDatos(), "referencia");
 
-    SolicitudBancoDTO solicitud = SolicitudBancoDTO.builder()
+    imprimirDetalleClabe(clabe);
+
+    SolicitudBancoDTO solicitud = construirSolicitud(request, clabe, referenciaBancaria);
+    RespuestaBancoDTO resp = ejecutarOperacionBancaria(solicitud);
+
+    imprimirResultado(resp);
+
+    return TarjetaStrategy.traducir(resp);
+  }
+
+  private void imprimirInicio(String tag, IngresarPagoDTO request) {
+    System.out.println(tag);
+    System.out.println("                      Monto:      $" + request.getMonto());
+    System.out.println("                      Referencia: " + request.getReferencia());
+  }
+
+  private void imprimirDetalleClabe(String clabe) {
+    System.out.println("                      CLABE:      " + enmascarar(clabe));
+  }
+
+  private void imprimirResultado(RespuestaBancoDTO resp) {
+    System.out.println("                      Resultado: " + resp);
+  }
+
+  private SolicitudBancoDTO construirSolicitud(IngresarPagoDTO request, String clabe, String refBancaria) {
+    return SolicitudBancoDTO.builder()
       .monto(request.getMonto())
-      .referencia(referencia.isBlank() ? request.getReferencia() : referencia)
+      .referencia(seleccionarReferencia(request.getReferencia(), refBancaria))
       .dato("clabe", clabe)
       .build();
+  }
 
-    BancoCliente banco = new BancoCliente();
-    RespuestaBancoDTO resp = banco.procesarTransferencia(solicitud);
+  private String seleccionarReferencia(String refOriginal, String refDatos) {
+    return refDatos.isBlank() ? refOriginal : refDatos;
+  }
 
-    System.out.println("                      Resultado: " + resp);
-    return TarjetaStrategy.traducir(resp);
+  private RespuestaBancoDTO ejecutarOperacionBancaria(SolicitudBancoDTO solicitud) {
+    return new BancoCliente().procesarTransferencia(solicitud);
   }
 
   private static String extraer(String datos, String clave) {

@@ -56,6 +56,39 @@ public class TicketDTO {
     this.tipoPago = tipoPago;
   }
 
+  public static TicketDTO generarTicket(
+    String folio,
+    List<ItemVentaDTO> items,
+    BigDecimal subtotal,
+    BigDecimal iva,
+    BigDecimal total,
+    BigDecimal efectivoRecibido,
+    BigDecimal cambio,
+    String cajero,
+    String nombreTienda,
+    String rfc,
+    String direccion,
+    String telefono,
+    TipoPago tipoPago
+  ) {
+    return new TicketDTO(
+      folio,
+      items,
+      subtotal,
+      iva,
+      total,
+      efectivoRecibido,
+      cambio,
+      LocalDateTime.now(),
+      cajero,
+      nombreTienda,
+      rfc,
+      direccion,
+      telefono,
+      tipoPago
+    );
+  }
+
   public String getFolio() {
     return folio;
   }

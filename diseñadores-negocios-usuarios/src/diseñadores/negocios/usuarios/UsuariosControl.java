@@ -10,14 +10,9 @@ import java.util.Optional;
 public class UsuariosControl {
 
   public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
-    if (nombre == null || nombre.isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario no puede estar vacío.");
-    }
-    if (contrasena == null || contrasena.isBlank()) {
-      throw new IllegalArgumentException("La contraseña no puede estar vacía.");
-    }
+    validarCredencialesEntrada(nombre, contrasena);
 
-    return Usuario.autenticar(nombre.toLowerCase().trim(), contrasena);
+    return ejecutarAutenticacion(nombre, contrasena);
   }
 
   public List<UsuarioDTO> obtenerTodos() {
@@ -25,74 +20,132 @@ public class UsuariosControl {
   }
 
   public void guardarUsuario(UsuarioDTO usuario) {
-    if (usuario == null) {
-      throw new IllegalArgumentException("El usuario no puede ser nulo.");
-    }
-    if (usuario.getNombre() == null || usuario.getNombre().isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario es obligatorio.");
-    }
-    if (usuario.getContrasena() == null || usuario.getContrasena().isBlank()) {
-      throw new IllegalArgumentException("La contraseña es obligatoria.");
-    }
-    if (usuario.getContrasena().length() < 4) {
-      throw new IllegalArgumentException("La contraseña debe tener al menos 4 caracteres.");
-    }
-    if (usuario.getRol() == null) {
-      throw new IllegalArgumentException("El rol del usuario es obligatorio.");
-    }
-    if (Usuario.autenticar(usuario.getNombre(), usuario.getContrasena()).isPresent()) {
-      throw new IllegalStateException("Ya existe un usuario con el nombre: " + usuario.getNombre());
-    }
+    validarUsuarioNoNulo(usuario);
+    validarNombreObligatorio(usuario.getNombre());
+    validarContrasenaObligatoria(usuario.getContrasena());
+    validarFormatoContrasena(usuario.getContrasena());
+    validarRolObligatorio(usuario.getRol());
+    validarNombreDisponible(usuario.getNombre());
 
-    Usuario.guardar(usuario);
+    ejecutarGuardado(usuario);
   }
 
   public void actualizarUsuario(UsuarioDTO usuario) {
-    if (usuario == null) {
-      throw new IllegalArgumentException("El usuario no puede ser nulo.");
-    }
-    if (usuario.getNombre() == null || usuario.getNombre().isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario es obligatorio.");
-    }
-    if (usuario.getContrasena() != null && usuario.getContrasena().length() < 4) {
-      throw new IllegalArgumentException("La contraseña debe tener al menos 4 caracteres.");
-    }
-    if (usuario.getRol() == null) {
-      throw new IllegalArgumentException("El rol del usuario es obligatorio.");
-    }
-    if (Usuario.obtenerTodos().stream().noneMatch(u -> u.getNombre().equals(usuario.getNombre()))) {
-      throw new IllegalStateException("No existe un usuario con el nombre: " + usuario.getNombre());
-    }
+    validarUsuarioNoNulo(usuario);
+    validarNombreObligatorio(usuario.getNombre());
+    validarFormatoContrasenaOpcional(usuario.getContrasena());
+    validarRolObligatorio(usuario.getRol());
+    validarExistenciaUsuario(usuario.getNombre());
 
-    Usuario.actualizar(usuario);
+    ejecutarActualizacion(usuario);
   }
 
   public void eliminarUsuario(String nombre) {
-    if (nombre == null || nombre.isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario no puede estar vacío.");
-    }
-    if (Usuario.obtenerTodos().stream().noneMatch(u -> u.getNombre().equals(nombre))) {
-      throw new IllegalStateException("No existe un usuario con el nombre: " + nombre);
-    }
+    validarNombreObligatorio(nombre);
+    validarExistenciaUsuario(nombre);
 
-    Usuario.eliminar(nombre);
+    ejecutarEliminacion(nombre);
   }
 
   public void cambiarRol(String nombre, UsuarioRol nuevoRol) {
+    validarNombreObligatorio(nombre);
+    validarNuevoRolNoNulo(nuevoRol);
+
+    UsuarioDTO usuario = buscarUsuarioPorNombre(nombre);
+    asignarNuevoRol(usuario, nuevoRol);
+
+    ejecutarActualizacion(usuario);
+  }
+
+  private void validarCredencialesEntrada(String nombre, String contrasena) {
     if (nombre == null || nombre.isBlank()) {
       throw new IllegalArgumentException("El nombre de usuario no puede estar vacío.");
     }
-    if (nuevoRol == null) {
+    if (contrasena == null || contrasena.isBlank()) {
+      throw new IllegalArgumentException("La contraseña no puede estar vacía.");
+    }
+  }
+
+  private void validarUsuarioNoNulo(UsuarioDTO usuario) {
+    if (usuario == null) {
+      throw new IllegalArgumentException("El usuario no puede ser nulo.");
+    }
+  }
+
+  private void validarNombreObligatorio(String nombre) {
+    if (nombre == null || nombre.isBlank()) {
+      throw new IllegalArgumentException("El nombre de usuario es obligatorio.");
+    }
+  }
+
+  private void validarContrasenaObligatoria(String contrasena) {
+    if (contrasena == null || contrasena.isBlank()) {
+      throw new IllegalArgumentException("La contraseña es obligatoria.");
+    }
+  }
+
+  private void validarFormatoContrasena(String contrasena) {
+    if (contrasena.length() < 4) {
+      throw new IllegalArgumentException("La contraseña debe tener al menos 4 caracteres.");
+    }
+  }
+
+  private void validarFormatoContrasenaOpcional(String contrasena) {
+    if (contrasena != null) {
+      validarFormatoContrasena(contrasena);
+    }
+  }
+
+  private void validarRolObligatorio(UsuarioRol rol) {
+    if (rol == null) {
+      throw new IllegalArgumentException("El rol del usuario es obligatorio.");
+    }
+  }
+
+  private void validarNuevoRolNoNulo(UsuarioRol rol) {
+    if (rol == null) {
       throw new IllegalArgumentException("El nuevo rol no puede ser nulo.");
     }
+  }
 
-    UsuarioDTO usuario = Usuario.obtenerTodos().stream()
+  private void validarNombreDisponible(String nombre) {
+    if (Usuario.obtenerTodos().stream().anyMatch(u -> u.getNombre().equalsIgnoreCase(nombre))) {
+      throw new IllegalStateException("Ya existe un usuario con el nombre: " + nombre);
+    }
+  }
+
+  private void validarExistenciaUsuario(String nombre) {
+    if (Usuario.obtenerTodos().stream().noneMatch(u -> u.getNombre().equals(nombre))) {
+      throw new IllegalStateException("No existe un usuario con el nombre: " + nombre);
+    }
+  }
+
+  private Optional<UsuarioDTO> ejecutarAutenticacion(String nombre, String contrasena) {
+    String nombreNormalizado = nombre.toLowerCase().trim();
+    return Usuario.autenticar(nombreNormalizado, contrasena);
+  }
+
+  private void ejecutarGuardado(UsuarioDTO usuario) {
+    Usuario.guardar(usuario);
+  }
+
+  private void ejecutarActualizacion(UsuarioDTO usuario) {
+    Usuario.actualizar(usuario);
+  }
+
+  private void ejecutarEliminacion(String nombre) {
+    Usuario.eliminar(nombre);
+  }
+
+  private UsuarioDTO buscarUsuarioPorNombre(String nombre) {
+    return Usuario.obtenerTodos().stream()
       .filter(u -> u.getNombre().equals(nombre))
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("No existe un usuario con el nombre: " + nombre));
+  }
 
-    usuario.setRol(nuevoRol);
-    Usuario.actualizar(usuario);
+  private void asignarNuevoRol(UsuarioDTO usuario, UsuarioRol rol) {
+    usuario.setRol(rol);
   }
 
 }

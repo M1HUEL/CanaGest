@@ -10,22 +10,41 @@ public class QRStrategy implements IPagoStrategy {
 
   @Override
   public RespuestaPagoDTO procesar(IngresarPagoDTO request) {
-    System.out.println("[QRStrategy] Procesando pago CoDi/QR...");
+    imprimirInicio("[QRStrategy] Procesando pago CoDi/QR...", request);
+
+    String referenciaQR = extraer(request.getDatos(), "referencia");
+
+    SolicitudBancoDTO solicitud = construirSolicitud(request, referenciaQR);
+    RespuestaBancoDTO resp = ejecutarOperacionBancaria(solicitud);
+
+    imprimirResultado(resp);
+
+    return TarjetaStrategy.traducir(resp);
+  }
+
+  private void imprimirInicio(String tag, IngresarPagoDTO request) {
+    System.out.println(tag);
     System.out.println("             Monto:      $" + request.getMonto());
     System.out.println("             Referencia: " + request.getReferencia());
+  }
 
-    String referencia = extraer(request.getDatos(), "referencia");
-
-    SolicitudBancoDTO solicitud = SolicitudBancoDTO.builder()
-      .monto(request.getMonto())
-      .referencia(referencia.isBlank() ? request.getReferencia() : referencia)
-      .build();
-
-    BancoCliente banco = new BancoCliente();
-    RespuestaBancoDTO resp = banco.procesarQR(solicitud);
-
+  private void imprimirResultado(RespuestaBancoDTO resp) {
     System.out.println("             Resultado: " + resp);
-    return TarjetaStrategy.traducir(resp);
+  }
+
+  private SolicitudBancoDTO construirSolicitud(IngresarPagoDTO request, String refDatos) {
+    return SolicitudBancoDTO.builder()
+      .monto(request.getMonto())
+      .referencia(seleccionarReferencia(request.getReferencia(), refDatos))
+      .build();
+  }
+
+  private String seleccionarReferencia(String refOriginal, String refDatos) {
+    return refDatos.isBlank() ? refOriginal : refDatos;
+  }
+
+  private RespuestaBancoDTO ejecutarOperacionBancaria(SolicitudBancoDTO solicitud) {
+    return new BancoCliente().procesarQR(solicitud);
   }
 
   private static String extraer(String datos, String clave) {

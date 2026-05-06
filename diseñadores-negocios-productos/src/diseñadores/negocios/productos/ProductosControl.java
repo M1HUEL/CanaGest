@@ -24,33 +24,29 @@ public class ProductosControl {
   }
 
   public ProductoDTO buscarProductoPorCodigo(EscanearProductoDTO dto) {
-    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
-      throw new IllegalArgumentException("Código inválido");
-    }
-    ProductoDTO p = Producto.obtenerPorCodigo(dto.getCodigo());
-    if (p == null) {
-      throw new IllegalStateException("Producto no existe");
-    }
+    validarDtoEscaneo(dto);
 
-    ProductoDTO infoInventario = serviciosInventario.obtenerProductoPorCodigo(dto.getCodigo());
-    if (infoInventario != null) {
-      p.setStock(infoInventario.getStock());
-    }
+    ProductoDTO p = obtenerProductoBase(dto.getCodigo());
+
+    validarProductoExistente(p);
+
+    sincronizarStockDesdeInventario(p, dto.getCodigo());
+
     return p;
   }
 
-  public boolean validarExistenciaProducto(EscanearProductoDTO dto) {
-    if (dto == null || dto.getCodigo() == null) {
+  public boolean existeProducto(EscanearProductoDTO dto) {
+    if (esDtoInvalido(dto)) {
       return false;
     }
-    return Producto.obtenerPorCodigo(dto.getCodigo()) != null;
+    return obtenerProductoBase(dto.getCodigo()) != null;
   }
 
   public boolean tieneStock(EscanearProductoDTO dto, int cantidad) {
-    if (dto == null || dto.getCodigo() == null) {
+    if (esDtoInvalido(dto)) {
       return false;
     }
-    return serviciosInventario.verificarStock(dto.getCodigo(), cantidad);
+    return verificarStockServicio(dto.getCodigo(), cantidad);
   }
 
   public void descontarStock(String codigo, int cantidad) {
@@ -58,24 +54,78 @@ public class ProductosControl {
   }
 
   public void guardarProducto(ProductoDTO producto) {
-    if (producto == null || producto.getCodigo() == null) {
-      throw new IllegalArgumentException("Datos insuficientes");
-    }
-    Producto.guardar(producto);
+    validarDatosProducto(producto);
+    registrarNuevoProducto(producto);
   }
 
   public void actualizarProducto(ProductoDTO producto) {
-    if (producto == null || producto.getCodigo() == null) {
-      throw new IllegalArgumentException("Datos insuficientes");
-    }
-    Producto.actualizar(producto);
+    validarDatosProducto(producto);
+    ejecutarActualizacion(producto);
   }
 
   public void eliminarProducto(String codigo) {
+    validarCodigoRequerido(codigo);
+    ejecutarEliminacion(codigo);
+  }
+
+  private void validarDtoEscaneo(EscanearProductoDTO dto) {
+    if (dto == null || dto.getCodigo() == null || dto.getCodigo().isBlank()) {
+      throw new IllegalArgumentException("Código inválido");
+    }
+  }
+
+  private boolean esDtoInvalido(EscanearProductoDTO dto) {
+    return dto == null || dto.getCodigo() == null;
+  }
+
+  private void validarProductoExistente(ProductoDTO p) {
+    if (p == null) {
+      throw new IllegalStateException("Producto no existe");
+    }
+  }
+
+  private void validarDatosProducto(ProductoDTO producto) {
+    if (producto == null || producto.getCodigo() == null) {
+      throw new IllegalArgumentException("Datos insuficientes");
+    }
+  }
+
+  private void validarCodigoRequerido(String codigo) {
     if (codigo == null || codigo.isBlank()) {
       throw new IllegalArgumentException("Código requerido");
     }
+  }
+
+  private ProductoDTO obtenerProductoBase(String codigo) {
+    return Producto.obtenerPorCodigo(codigo);
+  }
+
+  private void sincronizarStockDesdeInventario(ProductoDTO p, String codigo) {
+    ProductoDTO infoInventario = serviciosInventario.obtenerProductoPorCodigo(codigo);
+
+    actualizarStockSiExiste(p, infoInventario);
+  }
+
+  private boolean verificarStockServicio(String codigo, int cantidad) {
+    return serviciosInventario.verificarStock(codigo, cantidad);
+  }
+
+  private void registrarNuevoProducto(ProductoDTO producto) {
+    Producto.guardar(producto);
+  }
+
+  private void ejecutarActualizacion(ProductoDTO producto) {
+    Producto.actualizar(producto);
+  }
+
+  private void ejecutarEliminacion(String codigo) {
     Producto.eliminar(codigo);
+  }
+
+  private void actualizarStockSiExiste(ProductoDTO p, ProductoDTO infoInventario) {
+    if (infoInventario != null) {
+      p.setStock(infoInventario.getStock());
+    }
   }
 
 }

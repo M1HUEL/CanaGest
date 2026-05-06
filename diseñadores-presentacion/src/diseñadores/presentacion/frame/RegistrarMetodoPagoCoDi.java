@@ -170,7 +170,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
       @Override
       protected ResultadoPagoDTO doInBackground() {
-        return ventasFachada.procesarPagoCoDi(
+        return ventasFachada.procesarPagoQr(
           ventaActual, new PagoQrDTO(referencia));
       }
 

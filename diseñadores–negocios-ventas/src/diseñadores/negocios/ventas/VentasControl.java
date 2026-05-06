@@ -6,13 +6,11 @@ import diseñadores.infraestructura.notificaciones.NotificacionesFacade;
 import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.infraestructura.pagos.PagosFacade;
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.objetos.Inventario;
 import diseñadores.negocios.objetos.Venta;
 import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.productos.ProductosFacade;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class VentasControl {
@@ -34,10 +32,10 @@ public class VentasControl {
     this.serviciosProductos = new ProductosFacade();
   }
 
-  public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos, IProductos serviciosProductos) {
-    this.servicioNotificaciones = servicioNotificaciones;
-    this.serviciosPagos = serviciosPagos;
-    this.serviciosProductos = serviciosProductos;
+  public VentasControl(INotificaciones sn, IPagos sp, IProductos spr) {
+    this.servicioNotificaciones = sn;
+    this.serviciosPagos = sp;
+    this.serviciosProductos = spr;
   }
 
   public List<ProductoDTO> obtenerCatalogo() {
@@ -45,172 +43,175 @@ public class VentasControl {
   }
 
   public boolean existeProducto(EscanearProductoDTO dto) {
-    return serviciosProductos.validarExistenciaProducto(dto);
+    validarDtoNoNulo(dto);
+    return serviciosProductos.existeProducto(dto);
   }
 
   public boolean tieneStock(EscanearProductoDTO dto) {
+    validarDtoNoNulo(dto);
     return serviciosProductos.tieneStock(dto, 1);
   }
 
-  public ProductoDTO procesarProducto(VentaDTO ventaActual, EscanearProductoDTO dto) {
-    validarVentaNoNula(ventaActual);
+  public ProductoDTO procesarProducto(VentaDTO venta, EscanearProductoDTO dto) {
+    validarVentaNoNula(venta);
+    validarDtoNoNulo(dto);
 
     ProductoDTO producto = serviciosProductos.buscarProductoPorCodigo(dto);
-
     if (producto == null) {
       return null;
     }
 
-    int cantidadEnCarrito = ventaActual.getItems().stream()
-      .filter(i -> i.getCodigo().equals(producto.getCodigo()))
-      .mapToInt(ItemVentaDTO::getCantidad).sum();
-
-    if (producto.getStock() <= cantidadEnCarrito) {
+    if (!hayStockSuficiente(venta, producto)) {
       return null;
     }
 
-    ventaActual.agregarProducto(producto);
+    registrarProductoEnVenta(venta, producto);
     return producto;
   }
 
-  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO ventaActual, PagoEfectivoDTO dto) {
-    validarVentaConItems(ventaActual);
-    if (dto == null || dto.getMontoRecibido() == null) {
-      throw new IllegalArgumentException("El monto recibido no puede ser nulo.");
-    }
+  public ResultadoPagoDTO procesarPagoEfectivo(VentaDTO venta, PagoEfectivoDTO dto) {
+    validarVentaProcesable(venta);
+    validarPagoNoNulo(dto);
+    validarMontoRecibido(dto.getMontoRecibido());
 
-    BigDecimal total = ventaActual.getTotal();
+    BigDecimal total = venta.getTotal();
     BigDecimal recibido = dto.getMontoRecibido();
 
-    if (recibido.compareTo(total) < 0) {
-      return ResultadoPagoDTO.rechazado("Monto insuficiente.");
+    ResultadoPagoDTO resultado = verificarInsuficienciaMonto(venta.getTotal(), dto.getMontoRecibido());
+
+    if (resultado != null) {
+      return resultado;
     }
 
-    ventaActual.setTipoPago(TipoPago.EFECTIVO);
+    asignarTipoPagoEfectivo(venta);
+
     return ResultadoPagoDTO.aprobado(recibido.subtract(total));
   }
 
-  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO ventaActual, PagoTarjetaDTO dto) {
-    validarVentaConItems(ventaActual);
-    if (dto == null) {
-      throw new IllegalArgumentException("Los datos de tarjeta no pueden ser nulos.");
-    }
+  public ResultadoPagoDTO procesarPagoTarjeta(VentaDTO venta, PagoTarjetaDTO pagoTarjeta) {
+    validarVentaProcesable(venta);
+    validarPagoNoNulo(pagoTarjeta);
 
-    ResultadoPagoDTO resultado = procesarPagoElectronico(
-      ventaActual,
-      diseñadores.infraestructura.dto.TipoPago.TARJETA,
-      "numero=" + dto.getNumero() + "|titular=" + dto.getTitular());
+    String datos = "numero=" + pagoTarjeta.getNumero() + "|titular=" + pagoTarjeta.getTitular();
+    return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.TARJETA, datos, TipoPago.TARJETA);
+  }
 
-    if (resultado.isAprobado()) {
-      ventaActual.setTipoPago(TipoPago.TARJETA);
-    }
+  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO venta, PagoTransferenciaDTO dto) {
+    validarVentaProcesable(venta);
+    validarPagoNoNulo(dto);
+
+    String datos = "clabe=" + dto.getClabe() + "|referencia=" + dto.getReferencia();
+    return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.TRANSACCION, datos, TipoPago.TRANSACCION);
+  }
+
+  public ResultadoPagoDTO procesarPagoQr(VentaDTO venta, PagoQrDTO pagoQr) {
+    validarVentaProcesable(venta);
+    validarPagoNoNulo(pagoQr);
+
+    String datos = "referencia=" + pagoQr.getReferencia();
+    return ejecutarFlujoPagoElectronico(venta, diseñadores.infraestructura.dto.TipoPago.QR, datos, TipoPago.QR);
+  }
+
+  private ResultadoPagoDTO ejecutarFlujoPagoElectronico(VentaDTO v, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos, TipoPago tipoNegocio) {
+    ResultadoPagoDTO resultado = procesarPagoElectronico(v, tipoInfra, datos);
+
+    validarYAsignarTipoPago(v, resultado, tipoNegocio);
+
     return resultado;
   }
 
-  public ResultadoPagoDTO procesarPagoTransferencia(VentaDTO ventaActual, PagoTransferenciaDTO dto) {
-    validarVentaConItems(ventaActual);
-    if (dto == null) {
-      throw new IllegalArgumentException("Los datos de transferencia no pueden ser nulos.");
-    }
+  ResultadoPagoDTO procesarPagoElectronico(VentaDTO venta, diseñadores.infraestructura.dto.TipoPago tipoInfra, String datos) {
+    String referencia = generarReferenciaPago();
 
-    ResultadoPagoDTO resultado = procesarPagoElectronico(
-      ventaActual,
-      diseñadores.infraestructura.dto.TipoPago.TRANSACCION,
-      "clabe=" + dto.getClabe() + "|referencia=" + dto.getReferencia());
+    RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(tipoInfra, venta.getTotal(), referencia, datos);
 
-    if (resultado.isAprobado()) {
-      ventaActual.setTipoPago(TipoPago.TRANSACCION);
-    }
-    return resultado;
+    return convertirAResultadoNegocio(respuesta);
   }
 
-  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO ventaActual, PagoQrDTO dto) {
-    validarVentaConItems(ventaActual);
-    if (dto == null) {
-      throw new IllegalArgumentException("Los datos de CoDi no pueden ser nulos.");
-    }
+  public void procesarFinalizarVenta(VentaDTO venta) {
+    validarVentaProcesable(venta);
 
-    ResultadoPagoDTO resultado = procesarPagoElectronico(
-      ventaActual,
-      diseñadores.infraestructura.dto.TipoPago.QR,
-      "referencia=" + dto.getReferencia());
+    validarVentaNoPagada(venta);
 
-    if (resultado.isAprobado()) {
-      ventaActual.setTipoPago(TipoPago.QR);
-    }
-    return resultado;
+    marcarVentaComoPagada(venta);
+
+    actualizarInventarioYAlertas(venta);
+
+    registrarVentaSistema(venta);
   }
 
-  ResultadoPagoDTO procesarPagoElectronico(VentaDTO ventaActual,
-    diseñadores.infraestructura.dto.TipoPago tipoInfra,
-    String datos) {
-    String referencia = "VENTA-" + System.currentTimeMillis();
-    RespuestaPagoDTO respuesta = serviciosPagos.procesarPago(
-      tipoInfra, ventaActual.getTotal(), referencia, datos);
-
-    return respuesta.isExitoso()
-      ? ResultadoPagoDTO.aprobado(respuesta.getCodigoAutorizacion())
-      : ResultadoPagoDTO.rechazado(respuesta.getMensaje());
+  private void actualizarInventarioYAlertas(VentaDTO venta) {
+    for (ItemVentaDTO item : venta.getItems()) {
+      serviciosProductos.descontarStock(item.getCodigo(), item.getCantidad());
+      verificarAlertaReabastecimiento(item.getCodigo());
+    }
   }
 
-  public BigDecimal procesarCalcularCambio(VentaDTO ventaActual, BigDecimal efectivo) {
-    if (ventaActual == null || efectivo == null) {
-      return BigDecimal.ZERO;
+  private void verificarAlertaReabastecimiento(String codigo) {
+    ProductoDTO estado = serviciosProductos.buscarProductoPorCodigo(new EscanearProductoDTO(codigo));
+    if (estado != null && estado.getStock() < STOCK_MINIMO) {
+      ejecutarProtocoloReabastecimiento(estado);
     }
-    BigDecimal total = ventaActual.getTotal();
-    return efectivo.compareTo(total) >= 0 ? efectivo.subtract(total) : BigDecimal.ZERO;
   }
 
-  public void procesarFinalizarVenta(VentaDTO ventaActual) {
-    validarVentaConItems(ventaActual);
-    if (ventaActual.isPagada()) {
-      throw new IllegalStateException("La venta ya fue pagada.");
-    }
+  public TicketDTO generarTicket(VentaDTO venta, BigDecimal efectivo) {
+    validarVentaNoNula(venta);
+    validarVentaFinalizada(venta);
+    validarMontoEfectivoTicket(efectivo);
 
-    ventaActual.setPagada(true);
-    ventaActual.setFolio(generarFolio());
+    BigDecimal cambio = calcularCambio(venta.getTotal(), efectivo);
 
-    for (ItemVentaDTO item : ventaActual.getItems()) {
-      Inventario.descontarStock(item.getCodigo(), item.getCantidad());
-
-      EscanearProductoDTO tempDto = new EscanearProductoDTO(item.getCodigo());
-
-      ProductoDTO estado = serviciosProductos.buscarProductoPorCodigo(tempDto);
-
-      if (estado != null && estado.getStock() < STOCK_MINIMO) {
-        ejecutarProtocoloReabastecimiento(estado);
-      }
-    }
-    Venta.guardar(ventaActual);
-  }
-
-  public TicketDTO generarTicket(VentaDTO ventaActual, BigDecimal ultimoEfectivo) {
-    if (ventaActual == null) {
-      throw new IllegalArgumentException("La venta no puede ser nula.");
-    }
-    if (!ventaActual.isPagada()) {
-      throw new IllegalStateException("La venta no ha sido pagada.");
-    }
-    if (ultimoEfectivo == null || ultimoEfectivo.compareTo(BigDecimal.ZERO) < 0) {
-      throw new IllegalArgumentException("Monto de efectivo inválido.");
-    }
-
-    BigDecimal cambio = ultimoEfectivo.compareTo(BigDecimal.ZERO) > 0
-      ? ultimoEfectivo.subtract(ventaActual.getTotal())
-      : BigDecimal.ZERO;
-
-    return new TicketDTO(
-      ventaActual.getFolio(),
-      ventaActual.getItems(),
-      ventaActual.getSubtotal(),
-      ventaActual.getIva(),
-      ventaActual.getTotal(),
-      ultimoEfectivo,
+    return TicketDTO.generarTicket(
+      venta.getFolio(),
+      venta.getItems(),
+      venta.getSubtotal(),
+      venta.getIva(),
+      venta.getTotal(),
+      efectivo,
       cambio,
-      LocalDateTime.now(),
-      CAJERO, NOMBRE_TIENDA, RFC, DIRECCION, TELEFONO,
-      ventaActual.getTipoPago()
+      CAJERO,
+      NOMBRE_TIENDA,
+      RFC,
+      DIRECCION,
+      TELEFONO,
+      venta.getTipoPago()
     );
+  }
+
+  public BigDecimal procesarCalcularCambio(VentaDTO venta, BigDecimal efectivo) {
+    validarDatosParaCambio(venta, efectivo);
+
+    return calcularCambio(venta.getTotal(), efectivo);
+  }
+
+  private BigDecimal calcularCambio(BigDecimal total, BigDecimal recibido) {
+    return recibido.compareTo(total) >= 0 ? recibido.subtract(total) : BigDecimal.ZERO;
+  }
+
+  private boolean hayStockSuficiente(VentaDTO venta, ProductoDTO producto) {
+    int cantidadEnCarrito = calcularCantidadProductoEnCarrito(venta, producto.getCodigo());
+    return validarDisponibilidadStock(producto.getStock(), cantidadEnCarrito);
+  }
+
+  private int calcularCantidadProductoEnCarrito(VentaDTO venta, String codigoProducto) {
+    return venta.getItems().stream()
+      .filter(item -> esMismoProducto(item.getCodigo(), codigoProducto))
+      .mapToInt(ItemVentaDTO::getCantidad)
+      .sum();
+  }
+
+  private boolean esMismoProducto(String codigoItem, String codigoBuscado) {
+    return codigoItem.equals(codigoBuscado);
+  }
+
+  private boolean validarDisponibilidadStock(int stockDisponible, int cantidadSolicitada) {
+    return stockDisponible > cantidadSolicitada;
+  }
+
+  private void validarYAsignarTipoPago(VentaDTO v, ResultadoPagoDTO resultado, TipoPago tipoNegocio) {
+    if (resultado.isAprobado()) {
+      v.setTipoPago(tipoNegocio);
+    }
   }
 
   private void validarVentaNoNula(VentaDTO venta) {
@@ -219,11 +220,89 @@ public class VentasControl {
     }
   }
 
-  private void validarVentaConItems(VentaDTO venta) {
+  private void validarDtoNoNulo(Object dto) {
+    if (dto == null) {
+      throw new IllegalArgumentException("Los datos de entrada no pueden ser nulos.");
+    }
+  }
+
+  private String generarReferenciaPago() {
+    return "VENTA-" + System.currentTimeMillis();
+  }
+
+  private void validarVentaProcesable(VentaDTO venta) {
     validarVentaNoNula(venta);
     if (venta.getItems().isEmpty()) {
-      throw new IllegalStateException("No se puede procesar una venta sin productos.");
+      throw new IllegalStateException("Venta sin productos.");
     }
+  }
+
+  private void validarVentaNoPagada(VentaDTO venta) {
+    if (venta.isPagada()) {
+      throw new IllegalStateException("La venta ya fue pagada.");
+    }
+  }
+
+  private void validarVentaFinalizada(VentaDTO venta) {
+    if (!venta.isPagada()) {
+      throw new IllegalStateException("Venta no pagada.");
+    }
+  }
+
+  private void validarPagoNoNulo(Object pagoDto) {
+    if (pagoDto == null) {
+      throw new IllegalArgumentException("Datos de pago nulos.");
+    }
+  }
+
+  private void validarMontoRecibido(BigDecimal monto) {
+    if (monto == null) {
+      throw new IllegalArgumentException("Monto recibido nulo.");
+    }
+  }
+
+  private void validarMontoEfectivoTicket(BigDecimal efectivo) {
+    if (efectivo == null || efectivo.compareTo(BigDecimal.ZERO) < 0) {
+      throw new IllegalArgumentException("Efectivo inválido.");
+    }
+  }
+
+  private void validarDatosParaCambio(VentaDTO venta, BigDecimal efectivo) {
+    if (venta == null || efectivo == null) {
+      throw new IllegalArgumentException("Venta y efectivo son requeridos para calcular el cambio.");
+    }
+  }
+
+  private ResultadoPagoDTO verificarInsuficienciaMonto(BigDecimal total, BigDecimal recibido) {
+    if (recibido.compareTo(total) < 0) {
+      return ResultadoPagoDTO.rechazado("Monto insuficiente.");
+    }
+
+    return null;
+  }
+
+  private ResultadoPagoDTO convertirAResultadoNegocio(RespuestaPagoDTO respuesta) {
+    if (respuesta.isExitoso()) {
+      return ResultadoPagoDTO.aprobado(respuesta.getCodigoAutorizacion());
+    }
+    return ResultadoPagoDTO.rechazado(respuesta.getMensaje());
+  }
+
+  private void marcarVentaComoPagada(VentaDTO venta) {
+    venta.setPagada(true);
+    venta.setFolio(generarFolio());
+  }
+
+  private void asignarTipoPagoEfectivo(VentaDTO venta) {
+    venta.setTipoPago(TipoPago.EFECTIVO);
+  }
+
+  private void registrarVentaSistema(VentaDTO venta) {
+    Venta.guardar(venta);
+  }
+
+  private void registrarProductoEnVenta(VentaDTO venta, ProductoDTO producto) {
+    venta.agregarProducto(producto);
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {

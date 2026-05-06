@@ -55,8 +55,8 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public ResultadoPagoDTO procesarPagoCoDi(VentaDTO v, PagoQrDTO d) {
-    return control.procesarPagoCoDi(v, d);
+  public ResultadoPagoDTO procesarPagoQr(VentaDTO v, PagoQrDTO d) {
+    return control.procesarPagoQr(v, d);
   }
 
   @Override

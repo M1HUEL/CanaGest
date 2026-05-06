@@ -10,27 +10,47 @@ public class TarjetaStrategy implements IPagoStrategy {
 
   @Override
   public RespuestaPagoDTO procesar(IngresarPagoDTO request) {
-    System.out.println("[TarjetaStrategy] Procesando pago con tarjeta...");
-    System.out.println("                  Monto:      $" + request.getMonto());
-    System.out.println("                  Referencia: " + request.getReferencia());
+    imprimirInicio("[TarjetaStrategy] Procesando pago con tarjeta...", request);
 
     String numero = extraer(request.getDatos(), "numero");
     String titular = extraer(request.getDatos(), "titular");
+
+    imprimirDetallesTarjeta(numero, titular);
+
+    SolicitudBancoDTO solicitud = construirSolicitud(request, numero, titular);
+    RespuestaBancoDTO resp = ejecutarOperacionBancaria(solicitud);
+
+    imprimirResultado(resp);
+
+    return traducir(resp);
+  }
+
+  private void imprimirInicio(String tag, IngresarPagoDTO request) {
+    System.out.println(tag);
+    System.out.println("                  Monto:      $" + request.getMonto());
+    System.out.println("                  Referencia: " + request.getReferencia());
+  }
+
+  private void imprimirDetallesTarjeta(String numero, String titular) {
     System.out.println("                  Tarjeta:    " + enmascarar(numero));
     System.out.println("                  Titular:    " + titular);
+  }
 
-    SolicitudBancoDTO solicitud = SolicitudBancoDTO.builder()
+  private void imprimirResultado(RespuestaBancoDTO resp) {
+    System.out.println("                  Resultado: " + resp);
+  }
+
+  private SolicitudBancoDTO construirSolicitud(IngresarPagoDTO request, String numero, String titular) {
+    return SolicitudBancoDTO.builder()
       .monto(request.getMonto())
       .referencia(request.getReferencia())
       .dato("numero", numero)
       .dato("titular", titular)
       .build();
+  }
 
-    BancoCliente banco = new BancoCliente();
-    RespuestaBancoDTO resp = banco.procesarTarjeta(solicitud);
-
-    System.out.println("                  Resultado: " + resp);
-    return traducir(resp);
+  private RespuestaBancoDTO ejecutarOperacionBancaria(SolicitudBancoDTO solicitud) {
+    return new BancoCliente().procesarTarjeta(solicitud);
   }
 
   private static String extraer(String datos, String clave) {
@@ -53,10 +73,11 @@ public class TarjetaStrategy implements IPagoStrategy {
     return num.substring(0, 4) + "********" + num.substring(num.length() - 4);
   }
 
-  static RespuestaPagoDTO traducir(RespuestaBancoDTO resp) {
-    return resp.isAprobado()
-      ? RespuestaPagoDTO.aprobado(resp.getAutorizacion())
-      : RespuestaPagoDTO.rechazado(resp.getMensaje());
+  public static RespuestaPagoDTO traducir(RespuestaBancoDTO resp) {
+    if (resp.isAprobado()) {
+      return RespuestaPagoDTO.aprobado(resp.getAutorizacion());
+    }
+    return RespuestaPagoDTO.rechazado(resp.getMensaje());
   }
 
 }

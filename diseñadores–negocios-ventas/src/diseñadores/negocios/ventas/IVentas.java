@@ -20,7 +20,7 @@ public interface IVentas {
 
   ResultadoPagoDTO procesarPagoTransferencia(VentaDTO venta, PagoTransferenciaDTO dto);
 
-  ResultadoPagoDTO procesarPagoCoDi(VentaDTO venta, PagoQrDTO dto);
+  ResultadoPagoDTO procesarPagoQr(VentaDTO venta, PagoQrDTO dto);
 
   BigDecimal procesarCalcularCambio(VentaDTO venta, BigDecimal efectivo);
 

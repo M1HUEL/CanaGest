@@ -20,6 +20,7 @@ public class OrdenesCompras extends JFrame {
   private final JFrame menuOrigen;
   private final IProveedores proveedoresFachada;
   private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
+
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
@@ -29,7 +30,6 @@ public class OrdenesCompras extends JFrame {
     this.proveedoresFachada = proveedoresFachada;
 
     configurarVentana();
-
     ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
 
     JPanel root = new JPanel(new BorderLayout()) {
@@ -63,9 +63,6 @@ public class OrdenesCompras extends JFrame {
       new EmptyBorder(0, 24, 0, 24)));
     bar.setPreferredSize(new Dimension(0, 66));
 
-    JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
-    izq.setOpaque(false);
-
     JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
@@ -75,8 +72,6 @@ public class OrdenesCompras extends JFrame {
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));
     der.setOpaque(false);
     der.add(btnMenu);
-
-    bar.add(izq, BorderLayout.WEST);
     bar.add(der, BorderLayout.EAST);
     return bar;
   }
@@ -85,12 +80,8 @@ public class OrdenesCompras extends JFrame {
     JPanel contenido = new JPanel(new BorderLayout());
     contenido.setOpaque(false);
     contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
-
-    JPanel header = crearHeader();
-    JPanel centro = crearPanelCentro();
-
-    contenido.add(header, BorderLayout.NORTH);
-    contenido.add(centro, BorderLayout.CENTER);
+    contenido.add(crearHeader(), BorderLayout.NORTH);
+    contenido.add(crearPanelCentro(), BorderLayout.CENTER);
     return contenido;
   }
 
@@ -102,15 +93,12 @@ public class OrdenesCompras extends JFrame {
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
-
     JLabel lblTitulo = new JLabel("Órdenes de Compra");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
-
     JLabel lblDesc = new JLabel("Gestiona y da seguimiento a las órdenes de compra");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
-
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
@@ -174,7 +162,6 @@ public class OrdenesCompras extends JFrame {
     centro.setOpaque(false);
     centro.add(barFiltros, BorderLayout.NORTH);
     centro.add(scroll, BorderLayout.CENTER);
-
     return centro;
   }
 
@@ -191,14 +178,14 @@ public class OrdenesCompras extends JFrame {
     if (filtroActual.equals("Todas")) {
       return ordenes;
     }
-
     List<OrdenCompraDTO> r = new ArrayList<>();
     for (OrdenCompraDTO o : ordenes) {
-      if (filtroActual.equals("Pendientes") && o.getEstado().equals("Pendiente")) {
+      String estado = o.getEstado();
+      if (filtroActual.equals("Pendientes") && estado.equals("Pendiente")) {
         r.add(o);
-      } else if (filtroActual.equals("Aprobadas") && o.getEstado().equals("Aprobada")) {
+      } else if (filtroActual.equals("Aprobadas") && estado.equals("Aprobada")) {
         r.add(o);
-      } else if (filtroActual.equals("Recibidas") && o.getEstado().equals("Recibida")) {
+      } else if (filtroActual.equals("Recibidas") && estado.equals("Recibida")) {
         r.add(o);
       }
     }
@@ -220,6 +207,12 @@ public class OrdenesCompras extends JFrame {
     panelOrdenes.repaint();
   }
 
+  private void recargarOrdenes() {
+    ordenes.clear();
+    ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
+    construirOrdenes(filtrar());
+  }
+
   private JPanel cardOrden(OrdenCompraDTO o) {
     JPanel card = new JPanel(new BorderLayout(0, 10)) {
       @Override
@@ -236,7 +229,6 @@ public class OrdenesCompras extends JFrame {
     };
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(18, 20, 18, 20));
-
     card.add(crearTopCard(o), BorderLayout.NORTH);
     card.add(crearMidCard(o), BorderLayout.CENTER);
     card.add(crearBottomCard(o), BorderLayout.SOUTH);
@@ -250,15 +242,12 @@ public class OrdenesCompras extends JFrame {
     JPanel numCol = new JPanel();
     numCol.setLayout(new BoxLayout(numCol, BoxLayout.Y_AXIS));
     numCol.setOpaque(false);
-
     JLabel lblNum = new JLabel(o.getNumero());
     lblNum.setFont(Fuentes.b(16));
     lblNum.setForeground(Colores.TEXTO_OSCURO);
-
     JLabel lblFecha = new JLabel(o.getFecha());
     lblFecha.setFont(Fuentes.r(12));
     lblFecha.setForeground(Colores.GRIS_TEXTO);
-
     numCol.add(lblNum);
     numCol.add(Box.createVerticalStrut(3));
     numCol.add(lblFecha);
@@ -278,7 +267,6 @@ public class OrdenesCompras extends JFrame {
         badgeBg = new Color(220, 252, 231);
       }
     }
-
     JLabel badge = new JLabel(o.getEstado(), SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
     badge.setForeground(badgeColor);
@@ -303,7 +291,6 @@ public class OrdenesCompras extends JFrame {
     datos.setLayout(new BoxLayout(datos, BoxLayout.Y_AXIS));
     datos.setOpaque(false);
     datos.setBorder(new EmptyBorder(8, 0, 4, 0));
-
     datos.add(crearFilaDato("Proveedor: ", o.getProveedorNombre()));
     datos.add(Box.createVerticalStrut(5));
     datos.add(crearFilaDato("Productos: ", o.getProductos() + " items"));
@@ -324,7 +311,7 @@ public class OrdenesCompras extends JFrame {
     JLabel lT = new JLabel(titulo);
     lT.setFont(Fuentes.b(13));
     lT.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lV = new JLabel(valor);
+    JLabel lV = new JLabel(valor != null ? valor : "-");
     lV.setFont(Fuentes.r(13));
     lV.setForeground(Colores.TEXTO_OSCURO);
     fila.add(lT);
@@ -348,40 +335,131 @@ public class OrdenesCompras extends JFrame {
     sep.setOpaque(false);
     sep.setPreferredSize(new Dimension(0, 1));
 
-    JPanel botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
-    botonesRow.setOpaque(false);
-    botonesRow.setPreferredSize(new Dimension(0, 40));
+    JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle",
+      new Color(245, 246, 248), new Color(229, 231, 235), false);
 
-    JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
-    btnDetalle.addActionListener(e -> JOptionPane.showMessageDialog(this,
-      "Orden: " + o.getNumero() + "\nProveedor: " + o.getProveedorNombre()
-      + "\nProductos: " + o.getProductos() + "\nTotal: $" + String.format("%.2f", o.getTotal().doubleValue())
-      + "\nEstado: " + o.getEstado(), "Detalle de Orden", JOptionPane.INFORMATION_MESSAGE));
-    botonesRow.add(btnDetalle);
+    btnDetalle.addActionListener(e -> abrirDetalleOrden(o));
+
+    JPanel botonesRow;
 
     if (o.getEstado().equals("Pendiente")) {
+      botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
+      botonesRow.setOpaque(false);
       JButton btnAprobar = crearBotonCardOrdenes("Aprobar", Colores.VERDE, Colores.VERDE_HOVER, true);
       btnAprobar.addActionListener(e -> {
-        o.setEstado("Aprobada");
-        proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Aprobada");
-        construirOrdenes(filtrar());
+        try {
+          proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Aprobada");
+          recargarOrdenes();
+        } catch (Exception ex) {
+          mostrarError(ex.getMessage());
+        }
       });
+      botonesRow.add(btnDetalle);
       botonesRow.add(btnAprobar);
+
     } else if (o.getEstado().equals("Aprobada")) {
+      botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
+      botonesRow.setOpaque(false);
       JButton btnRecibir = crearBotonCardOrdenes("Recibir", Colores.AZUL, Colores.AZUL_HOVER, true);
       btnRecibir.addActionListener(e -> {
-        o.setEstado("Recibida");
-        proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Recibida");
-        construirOrdenes(filtrar());
+        try {
+          proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Recibida");
+          recargarOrdenes();
+        } catch (Exception ex) {
+          mostrarError(ex.getMessage());
+        }
       });
+      botonesRow.add(btnDetalle);
       botonesRow.add(btnRecibir);
+
     } else {
-      botonesRow.setLayout(new GridLayout(1, 1, 0, 0));
+      botonesRow = new JPanel(new GridLayout(1, 1, 0, 0));
+      botonesRow.setOpaque(false);
+      botonesRow.add(btnDetalle);
     }
+
+    botonesRow.setPreferredSize(new Dimension(0, 40));
 
     bottom.add(sep, BorderLayout.NORTH);
     bottom.add(botonesRow, BorderLayout.SOUTH);
     return bottom;
+  }
+
+  private void abrirDetalleOrden(OrdenCompraDTO o) {
+    JDialog dlg = new JDialog(this, "Detalle de Orden de Compra", true);
+    dlg.setSize(600, 500);
+    dlg.setLocationRelativeTo(this);
+    dlg.setResizable(true);
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
+    panel.setBackground(Colores.BLANCO);
+
+    JPanel headerRow = new JPanel(new BorderLayout(10, 0));
+    headerRow.setOpaque(false);
+
+    JLabel lblNum = new JLabel(o.getNumero());
+    lblNum.setFont(Fuentes.b(22));
+    lblNum.setForeground(Colores.TEXTO_OSCURO);
+
+    Color badgeColor, badgeBg;
+    switch (o.getEstado()) {
+      case "Pendiente" -> {
+        badgeColor = new Color(161, 110, 0);
+        badgeBg = new Color(254, 243, 199);
+      }
+      case "Aprobada" -> {
+        badgeColor = new Color(30, 80, 180);
+        badgeBg = new Color(219, 234, 254);
+      }
+      default -> {
+        badgeColor = new Color(21, 128, 61);
+        badgeBg = new Color(220, 252, 231);
+      }
+    }
+    JLabel badge = new JLabel(o.getEstado(), SwingConstants.CENTER);
+    badge.setFont(Fuentes.b(11));
+    badge.setForeground(badgeColor);
+    badge.setOpaque(true);
+    badge.setBackground(badgeBg);
+    badge.setBorder(new EmptyBorder(4, 12, 4, 12));
+
+    headerRow.add(lblNum, BorderLayout.WEST);
+    headerRow.add(badge, BorderLayout.EAST);
+
+    JLabel lblFecha = new JLabel("Fecha: " + o.getFecha());
+    lblFecha.setFont(Fuentes.r(13));
+    lblFecha.setForeground(Colores.GRIS_TEXTO);
+
+    panel.add(headerRow);
+    panel.add(Box.createVerticalStrut(6));
+    panel.add(lblFecha);
+    panel.add(Box.createVerticalStrut(24));
+
+    JLabel sec1 = new JLabel("PROVEEDOR");
+    sec1.setFont(Fuentes.b(12));
+    sec1.setForeground(Colores.GRIS_TEXTO);
+    sec1.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sec1);
+    panel.add(Box.createVerticalStrut(12));
+    panel.add(crearFilaInfo("Nombre", o.getProveedorNombre()));
+    panel.add(Box.createVerticalStrut(20));
+
+    JLabel sec2 = new JLabel("DETALLE DE LA ORDEN");
+    sec2.setFont(Fuentes.b(12));
+    sec2.setForeground(Colores.GRIS_TEXTO);
+    sec2.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(sec2);
+    panel.add(Box.createVerticalStrut(12));
+    panel.add(crearFilaInfo("Cantidad de productos", o.getProductos() + " items"));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Total", String.format("$%,.2f", o.getTotal().doubleValue())));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Estado", o.getEstado()));
+
+    dlg.setContentPane(panel);
+    dlg.setVisible(true);
   }
 
   private void abrirFormularioNueva() {
@@ -402,8 +480,11 @@ public class OrdenesCompras extends JFrame {
     panel.add(Box.createVerticalStrut(20));
 
     List<ProveedorDTO> proveedores = proveedoresFachada.obtenerProveedores();
-    String[] nombresProveedores = proveedores.stream()
+    List<ProveedorDTO> activos = proveedores.stream()
       .filter(ProveedorDTO::isActivo)
+      .toList();
+
+    String[] nombresProveedores = activos.stream()
       .map(ProveedorDTO::getNombre)
       .toArray(String[]::new);
 
@@ -423,7 +504,6 @@ public class OrdenesCompras extends JFrame {
     panel.add(Box.createVerticalStrut(4));
     panel.add(tfCant);
     panel.add(Box.createVerticalStrut(10));
-
     panel.add(crearEtiquetaForm("Total ($)"));
     panel.add(Box.createVerticalStrut(4));
     panel.add(tfTotal);
@@ -432,41 +512,87 @@ public class OrdenesCompras extends JFrame {
     JButton btnCrear = btnAzul("Crear Orden");
     btnCrear.setAlignmentX(LEFT_ALIGNMENT);
     btnCrear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+
     btnCrear.addActionListener(e -> {
+      String nombreProv = (String) comboProveedor.getSelectedItem();
+
+      if (nombreProv == null || activos.isEmpty()) {
+        mostrarError("No hay proveedores activos disponibles.");
+        return;
+      }
+
+      ProveedorDTO prov = activos.stream()
+        .filter(p -> p.getNombre().equals(nombreProv))
+        .findFirst().orElse(null);
+
+      if (prov == null) {
+        mostrarError("No se encontró el proveedor seleccionado.");
+        return;
+      }
+
       try {
-        String nombreProv = (String) comboProveedor.getSelectedItem();
-        if (nombreProv == null) {
-          return;
-        }
-
-        ProveedorDTO prov = proveedoresFachada.obtenerProveedores().stream()
-          .filter(p -> p.getNombre().equals(nombreProv))
-          .findFirst().orElse(null);
-
         int cant = Integer.parseInt(tfCant.getText().trim());
         java.math.BigDecimal tot = new java.math.BigDecimal(tfTotal.getText().trim());
 
-        if (cant <= 0 || tot.compareTo(java.math.BigDecimal.ZERO) <= 0) {
-          JOptionPane.showMessageDialog(dlg, "Valores deben ser positivos.");
+        if (cant <= 0) {
+          mostrarErrorEnDlg(dlg, "La cantidad de productos debe ser mayor a cero.");
+          return;
+        }
+        if (tot.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+          mostrarErrorEnDlg(dlg, "El total debe ser mayor a cero.");
           return;
         }
 
         OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, prov, "Pendiente", cant, tot);
         proveedoresFachada.guardarOrdenCompra(nueva);
-        ordenes.clear();
-        ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
-        construirOrdenes(filtrar());
+        recargarOrdenes();
         dlg.dispose();
+
+      } catch (NumberFormatException ex) {
+        mostrarErrorEnDlg(dlg, "Ingrese números válidos en cantidad y total.");
+      } catch (IllegalArgumentException | IllegalStateException ex) {
+        mostrarErrorEnDlg(dlg, ex.getMessage());
       } catch (Exception ex) {
-        JOptionPane.showMessageDialog(dlg, "Datos inválidos.");
+        mostrarErrorEnDlg(dlg, "Error inesperado: " + ex.getMessage());
       }
     });
+
     panel.add(btnCrear);
 
     JScrollPane sp = new JScrollPane(panel);
     sp.setBorder(BorderFactory.createEmptyBorder());
     dlg.setContentPane(sp);
     dlg.setVisible(true);
+  }
+
+  private JPanel crearFilaInfo(String label, String valor) {
+    JPanel row = new JPanel(new BorderLayout(10, 0)) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Colores.FONDO_GRIS_CLARO);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+        super.paintComponent(g2d);
+      }
+
+    };
+    row.setOpaque(false);
+    row.setBorder(new EmptyBorder(12, 14, 12, 14));
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+    row.setAlignmentX(LEFT_ALIGNMENT);
+
+    JLabel l = new JLabel(label);
+    l.setFont(Fuentes.r(12));
+    l.setForeground(Colores.GRIS_TEXTO);
+
+    JLabel v = new JLabel(valor != null ? valor : "-");
+    v.setFont(Fuentes.r(14));
+    v.setForeground(Colores.TEXTO_OSCURO);
+
+    row.add(l, BorderLayout.WEST);
+    row.add(v, BorderLayout.EAST);
+    return row;
   }
 
   private JLabel crearEtiquetaForm(String texto) {
@@ -486,6 +612,14 @@ public class OrdenesCompras extends JFrame {
     tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
     tf.setAlignmentX(LEFT_ALIGNMENT);
     return tf;
+  }
+
+  private void mostrarError(String msg) {
+    JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.WARNING_MESSAGE);
+  }
+
+  private void mostrarErrorEnDlg(JDialog dlg, String msg) {
+    JOptionPane.showMessageDialog(dlg, msg, "Error", JOptionPane.WARNING_MESSAGE);
   }
 
   private JButton crearTab(String texto, boolean seleccionado) {
@@ -537,14 +671,15 @@ public class OrdenesCompras extends JFrame {
   }
 
   private JButton btnAmarillo(String texto) {
-    return crearBotonEstilizado(texto, new Color(255, 200, 0), new Color(240, 180, 0), new Color(30, 30, 30));
+    return crearBotonEstilizado(texto,
+      new Color(255, 200, 0), new Color(240, 180, 0), new Color(30, 30, 30));
   }
 
   private JButton btnAzul(String texto) {
     return crearBotonEstilizado(texto, Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO);
   }
 
-  private JButton crearBotonEstilizado(String texto, Color base, Color hov, Color foreground) {
+  private JButton crearBotonEstilizado(String texto, Color base, Color hov, Color fg) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 
@@ -579,7 +714,7 @@ public class OrdenesCompras extends JFrame {
       }
 
     };
-    b.setForeground(foreground);
+    b.setForeground(fg);
     b.setFont(Fuentes.b(14));
     b.setPreferredSize(new Dimension(180, 42));
     return b;

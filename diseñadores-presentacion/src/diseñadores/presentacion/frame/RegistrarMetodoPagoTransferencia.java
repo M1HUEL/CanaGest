@@ -26,21 +26,15 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
   private static final String BENEFICIARIO = "La Canasta SA de CV";
 
   private final JFrame frame;
-
   private final SeleccionarMetodoPago seleccionarMetodoPago;
-
   private final IVentas ventasFachada;
   private final IInventario inventarioFachada;
   private final IUsuarios usuariosFachada;
   private final IProveedores proveedoresFachada;
-
   private final VentaDTO ventaActual;
-
   private final BigDecimal total;
   private final Runnable onVentaFinalizada;
-
   private final UsuarioDTO usuarioActivo;
-
   private final String referencia;
 
   public RegistrarMetodoPagoTransferencia(
@@ -106,18 +100,24 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     card.add(Box.createVerticalStrut(20));
     card.add(instrucciones());
     card.add(Box.createVerticalStrut(24));
-
-    JButton btnConfirmar = boton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
-    btnConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
-    btnConfirmar.addActionListener(e -> procesarConBanco());
-    card.add(btnConfirmar);
+    card.add(crearBotonConfirmar());
 
     return card;
   }
 
+  private JButton crearBotonConfirmar() {
+    JButton btnConfirmar = boton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
+    btnConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+    btnConfirmar.addActionListener(e -> seleccionarConfirmarTransferencia());
+    return btnConfirmar;
+  }
+
+  private void seleccionarConfirmarTransferencia() {
+    procesarConBanco();
+  }
+
   private void procesarConBanco() {
-    setEnabled(false);
-    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    alternarEstadoPantalla(false);
 
     SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
       @Override
@@ -129,14 +129,11 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
 
       @Override
       protected void done() {
-        setCursor(Cursor.getDefaultCursor());
-        setEnabled(true);
+        alternarEstadoPantalla(true);
         try {
           manejarResultado(get(), onVentaFinalizada);
         } catch (InterruptedException | ExecutionException ex) {
-          JOptionPane.showMessageDialog(RegistrarMetodoPagoTransferencia.this,
-            ex.getMessage(),
-            "Error", JOptionPane.ERROR_MESSAGE);
+          mostrarError(ex.getMessage());
         }
       }
 
@@ -144,23 +141,28 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     worker.execute();
   }
 
+  private void alternarEstadoPantalla(boolean activado) {
+    setCursor(activado ? Cursor.getDefaultCursor() : Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    setEnabled(activado);
+  }
+
   private void manejarResultado(ResultadoPagoDTO resultado, Runnable onConfirmado) {
     if (resultado.isAprobado()) {
-      try {
-        ventasFachada.procesarFinalizarVenta(ventaActual);
-        TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
-        this.setVisible(false);
-        new PantallaTicket(frame, ticketDTO, onConfirmado, usuariosFachada,
-          ventasFachada, inventarioFachada, proveedoresFachada);
-      } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this,
-          "Transferencia aprobada, pero error al cerrar la venta:\n" + ex.getMessage(),
-          "Error al finalizar", JOptionPane.ERROR_MESSAGE);
-      }
+      finalizarVentaExitosa(onConfirmado);
     } else {
-      JOptionPane.showMessageDialog(this,
-        "❌ Transferencia rechazada:\n\n" + resultado.getMensaje(),
-        "Rechazada", JOptionPane.WARNING_MESSAGE);
+      mostrarRechazo(resultado.getMensaje());
+    }
+  }
+
+  private void finalizarVentaExitosa(Runnable onConfirmado) {
+    try {
+      ventasFachada.procesarFinalizarVenta(ventaActual);
+      TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
+      this.setVisible(false);
+      new PantallaTicket(frame, ticketDTO, onConfirmado, usuariosFachada,
+        ventasFachada, inventarioFachada, proveedoresFachada);
+    } catch (Exception ex) {
+      mostrarError("Transferencia aprobada, pero error al cerrar la venta:\n" + ex.getMessage());
     }
   }
 
@@ -181,17 +183,16 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     c.setAlignmentX(LEFT_ALIGNMENT);
     c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 
-    JLabel lt = new JLabel("Total a pagar", SwingConstants.CENTER);
-    lt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-    lt.setForeground(Colores.GRIS_TEXTO);
-
-    JLabel lv = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
-    lv.setFont(new Font("Segoe UI", Font.BOLD, 38));
-    lv.setForeground(Colores.NARANJA);
-
-    c.add(lt);
-    c.add(lv);
+    c.add(crearLabelTotal("Total a pagar", 13, Font.PLAIN, Colores.GRIS_TEXTO));
+    c.add(crearLabelTotal(String.format("$%,.2f", total), 38, Font.BOLD, Colores.NARANJA));
     return c;
+  }
+
+  private JLabel crearLabelTotal(String texto, int size, int style, Color color) {
+    JLabel lbl = new JLabel(texto, SwingConstants.CENTER);
+    lbl.setFont(new Font("Segoe UI", style, size));
+    lbl.setForeground(color);
+    return lbl;
   }
 
   private JPanel datosBancarios() {
@@ -201,13 +202,8 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     box.setAlignmentX(LEFT_ALIGNMENT);
     box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 340));
 
-    JLabel tit = new JLabel("Datos para transferencia");
-    tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    tit.setForeground(Colores.TEXTO_OSCURO);
-    tit.setAlignmentX(LEFT_ALIGNMENT);
-    box.add(tit);
+    box.add(crearTituloSeccion("Datos para transferencia"));
     box.add(Box.createVerticalStrut(12));
-
     box.add(filaDato("Banco", BANCO, null, false));
     box.add(Box.createVerticalStrut(8));
     box.add(filaDato("CLABE", CLABE_TIENDA, CLABE_TIENDA, true));
@@ -221,11 +217,35 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     return box;
   }
 
+  private JLabel crearTituloSeccion(String texto) {
+    JLabel tit = new JLabel(texto);
+    tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    tit.setForeground(Colores.TEXTO_OSCURO);
+    tit.setAlignmentX(LEFT_ALIGNMENT);
+    return tit;
+  }
+
   private JPanel filaDato(String etq, String val, String copiar, boolean conCopia) {
     return filaDato(etq, val, copiar, conCopia, Colores.TEXTO_OSCURO);
   }
 
   private JPanel filaDato(String etq, String val, String copiar, boolean conCopia, Color colorVal) {
+    JPanel row = crearContenedorFila();
+
+    JPanel txt = new JPanel(new GridLayout(2, 1, 0, 4));
+    txt.setOpaque(false);
+    txt.add(crearLabelSubtitulo(etq));
+    txt.add(crearLabelValor(val, colorVal));
+
+    row.add(txt, BorderLayout.CENTER);
+
+    if (conCopia) {
+      row.add(crearPanelBotonCopiar(copiar), BorderLayout.EAST);
+    }
+    return row;
+  }
+
+  private JPanel crearContenedorFila() {
     JPanel row = new JPanel(new BorderLayout(10, 0)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -243,65 +263,64 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     row.setBorder(new EmptyBorder(12, 16, 12, 12));
     row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
     row.setAlignmentX(LEFT_ALIGNMENT);
+    return row;
+  }
 
-    JPanel txt = new JPanel(new GridLayout(2, 1, 0, 4));
-    txt.setOpaque(false);
-    JLabel le = new JLabel(etq);
+  private JLabel crearLabelSubtitulo(String texto) {
+    JLabel le = new JLabel(texto);
     le.setFont(new Font("Segoe UI", Font.PLAIN, 11));
     le.setForeground(Colores.GRIS_TEXTO);
-    JLabel lv = new JLabel(val);
+    return le;
+  }
+
+  private JLabel crearLabelValor(String texto, Color color) {
+    JLabel lv = new JLabel(texto);
     lv.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    lv.setForeground(colorVal);
-    txt.add(le);
-    txt.add(lv);
-    row.add(txt, BorderLayout.CENTER);
+    lv.setForeground(color);
+    return lv;
+  }
 
-    if (conCopia) {
-      JButton btn = new JButton("Copiar") {
-        boolean ov = false;
+  private JPanel crearPanelBotonCopiar(String texto) {
+    JButton btn = new JButton("Copiar") {
+      boolean ov = false;
 
-        {
-          setContentAreaFilled(false);
-          setBorderPainted(false);
-          setFocusPainted(false);
-          setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-          addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-              ov = true;
-              repaint();
-            }
+      {
+        configurarEstiloBoton(this);
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
 
-            public void mouseExited(MouseEvent e) {
-              ov = false;
-              repaint();
-            }
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
 
-          });
-        }
+        });
+      }
 
-        @Override
-        protected void paintComponent(Graphics g2d) {
-          Graphics2D g = (Graphics2D) g2d;
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-          g.setColor(ov ? Colores.NARANJA_HOVER : Colores.NARANJA);
-          g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-          super.paintComponent(g2d);
-        }
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        dibujarFondoBoton(g2d, getWidth(), getHeight(), ov ? Colores.NARANJA_HOVER : Colores.NARANJA, 8);
+        super.paintComponent(g2d);
+      }
 
-      };
-      btn.setForeground(Colores.BLANCO);
-      btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-      btn.setPreferredSize(new Dimension(64, 36));
-      btn.addActionListener(e -> {
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copiar), null);
-        JOptionPane.showMessageDialog(this, "Copiado: " + copiar, "Copiado", JOptionPane.INFORMATION_MESSAGE);
-      });
-      JPanel w = new JPanel(new GridBagLayout());
-      w.setOpaque(false);
-      w.add(btn);
-      row.add(w, BorderLayout.EAST);
-    }
-    return row;
+    };
+    btn.setForeground(Colores.BLANCO);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    btn.setPreferredSize(new Dimension(64, 36));
+    btn.addActionListener(e -> seleccionarCopiarDato(texto));
+
+    JPanel w = new JPanel(new GridBagLayout());
+    w.setOpaque(false);
+    w.add(btn);
+    return w;
+  }
+
+  private void seleccionarCopiarDato(String texto) {
+    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(texto), null);
+    JOptionPane.showMessageDialog(this, "Copiado: " + texto, "Copiado", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private JPanel instrucciones() {
@@ -311,11 +330,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     box.setAlignmentX(LEFT_ALIGNMENT);
     box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
 
-    JLabel tit = new JLabel("Instrucciones:");
-    tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    tit.setForeground(Colores.TEXTO_OSCURO);
-    tit.setAlignmentX(LEFT_ALIGNMENT);
-    box.add(tit);
+    box.add(crearTituloSeccion("Instrucciones:"));
     box.add(Box.createVerticalStrut(10));
 
     String[] pasos = {
@@ -326,18 +341,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     };
 
     for (int i = 0; i < pasos.length; i++) {
-      JPanel f = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-      f.setOpaque(false);
-      f.setAlignmentX(LEFT_ALIGNMENT);
-      JLabel n = new JLabel((i + 1) + ".");
-      n.setFont(new Font("Segoe UI", Font.BOLD, 13));
-      n.setForeground(Colores.NARANJA);
-      JLabel t = new JLabel(pasos[i]);
-      t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-      t.setForeground(Colores.TEXTO_OSCURO);
-      f.add(n);
-      f.add(t);
-      box.add(f);
+      box.add(crearFilaInstruccion(i + 1, pasos[i]));
       if (i < pasos.length - 1) {
         box.add(Box.createVerticalStrut(6));
       }
@@ -345,19 +349,41 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     return box;
   }
 
+  private JPanel crearFilaInstruccion(int numero, String texto) {
+    JPanel f = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+    f.setOpaque(false);
+    f.setAlignmentX(LEFT_ALIGNMENT);
+
+    JLabel n = new JLabel(numero + ".");
+    n.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    n.setForeground(Colores.NARANJA);
+
+    JLabel t = new JLabel(texto);
+    t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    t.setForeground(Colores.TEXTO_OSCURO);
+
+    f.add(n);
+    f.add(t);
+    return f;
+  }
+
   private JPanel topBar() {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
+
     JButton btn = boton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
     btn.setForeground(Colores.TEXTO_OSCURO);
     btn.setPreferredSize(new Dimension(160, 38));
-    btn.addActionListener(e -> {
-      dispose();
-      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
-    });
+    btn.addActionListener(e -> seleccionarMenuPrincipal());
+
     bar.add(btn);
     return bar;
+  }
+
+  private void seleccionarMenuPrincipal() {
+    dispose();
+    new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
   }
 
   private JPanel btnVolverRow() {
@@ -368,14 +394,17 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     b.setFont(new Font("Segoe UI", Font.PLAIN, 14));
     b.setForeground(Colores.TEXTO_OSCURO);
     b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    b.addActionListener(e -> {
-      dispose();
-      seleccionarMetodoPago.setVisible(true);
-    });
+    b.addActionListener(e -> seleccionarVolver());
+
     JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     p.setOpaque(false);
     p.add(b);
     return p;
+  }
+
+  private void seleccionarVolver() {
+    dispose();
+    seleccionarMetodoPago.setVisible(true);
   }
 
   private JPanel fondo() {
@@ -450,17 +479,21 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     JPanel h = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
     h.setOpaque(false);
     h.setAlignmentX(LEFT_ALIGNMENT);
+
     JPanel ib = panelFondo(col, 14);
     ib.setLayout(new BorderLayout());
     ib.setOpaque(false);
     ib.setPreferredSize(new Dimension(52, 52));
+
     JLabel il = new JLabel(ico, SwingConstants.CENTER);
     il.setFont(new Font("Segoe UI", Font.BOLD, 16));
     il.setForeground(Colores.BLANCO);
     ib.add(il);
+
     JLabel tl = new JLabel(tit);
     tl.setFont(new Font("Segoe UI", Font.BOLD, 24));
     tl.setForeground(Colores.TEXTO_OSCURO);
+
     h.add(ib);
     h.add(tl);
     return h;
@@ -471,10 +504,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
       boolean ov = false;
 
       {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        configurarEstiloBoton(this);
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
             ov = true;
@@ -491,10 +521,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
 
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? hover : base);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+        dibujarFondoBoton(g2d, getWidth(), getHeight(), ov ? hover : base, 12);
         super.paintComponent(g2d);
       }
 
@@ -505,10 +532,32 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     return b;
   }
 
+  private void configurarEstiloBoton(JButton b) {
+    b.setContentAreaFilled(false);
+    b.setBorderPainted(false);
+    b.setFocusPainted(false);
+    b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  }
+
+  private void dibujarFondoBoton(Graphics g2d, int w, int h, Color color, int arc) {
+    Graphics2D g = (Graphics2D) g2d;
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(color);
+    g.fill(new RoundRectangle2D.Float(0, 0, w, h, arc, arc));
+  }
+
   private String generarReferencia() {
     LocalDate h = LocalDate.now();
     int r = new Random().nextInt(9000) + 1000;
     return String.format("TRANS-%d-%02d%02d-%d", h.getYear(), h.getMonthValue(), h.getDayOfMonth(), r);
+  }
+
+  private void mostrarError(String mensaje) {
+    JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+  }
+
+  private void mostrarRechazo(String mensaje) {
+    JOptionPane.showMessageDialog(this, "❌ Transferencia rechazada:\n\n" + mensaje, "Rechazada", JOptionPane.WARNING_MESSAGE);
   }
 
 }

@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,11 +24,8 @@ public class RegistrarVenta extends JFrame {
   private final IUsuarios usuariosFachada;
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
-
   private final UsuarioDTO usuarioActivo;
-
   private VentaDTO ventaActual;
-
   private List<ProductoDTO> catalogoProductos = new ArrayList<>();
 
   private JPanel panelCarritoItems;
@@ -36,23 +34,15 @@ public class RegistrarVenta extends JFrame {
   private JLabel lblTotal, lblCantItems, lblProductosCount;
   private JTextField campoBusqueda, campoEscanear;
 
-  public RegistrarVenta(
-    IVentas ventasFachada,
-    UsuarioDTO usuarioActivo,
-    IUsuarios usuariosFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada) {
+  public RegistrarVenta(IVentas ventasFachada, UsuarioDTO usuarioActivo, IUsuarios usuariosFachada,
+    IInventario inventarioFachada, IProveedores proveedoresFachada) {
     super("Punto de Venta");
-
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
-
     this.usuarioActivo = usuarioActivo;
-
     this.ventaActual = new VentaDTO();
-
     this.catalogoProductos = ventasFachada.obtenerCatalogo();
 
     configurarVentana();
@@ -68,6 +58,15 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void inicializarComponentes() {
+    JPanel root = crearPanelRaiz();
+    JPanel centro = crearPanelCentro();
+
+    root.add(crearTopBar(), BorderLayout.NORTH);
+    root.add(centro, BorderLayout.CENTER);
+    setContentPane(root);
+  }
+
+  private JPanel crearPanelRaiz() {
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -78,7 +77,10 @@ public class RegistrarVenta extends JFrame {
 
     };
     root.setOpaque(false);
+    return root;
+  }
 
+  private JPanel crearPanelCentro() {
     JPanel centro = new JPanel(new GridBagLayout());
     centro.setOpaque(false);
     centro.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -98,9 +100,7 @@ public class RegistrarVenta extends JFrame {
     gbc.insets = new Insets(0, 0, 0, 0);
     centro.add(panelDerecho(), gbc);
 
-    root.add(crearTopBar(), BorderLayout.NORTH);
-    root.add(centro, BorderLayout.CENTER);
-    setContentPane(root);
+    return centro;
   }
 
   private JPanel crearTopBar() {
@@ -108,14 +108,17 @@ public class RegistrarVenta extends JFrame {
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
 
+    JButton btnMenu = crearBotonMenuPrincipal();
+    bar.add(btnMenu);
+    return bar;
+  }
+
+  private JButton crearBotonMenuPrincipal() {
     JButton btnMenu = new JButton("Menu Principal") {
       boolean ov = false;
 
       {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        configurarEstiloBotonBase(this);
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
             ov = true;
@@ -132,25 +135,29 @@ public class RegistrarVenta extends JFrame {
 
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AMARILLO_BTN_HOVER : Colores.AMARILLO_BTN);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        dibujarBotonRedondeado((Graphics2D) g2d, getWidth(), getHeight(), ov ? Colores.AMARILLO_BTN_HOVER : Colores.AMARILLO_BTN);
         super.paintComponent(g2d);
       }
 
     };
-
     btnMenu.setForeground(Colores.TEXTO_OSCURO);
     btnMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
     btnMenu.setPreferredSize(new Dimension(160, 38));
-    btnMenu.addActionListener(e -> {
-      dispose();
-      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
-    });
+    btnMenu.addActionListener(e -> seleccionarMenuPrincipal());
+    return btnMenu;
+  }
 
-    bar.add(btnMenu);
-    return bar;
+  private void configurarEstiloBotonBase(JButton btn) {
+    btn.setContentAreaFilled(false);
+    btn.setBorderPainted(false);
+    btn.setFocusPainted(false);
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  }
+
+  private void dibujarBotonRedondeado(Graphics2D g, int w, int h, Color color) {
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(color);
+    g.fill(new RoundRectangle2D.Float(0, 0, w, h, 10, 10));
   }
 
   private JPanel crearPanelIzquierdo() {
@@ -168,21 +175,10 @@ public class RegistrarVenta extends JFrame {
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 145));
 
-    JLabel titulo = new JLabel("Escanear Producto");
-    titulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-
+    JLabel titulo = crearLabelTitulo("Escanear Producto");
     campoEscanear = crearCampoPill("Escanear codigo de barras");
-    campoEscanear.setAlignmentX(LEFT_ALIGNMENT);
     campoEscanear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-    campoEscanear.addActionListener(e -> {
-      String codigo = campoEscanear.getText().trim();
-      if (!codigo.isEmpty()) {
-        escanearProducto(codigo);
-        campoEscanear.setText("");
-      }
-    });
+    campoEscanear.addActionListener(e -> seleccionarEscanearCodigo());
 
     card.add(titulo);
     card.add(Box.createVerticalStrut(14));
@@ -194,47 +190,17 @@ public class RegistrarVenta extends JFrame {
     JPanel card = crearTarjeta();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-    JLabel titulo = new JLabel("Busqueda Rapida");
-    titulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-
+    JLabel titulo = crearLabelTitulo("Busqueda Rapida");
     campoBusqueda = crearCampoPill("Nombre del producto");
-    campoBusqueda.setAlignmentX(LEFT_ALIGNMENT);
     campoBusqueda.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
     JButton btnBuscar = crearBotonAccion("Buscar", Colores.AZUL, Colores.AZUL_HOVER);
-    btnBuscar.setAlignmentX(LEFT_ALIGNMENT);
     btnBuscar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
 
-    Runnable buscar = () -> filtrarGrid(campoBusqueda.getText().trim());
-    btnBuscar.addActionListener(e -> buscar.run());
-    campoBusqueda.addActionListener(e -> buscar.run());
+    btnBuscar.addActionListener(e -> seleccionarBusqueda());
+    campoBusqueda.addActionListener(e -> seleccionarBusqueda());
 
-    panelGrid = new JPanel(new GridLayout(0, 3, 10, 10)) {
-      @Override
-      public Dimension getPreferredSize() {
-        int cols = 3;
-        int count = getComponentCount();
-        int rows = (int) Math.ceil((double) count / cols);
-        int height = rows * 90 + Math.max(0, rows - 1) * 10;
-        return new Dimension(getParent() != null ? getParent().getWidth() : 0, height);
-      }
-
-    };
-    panelGrid.setOpaque(false);
-    panelGrid.setAlignmentX(LEFT_ALIGNMENT);
-
-    scrollGrid = new JScrollPane(panelGrid);
-    scrollGrid.setAlignmentX(LEFT_ALIGNMENT);
-    scrollGrid.setBorder(BorderFactory.createEmptyBorder());
-    scrollGrid.setOpaque(false);
-    scrollGrid.getViewport().setOpaque(false);
-    scrollGrid.getVerticalScrollBar().setUnitIncrement(16);
-    scrollGrid.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    scrollGrid.setPreferredSize(new Dimension(0, 380));
-
-    construirGrid(catalogoProductos);
+    inicializarGrid();
 
     card.add(titulo);
     card.add(Box.createVerticalStrut(12));
@@ -246,9 +212,41 @@ public class RegistrarVenta extends JFrame {
     return card;
   }
 
+  private void inicializarGrid() {
+    panelGrid = new JPanel(new GridLayout(0, 3, 10, 10)) {
+      @Override
+      public Dimension getPreferredSize() {
+        int rows = (int) Math.ceil((double) getComponentCount() / 3);
+        return new Dimension(getParent() != null ? getParent().getWidth() : 0, rows * 100);
+      }
+
+    };
+    panelGrid.setOpaque(false);
+    scrollGrid = new JScrollPane(panelGrid);
+    configurarScroll(scrollGrid);
+    construirGrid(catalogoProductos);
+  }
+
+  private void configurarScroll(JScrollPane scroll) {
+    scroll.setAlignmentX(LEFT_ALIGNMENT);
+    scroll.setBorder(BorderFactory.createEmptyBorder());
+    scroll.setOpaque(false);
+    scroll.getViewport().setOpaque(false);
+    scroll.getVerticalScrollBar().setUnitIncrement(16);
+    scroll.setPreferredSize(new Dimension(0, 380));
+  }
+
+  private JLabel crearLabelTitulo(String texto) {
+    JLabel l = new JLabel(texto);
+    l.setFont(new Font("Segoe UI", Font.BOLD, 17));
+    l.setForeground(Colores.TEXTO_OSCURO);
+    l.setAlignmentX(LEFT_ALIGNMENT);
+    return l;
+  }
+
   private void construirGrid(List<ProductoDTO> lista) {
     panelGrid.removeAll();
-    lista.forEach(p -> panelGrid.add(botonProducto(p)));
+    lista.forEach(p -> panelGrid.add(crearBotonProducto(p)));
     panelGrid.revalidate();
     panelGrid.repaint();
     if (scrollGrid != null) {
@@ -256,18 +254,7 @@ public class RegistrarVenta extends JFrame {
     }
   }
 
-  private void filtrarGrid(String query) {
-    if (query.isEmpty()) {
-      construirGrid(catalogoProductos);
-      return;
-    }
-    String q = query.toLowerCase();
-    construirGrid(catalogoProductos.stream()
-      .filter(p -> p.getNombre().toLowerCase().contains(q) || p.getCodigo().toLowerCase().contains(q))
-      .collect(Collectors.toList()));
-  }
-
-  private JPanel botonProducto(ProductoDTO prod) {
+  private JPanel crearBotonProducto(ProductoDTO prod) {
     JPanel btn = new JPanel() {
       boolean hover = false;
 
@@ -286,7 +273,7 @@ public class RegistrarVenta extends JFrame {
           }
 
           public void mouseClicked(MouseEvent e) {
-            escanearProducto(prod.getCodigo());
+            seleccionarProducto(prod);
           }
 
         });
@@ -294,32 +281,22 @@ public class RegistrarVenta extends JFrame {
 
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
+        dibujarBotonRedondeado((Graphics2D) g2d, getWidth(), getHeight(), hover ? Colores.AZUL_HOVER : Colores.AZUL);
         super.paintComponent(g2d);
       }
 
     };
+    return configurarContenidoBotonProducto(btn, prod);
+  }
+
+  private JPanel configurarContenidoBotonProducto(JPanel btn, ProductoDTO prod) {
     btn.setLayout(new BoxLayout(btn, BoxLayout.Y_AXIS));
     btn.setBorder(new EmptyBorder(12, 10, 12, 10));
     btn.setPreferredSize(new Dimension(0, 90));
 
-    JLabel lCod = new JLabel(prod.getCodigo());
-    lCod.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-    lCod.setForeground(Colores.AZUL_MUY_SUTIL);
-    lCod.setAlignmentX(CENTER_ALIGNMENT);
-
-    JLabel lNom = new JLabel(prod.getNombre());
-    lNom.setFont(new Font("Segoe UI", Font.BOLD, 16));
-    lNom.setForeground(Colores.BLANCO);
-    lNom.setAlignmentX(CENTER_ALIGNMENT);
-
-    JLabel lPre = new JLabel("$" + String.format("%.2f", prod.getPrecio()));
-    lPre.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-    lPre.setForeground(Colores.AZUL_MUY_SUTIL);
-    lPre.setAlignmentX(CENTER_ALIGNMENT);
+    JLabel lCod = crearLabelProducto(prod.getCodigo(), 10, Colores.AZUL_MUY_SUTIL, Font.PLAIN);
+    JLabel lNom = crearLabelProducto(prod.getNombre(), 16, Colores.BLANCO, Font.BOLD);
+    JLabel lPre = crearLabelProducto("$" + String.format("%.2f", prod.getPrecio()), 13, Colores.AZUL_MUY_SUTIL, Font.PLAIN);
 
     btn.add(lCod);
     btn.add(Box.createVerticalStrut(4));
@@ -327,6 +304,14 @@ public class RegistrarVenta extends JFrame {
     btn.add(Box.createVerticalStrut(4));
     btn.add(lPre);
     return btn;
+  }
+
+  private JLabel crearLabelProducto(String t, int s, Color c, int style) {
+    JLabel l = new JLabel(t);
+    l.setFont(new Font("Segoe UI", style, s));
+    l.setForeground(c);
+    l.setAlignmentX(CENTER_ALIGNMENT);
+    return l;
   }
 
   private JPanel panelDerecho() {
@@ -343,20 +328,10 @@ public class RegistrarVenta extends JFrame {
     JPanel card = crearTarjeta();
     card.setLayout(new BorderLayout(0, 12));
 
-    lblCantItems = new JLabel("0 items");
-    lblCantItems.setFont(new Font("Segoe UI", Font.BOLD, 12));
-    lblCantItems.setForeground(Colores.AZUL);
-    lblCantItems.setOpaque(true);
-    lblCantItems.setBackground(Colores.AZUL_CLARO);
-    lblCantItems.setBorder(new EmptyBorder(3, 10, 3, 10));
-
-    JLabel lblTitulo = new JLabel("Carrito");
-    lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 17));
-    lblTitulo.setForeground(Colores.TEXTO_OSCURO);
-
+    lblCantItems = crearBadgeCantidad();
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
-    header.add(lblTitulo, BorderLayout.WEST);
+    header.add(crearLabelTitulo("Carrito"), BorderLayout.WEST);
     header.add(lblCantItems, BorderLayout.EAST);
 
     panelCarritoItems = new JPanel();
@@ -364,15 +339,22 @@ public class RegistrarVenta extends JFrame {
     panelCarritoItems.setOpaque(false);
 
     JScrollPane scroll = new JScrollPane(panelCarritoItems);
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-    scroll.setOpaque(false);
-    scroll.getViewport().setOpaque(false);
-    scroll.getVerticalScrollBar().setUnitIncrement(12);
+    configurarScroll(scroll);
     scroll.setPreferredSize(new Dimension(0, 320));
 
     card.add(header, BorderLayout.NORTH);
     card.add(scroll, BorderLayout.CENTER);
     return card;
+  }
+
+  private JLabel crearBadgeCantidad() {
+    JLabel l = new JLabel("0 items");
+    l.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    l.setForeground(Colores.AZUL);
+    l.setOpaque(true);
+    l.setBackground(Colores.AZUL_CLARO);
+    l.setBorder(new EmptyBorder(3, 10, 3, 10));
+    return l;
   }
 
   private JPanel tarjetaTotal() {
@@ -402,10 +384,7 @@ public class RegistrarVenta extends JFrame {
     JPanel cuadro = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
+        dibujarBotonRedondeado((Graphics2D) g2d, getWidth(), getHeight(), Colores.AZUL);
         super.paintComponent(g2d);
       }
 
@@ -424,18 +403,10 @@ public class RegistrarVenta extends JFrame {
     row.setPreferredSize(new Dimension(0, 58));
 
     JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
-    btnCancelar.addActionListener(e -> {
-      if (ventaActual.getItems().isEmpty()) {
-        return;
-      }
-      int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar", JOptionPane.YES_NO_OPTION);
-      if (op == JOptionPane.YES_OPTION) {
-        cancelarVenta();
-      }
-    });
+    btnCancelar.addActionListener(e -> seleccionarCancelarVenta());
 
     JButton btnPagar = crearBotonAccion("Pagar", Colores.VERDE, Colores.VERDE_OSCURO);
-    btnPagar.addActionListener(e -> continuarAPago());
+    btnPagar.addActionListener(e -> seleccionarPagar());
 
     row.add(btnCancelar);
     row.add(btnPagar);
@@ -443,14 +414,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private JPanel filaCarrito(ItemVentaDTO item) {
-    JPanel fila = new JPanel(new GridBagLayout());
-    fila.setOpaque(true);
-    fila.setBackground(Colores.BLANCO);
-    fila.setBorder(BorderFactory.createCompoundBorder(
-      new LineBorder(Colores.BORDE_GRIS, 1, true),
-      new EmptyBorder(10, 12, 10, 12)));
-    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
-
+    JPanel fila = crearContenedorFila();
     GridBagConstraints c = new GridBagConstraints();
     c.fill = GridBagConstraints.HORIZONTAL;
 
@@ -462,7 +426,7 @@ public class RegistrarVenta extends JFrame {
     fila.add(lblNombre, c);
 
     JButton btnElim = crearBotonIcono("X", Colores.ROJO_BG, Colores.ROJO_BG_HOVER, Colores.ROJO_ICONO, 11);
-    btnElim.addActionListener(e -> eliminarItem(item));
+    btnElim.addActionListener(e -> seleccionarEliminarItem(item));
     c.gridx = 1;
     c.weightx = 0;
     fila.add(btnElim, c);
@@ -474,11 +438,28 @@ public class RegistrarVenta extends JFrame {
     c.gridwidth = 2;
     fila.add(lblPrecio, c);
 
+    fila.add(crearControlesCantidad(item), c);
+    return fila;
+  }
+
+  private JPanel crearContenedorFila() {
+    JPanel fila = new JPanel(new GridBagLayout());
+    fila.setOpaque(true);
+    fila.setBackground(Colores.BLANCO);
+    fila.setBorder(BorderFactory.createCompoundBorder(
+      new LineBorder(Colores.BORDE_GRIS, 1, true),
+      new EmptyBorder(10, 12, 10, 12)));
+    fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 115));
+    return fila;
+  }
+
+  private JPanel crearControlesCantidad(ItemVentaDTO item) {
     JButton btnMenos = crearBotonIcono("-", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
     JLabel lblCant = new JLabel(String.valueOf(item.getCantidad()), SwingConstants.CENTER);
     JButton btnMas = crearBotonIcono("+", Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO, 17);
-    btnMenos.addActionListener(e -> decrementarItem(item));
-    btnMas.addActionListener(e -> incrementarItem(item));
+
+    btnMenos.addActionListener(e -> seleccionarDecrementarItem(item));
+    btnMas.addActionListener(e -> seleccionarIncrementarItem(item));
 
     JPanel ctrlCant = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
     ctrlCant.setOpaque(false);
@@ -494,12 +475,77 @@ public class RegistrarVenta extends JFrame {
     ctrlRow.setOpaque(false);
     ctrlRow.add(ctrlCant, BorderLayout.WEST);
     ctrlRow.add(lblSub, BorderLayout.EAST);
+    return ctrlRow;
+  }
 
-    c.gridy = 2;
-    c.insets = new Insets(6, 0, 0, 0);
-    fila.add(ctrlRow, c);
+  private void seleccionarMenuPrincipal() {
+    dispose();
+    new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
+  }
 
-    return fila;
+  private void seleccionarEscanearCodigo() {
+    String codigo = campoEscanear.getText().trim();
+    if (!codigo.isEmpty()) {
+      escanearProducto(codigo);
+      campoEscanear.setText("");
+    }
+  }
+
+  private void seleccionarBusqueda() {
+    filtrarGrid(campoBusqueda.getText().trim());
+  }
+
+  private void seleccionarProducto(ProductoDTO prod) {
+    escanearProducto(prod.getCodigo());
+  }
+
+  private void seleccionarIncrementarItem(ItemVentaDTO item) {
+    escanearProducto(item.getCodigo());
+  }
+
+  private void seleccionarDecrementarItem(ItemVentaDTO item) {
+    List<ItemVentaDTO> items = ventaActual.getItems();
+    if (item.getCantidad() > 1) {
+      int idx = items.indexOf(item);
+      if (idx >= 0) {
+        items.set(idx, item.conCantidad(item.getCantidad() - 1));
+      }
+    } else {
+      items.removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
+    }
+    recalcularTotalesVenta();
+    actualizarVista();
+  }
+
+  private void seleccionarEliminarItem(ItemVentaDTO item) {
+    ventaActual.getItems().removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
+    recalcularTotalesVenta();
+    actualizarVista();
+  }
+
+  private void seleccionarCancelarVenta() {
+    if (ventaActual.getItems().isEmpty()) {
+      return;
+    }
+    int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar", JOptionPane.YES_NO_OPTION);
+    if (op == JOptionPane.YES_OPTION) {
+      ventaActual.getItems().clear();
+      recalcularTotalesVenta();
+      actualizarVista();
+    }
+  }
+
+  private void seleccionarPagar() {
+    if (ventaActual.getItems().isEmpty()) {
+      mostrarAviso("El carrito esta vacio.", "Aviso");
+      return;
+    }
+    this.setVisible(false);
+    new SeleccionarMetodoPago(this, ventaActual, ventaActual.getTotal(), () -> {
+      ventaActual = new VentaDTO();
+      actualizarVista();
+      refrescarCatalogo();
+    }, usuariosFachada, inventarioFachada, proveedoresFachada, ventasFachada, usuarioActivo);
   }
 
   private void escanearProducto(String codigo) {
@@ -516,57 +562,28 @@ public class RegistrarVenta extends JFrame {
     actualizarVista();
   }
 
-  private void incrementarItem(ItemVentaDTO item) {
-    escanearProducto(item.getCodigo());
-  }
-
-  private void decrementarItem(ItemVentaDTO item) {
-    if (item.getCantidad() > 1) {
-      ventaActual.getItems().stream()
-        .filter(i -> i.getCodigo().equals(item.getCodigo()))
-        .findFirst().ifPresent(i -> {
-          int idx = ventaActual.getItems().indexOf(i);
-          ventaActual.getItems().set(idx, i.conCantidad(i.getCantidad() - 1));
-        });
-    } else {
-      eliminarItem(item);
-    }
-    actualizarVista();
-  }
-
-  private void eliminarItem(ItemVentaDTO item) {
-    ventaActual.getItems().removeIf(i -> i.getCodigo().equalsIgnoreCase(item.getCodigo()));
-    actualizarVista();
-  }
-
-  private void cancelarVenta() {
-    ventaActual.getItems().clear();
-    actualizarVista();
-  }
-
-  private void continuarAPago() {
-    if (ventaActual.getItems().isEmpty()) {
-      mostrarAviso("El carrito esta vacio.", "Aviso");
+  private void filtrarGrid(String query) {
+    if (query.isEmpty()) {
+      construirGrid(catalogoProductos);
       return;
     }
+    String q = query.toLowerCase();
+    construirGrid(catalogoProductos.stream()
+      .filter(p -> p.getNombre().toLowerCase().contains(q) || p.getCodigo().toLowerCase().contains(q))
+      .collect(Collectors.toList()));
+  }
 
-    BigDecimal total = ventaActual.getTotal();
+  private void recalcularTotalesVenta() {
+    List<ItemVentaDTO> items = ventaActual.getItems();
+    BigDecimal total = items.stream().map(ItemVentaDTO::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
+    BigDecimal subtotal = total.divide(BigDecimal.valueOf(1.16), 2, RoundingMode.HALF_UP);
+    BigDecimal iva = total.subtract(subtotal).setScale(2, RoundingMode.HALF_UP);
+    int totalUnidades = items.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
 
-    this.setVisible(false);
-    new SeleccionarMetodoPago(
-      this,
-      ventaActual,
-      total,
-      () -> {
-        actualizarVista();
-        refrescarCatalogo();
-      },
-      usuariosFachada,
-      inventarioFachada,
-      proveedoresFachada,
-      ventasFachada,
-      usuarioActivo
-    );
+    ventaActual.setTotal(total);
+    ventaActual.setSubtotal(subtotal);
+    ventaActual.setIva(iva);
+    ventaActual.setTotalUnidades(totalUnidades);
   }
 
   private void actualizarVista() {
@@ -624,10 +641,7 @@ public class RegistrarVenta extends JFrame {
     JTextField tf = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_INPUT);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        dibujarBotonRedondeado((Graphics2D) g2d, getWidth(), getHeight(), Colores.FONDO_INPUT);
         super.paintComponent(g2d);
       }
 
@@ -660,10 +674,7 @@ public class RegistrarVenta extends JFrame {
       boolean ov = false;
 
       {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        configurarEstiloBotonBase(this);
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
             ov = true;
@@ -680,10 +691,7 @@ public class RegistrarVenta extends JFrame {
 
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? hover : base);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        dibujarBotonRedondeado((Graphics2D) g2d, getWidth(), getHeight(), ov ? hover : base);
         super.paintComponent(g2d);
       }
 
@@ -698,10 +706,7 @@ public class RegistrarVenta extends JFrame {
       boolean ov = false;
 
       {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        configurarEstiloBotonBase(this);
         addMouseListener(new MouseAdapter() {
           public void mouseEntered(MouseEvent e) {
             ov = true;

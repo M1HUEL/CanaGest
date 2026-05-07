@@ -32,14 +32,10 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private final JFrame frameAnterior;
-
   private final VentaDTO ventaActual;
-
   private final UsuarioDTO usuarioActivo;
-
   private final BigDecimal total;
   private final Runnable onVentaFinalizada;
-
   private final IVentas ventasFachada;
   private final IUsuarios usuariosFachada;
   private final IInventario inventarioFachada;
@@ -57,16 +53,12 @@ public class SeleccionarMetodoPago extends JFrame {
     super("Método de Pago");
 
     this.frameAnterior = frameAnterior;
-
     this.ventaActual = ventaActual;
-
     this.usuarioActivo = usuarioActivo;
-
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
-
     this.total = total;
     this.onVentaFinalizada = onVentaFinalizada;
 
@@ -81,7 +73,15 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void inicializarComponentes() {
-    JPanel root = new JPanel(new BorderLayout()) {
+    JPanel root = panelBase();
+    root.add(crearTopBar(), BorderLayout.NORTH);
+    root.add(crearContenedorCentrado(buildCard(), 280, 30), BorderLayout.CENTER);
+    setContentPane(root);
+    setVisible(true);
+  }
+
+  private JPanel panelBase() {
+    JPanel p = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
         g.setColor(Colores.FONDO_AMARILLO);
@@ -90,34 +90,41 @@ public class SeleccionarMetodoPago extends JFrame {
       }
 
     };
-    root.setOpaque(false);
-
-    root.add(crearTopBar(), BorderLayout.NORTH);
-    root.add(crearContenedorCentrado(buildCard(), 280, 30), BorderLayout.CENTER);
-
-    setContentPane(root);
-    setVisible(true);
+    p.setOpaque(false);
+    return p;
   }
 
   private JPanel crearTopBar() {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-
-    JButton btnMenu = crearBotonAccion("Menú Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
-    btnMenu.setForeground(Colores.TEXTO_OSCURO);
-    btnMenu.setPreferredSize(new Dimension(160, 38));
-    btnMenu.addActionListener(e -> {
-      dispose();
-      new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada,
-        inventarioFachada, proveedoresFachada).setVisible(true);
-    });
-
-    bar.add(btnMenu);
+    bar.add(configurarBotonMenu());
     return bar;
   }
 
+  private JButton configurarBotonMenu() {
+    JButton btnMenu = crearBotonAccion("Menú Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
+    btnMenu.setForeground(Colores.TEXTO_OSCURO);
+    btnMenu.setPreferredSize(new Dimension(160, 38));
+    btnMenu.addActionListener(e -> seleccionarMenuPrincipal());
+    return btnMenu;
+  }
+
+  private void seleccionarMenuPrincipal() {
+    dispose();
+    new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada,
+      inventarioFachada, proveedoresFachada).setVisible(true);
+  }
+
   private JPanel buildCard() {
+    JPanel card = crearContenedorTarjeta();
+    card.add(crearTituloCard(), BorderLayout.NORTH);
+    card.add(crearGridMetodos(), BorderLayout.CENTER);
+    card.add(crearPanelBotonesInferiores(), BorderLayout.SOUTH);
+    return card;
+  }
+
+  private JPanel crearContenedorTarjeta() {
     JPanel card = new JPanel(new BorderLayout(0, 20)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -132,16 +139,14 @@ public class SeleccionarMetodoPago extends JFrame {
     };
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(32, 32, 32, 32));
+    return card;
+  }
 
+  private JLabel crearTituloCard() {
     JLabel titulo = new JLabel("Seleccione el método de pago", SwingConstants.CENTER);
     titulo.setFont(FONT_TITULO);
     titulo.setForeground(Colores.TEXTO_OSCURO);
-
-    card.add(titulo, BorderLayout.NORTH);
-    card.add(crearGridMetodos(), BorderLayout.CENTER);
-    card.add(crearPanelBotonesInferiores(), BorderLayout.SOUTH);
-
-    return card;
+    return titulo;
   }
 
   private JPanel crearGridMetodos() {
@@ -172,7 +177,7 @@ public class SeleccionarMetodoPago extends JFrame {
           }
 
           public void mouseClicked(MouseEvent e) {
-            procesarSeleccionMetodo(nombre);
+            seleccionarMetodo(nombre);
           }
 
         });
@@ -190,57 +195,88 @@ public class SeleccionarMetodoPago extends JFrame {
 
     btn.setBorder(new EmptyBorder(28, 20, 28, 20));
     btn.add(new JLabel("", SwingConstants.CENTER));
+    btn.add(crearLabelNombreMetodo(nombre));
+    return btn;
+  }
 
+  private JLabel crearLabelNombreMetodo(String nombre) {
     JLabel lblNombre = new JLabel(nombre, SwingConstants.CENTER);
     lblNombre.setFont(FONT_BOTON_METODO);
     lblNombre.setForeground(Colores.BLANCO);
-    btn.add(lblNombre);
-
-    return btn;
+    return lblNombre;
   }
 
   private JPanel crearPanelBotonesInferiores() {
     JPanel row = new JPanel(new GridLayout(1, 2, 16, 0));
     row.setOpaque(false);
     row.setPreferredSize(new Dimension(0, 60));
-
-    JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
-    btnCancelar.addActionListener(e -> {
-      int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar",
-        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-      if (op == JOptionPane.YES_OPTION) {
-        volver();
-      }
-    });
-
-    JButton btnVolver = crearBotonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
-    btnVolver.addActionListener(e -> volver());
-
-    row.add(btnCancelar);
-    row.add(btnVolver);
+    row.add(configurarBotonCancelar());
+    row.add(configurarBotonVolver());
     return row;
   }
 
-  private void procesarSeleccionMetodo(String nombre) {
-    this.setVisible(false);
+  private JButton configurarBotonCancelar() {
+    JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
+    btnCancelar.addActionListener(e -> seleccionarCancelarVenta());
+    return btnCancelar;
+  }
 
-    switch (nombre) {
-      case "Efectivo" ->
-        new RegistrarMetodoPagoEfectivo(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
-      case "Tarjeta" ->
-        new RegistrarMetodoPagoTarjeta(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
-      case "CoDi" ->
-        new RegistrarMetodoPagoCoDi(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
-      case "Transferencia" ->
-        new RegistrarMetodoPagoTransferencia(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
-      default -> {
-        JOptionPane.showMessageDialog(frameAnterior, "Método no disponible", "Error", JOptionPane.ERROR_MESSAGE);
-        this.setVisible(true);
-      }
+  private JButton configurarBotonVolver() {
+    JButton btnVolver = crearBotonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
+    btnVolver.addActionListener(e -> seleccionarVolver());
+    return btnVolver;
+  }
+
+  private void seleccionarCancelarVenta() {
+    int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar",
+      JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    if (op == JOptionPane.YES_OPTION) {
+      volverAtras();
     }
   }
 
-  private void volver() {
+  private void seleccionarVolver() {
+    volverAtras();
+  }
+
+  private void seleccionarMetodo(String nombre) {
+    this.setVisible(false);
+    switch (nombre) {
+      case "Efectivo" ->
+        abrirPagoEfectivo();
+      case "Tarjeta" ->
+        abrirPagoTarjeta();
+      case "CoDi" ->
+        abrirPagoCoDi();
+      case "Transferencia" ->
+        abrirPagoTransferencia();
+      default ->
+        manejarMetodoNoDisponible();
+    }
+  }
+
+  private void abrirPagoEfectivo() {
+    new RegistrarMetodoPagoEfectivo(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+  }
+
+  private void abrirPagoTarjeta() {
+    new RegistrarMetodoPagoTarjeta(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+  }
+
+  private void abrirPagoCoDi() {
+    new RegistrarMetodoPagoCoDi(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+  }
+
+  private void abrirPagoTransferencia() {
+    new RegistrarMetodoPagoTransferencia(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+  }
+
+  private void manejarMetodoNoDisponible() {
+    JOptionPane.showMessageDialog(frameAnterior, "Método no disponible", "Error", JOptionPane.ERROR_MESSAGE);
+    this.setVisible(true);
+  }
+
+  private void volverAtras() {
     dispose();
     frameAnterior.setVisible(true);
   }

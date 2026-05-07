@@ -46,12 +46,10 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
     this.usuarioActivo = usuarioActivo;
     this.ventaActual = ventaActual;
-
     this.usuariosFachada = usuariosFachada;
     this.ventasFachada = ventasFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
-
     this.totalAPagar = total;
 
     configurarVentana(frame);
@@ -73,34 +71,54 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     cuerpo.setOpaque(false);
     cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
 
-    cuerpo.add(Componentes.panelVolver("Volver a metodos de pago", () -> {
-      dispose();
-      pantallaPago.setVisible(true);
-    }), BorderLayout.NORTH);
-
-    cuerpo.add(Componentes.centrado(buildCard(totalAPagar, mainFrame, onConfirmado), 240, 12), BorderLayout.CENTER);
+    cuerpo.add(crearPanelVolver(pantallaPago), BorderLayout.NORTH);
+    cuerpo.add(Componentes.centrado(buildCard(mainFrame, onConfirmado), 240, 12), BorderLayout.CENTER);
 
     root.add(cuerpo, BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
   }
 
-  private JPanel buildCard(BigDecimal total, JFrame mainFrame, Runnable onConfirmado) {
+  private JPanel crearPanelVolver(SeleccionarMetodoPago pantallaPago) {
+    return Componentes.panelVolver("Volver a metodos de pago", () -> seleccionarVolver(pantallaPago));
+  }
+
+  private void seleccionarVolver(SeleccionarMetodoPago pantallaPago) {
+    dispose();
+    pantallaPago.setVisible(true);
+  }
+
+  private JPanel buildCard(JFrame mainFrame, Runnable onConfirmado) {
     JPanel card = Componentes.tarjetaBlanca(20);
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setBorder(new EmptyBorder(28, 32, 28, 32));
 
+    card.add(crearEtiquetaTitulo());
+    card.add(Box.createVerticalStrut(22));
+    card.add(crearFilaInformacionPagos());
+    card.add(Box.createVerticalStrut(22));
+    card.add(crearSeccionDenominaciones());
+    card.add(Box.createVerticalStrut(18));
+    card.add(crearSeccionPersonalizada());
+    card.add(Box.createVerticalStrut(20));
+    card.add(filaAcciones(mainFrame, onConfirmado));
+
+    return card;
+  }
+
+  private JLabel crearEtiquetaTitulo() {
     JLabel titulo = Componentes.etiqueta("Pago en Efectivo", 24, true, Colores.TEXTO_OSCURO);
     titulo.setAlignmentX(LEFT_ALIGNMENT);
-    card.add(titulo);
-    card.add(Box.createVerticalStrut(22));
+    return titulo;
+  }
 
+  private JPanel crearFilaInformacionPagos() {
     JPanel cajasRow = new JPanel(new GridLayout(1, 3, 12, 0));
     cajasRow.setOpaque(false);
     cajasRow.setAlignmentX(LEFT_ALIGNMENT);
     cajasRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
 
-    cajasRow.add(cajaInfo("Total a pagar", String.format("$%.2f", total), Colores.TEXTO_OSCURO, Colores.BLANCO));
+    cajasRow.add(cajaInfo("Total a pagar", String.format("$%.2f", totalAPagar), Colores.TEXTO_OSCURO, Colores.BLANCO));
 
     lblRecibido = Componentes.etiquetaCentrada(String.format("$%.2f", recibido), 22, true, Colores.AZUL);
     cajasRow.add(cajaConLabel("Recibido", lblRecibido, Colores.AZUL_CLARO));
@@ -108,35 +126,45 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     lblCambio = Componentes.etiquetaCentrada("$0.00", 22, true, Colores.GRIS_TEXTO);
     cajasRow.add(cajaConLabel("Cambio", lblCambio, Colores.BLANCO));
 
-    card.add(cajasRow);
-    card.add(Box.createVerticalStrut(22));
+    return cajasRow;
+  }
+
+  private JPanel crearSeccionDenominaciones() {
+    JPanel contenedor = new JPanel();
+    contenedor.setLayout(new BoxLayout(contenedor, BoxLayout.Y_AXIS));
+    contenedor.setOpaque(false);
+    contenedor.setAlignmentX(LEFT_ALIGNMENT);
 
     JLabel lblDenom = Componentes.etiqueta("Denominaciones rapidas", 14, true, Colores.TEXTO_OSCURO);
     lblDenom.setAlignmentX(LEFT_ALIGNMENT);
-    card.add(lblDenom);
-    card.add(Box.createVerticalStrut(10));
+    contenedor.add(lblDenom);
+    contenedor.add(Box.createVerticalStrut(10));
 
     JPanel gridDenom = new JPanel(new GridLayout(2, 3, 10, 10));
     gridDenom.setOpaque(false);
-    gridDenom.setAlignmentX(LEFT_ALIGNMENT);
     gridDenom.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
 
     for (int v : new int[]{20, 50, 100, 200, 500, 1000}) {
       gridDenom.add(botonDenominacion("$" + v, v));
     }
 
-    card.add(gridDenom);
-    card.add(Box.createVerticalStrut(18));
+    contenedor.add(gridDenom);
+    return contenedor;
+  }
+
+  private JPanel crearSeccionPersonalizada() {
+    JPanel contenedor = new JPanel();
+    contenedor.setLayout(new BoxLayout(contenedor, BoxLayout.Y_AXIS));
+    contenedor.setOpaque(false);
+    contenedor.setAlignmentX(LEFT_ALIGNMENT);
 
     JLabel lblCustom = Componentes.etiqueta("Cantidad personalizada", 14, true, Colores.TEXTO_OSCURO);
     lblCustom.setAlignmentX(LEFT_ALIGNMENT);
-    card.add(lblCustom);
-    card.add(Box.createVerticalStrut(8));
-    card.add(filaCantidadPersonalizada());
-    card.add(Box.createVerticalStrut(20));
-    card.add(filaAcciones(mainFrame, onConfirmado));
+    contenedor.add(lblCustom);
+    contenedor.add(Box.createVerticalStrut(8));
+    contenedor.add(filaCantidadPersonalizada());
 
-    return card;
+    return contenedor;
   }
 
   private JPanel filaCantidadPersonalizada() {
@@ -144,20 +172,8 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     JButton btnAgregar = Componentes.botonAccion("Agregar", Colores.VERDE, Colores.VERDE_HOVER);
     btnAgregar.setPreferredSize(new Dimension(110, 44));
 
-    btnAgregar.addActionListener(e -> {
-      try {
-        BigDecimal val = new BigDecimal(campoCustom.getText().trim().replace(",", "."));
-        if (val.compareTo(BigDecimal.ZERO) > 0) {
-          recibido = recibido.add(val).setScale(2, RoundingMode.HALF_UP);
-          actualizarUI();
-          campoCustom.setText("");
-        }
-      } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Ingrese un numero valido.", "Error", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-
-    campoCustom.addActionListener(e -> btnAgregar.doClick());
+    btnAgregar.addActionListener(e -> seleccionarAgregarCantidad(campoCustom));
+    campoCustom.addActionListener(e -> seleccionarAgregarCantidad(campoCustom));
 
     JPanel row = new JPanel(new BorderLayout(10, 0));
     row.setOpaque(false);
@@ -169,14 +185,37 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
     return row;
   }
 
+  private void seleccionarAgregarCantidad(JTextField campo) {
+    try {
+      BigDecimal val = new BigDecimal(campo.getText().trim().replace(",", "."));
+      if (val.compareTo(BigDecimal.ZERO) > 0) {
+        recibido = recibido.add(val).setScale(2, RoundingMode.HALF_UP);
+        actualizarUI();
+        campo.setText("");
+      }
+    } catch (NumberFormatException ex) {
+      JOptionPane.showMessageDialog(this, "Ingrese un numero valido.", "Error", JOptionPane.WARNING_MESSAGE);
+    }
+  }
+
   private JPanel filaAcciones(JFrame mainFrame, Runnable onConfirmado) {
     JButton btnLimpiar = Componentes.botonAccion("Limpiar", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
-    btnLimpiar.addActionListener(e -> {
-      recibido = BigDecimal.ZERO;
-      actualizarUI();
-    });
+    btnLimpiar.addActionListener(e -> seleccionarLimpiar());
 
-    btnCompletar = new JButton("Completar Pago") {
+    btnCompletar = crearBotonCompletar(mainFrame, onConfirmado);
+
+    JPanel row = new JPanel(new GridLayout(1, 2, 12, 0));
+    row.setOpaque(false);
+    row.setAlignmentX(LEFT_ALIGNMENT);
+    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
+    row.add(btnLimpiar);
+    row.add(btnCompletar);
+
+    return row;
+  }
+
+  private JButton crearBotonCompletar(JFrame mainFrame, Runnable onConfirmado) {
+    JButton btn = new JButton("Completar Pago") {
       boolean ov = false;
 
       {
@@ -198,7 +237,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
           @Override
           public void mouseClicked(MouseEvent e) {
-            confirmarPago(mainFrame, onConfirmado);
+            seleccionarConfirmarPago(mainFrame, onConfirmado);
           }
 
         });
@@ -216,21 +255,17 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
       }
 
     };
-
-    btnCompletar.setForeground(Colores.BLANCO);
-    btnCompletar.setFont(Fuentes.b(15));
-
-    JPanel row = new JPanel(new GridLayout(1, 2, 12, 0));
-    row.setOpaque(false);
-    row.setAlignmentX(LEFT_ALIGNMENT);
-    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
-    row.add(btnLimpiar);
-    row.add(btnCompletar);
-
-    return row;
+    btn.setForeground(Colores.BLANCO);
+    btn.setFont(Fuentes.b(15));
+    return btn;
   }
 
-  private void confirmarPago(JFrame mainFrame, Runnable onConfirmado) {
+  private void seleccionarLimpiar() {
+    recibido = BigDecimal.ZERO;
+    actualizarUI();
+  }
+
+  private void seleccionarConfirmarPago(JFrame mainFrame, Runnable onConfirmado) {
     if (recibido.compareTo(totalAPagar) < 0) {
       return;
     }
@@ -243,6 +278,10 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
       return;
     }
 
+    ejecutarFinalizacionVenta(mainFrame, onConfirmado);
+  }
+
+  private void ejecutarFinalizacionVenta(JFrame mainFrame, Runnable onConfirmado) {
     ventasFachada.procesarFinalizarVenta(ventaActual);
     TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, recibido);
 
@@ -262,11 +301,13 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   private JButton botonDenominacion(String texto, int valor) {
     JButton b = Componentes.botonAccion(texto, Colores.VERDE, Colores.VERDE_HOVER);
     b.setFont(Fuentes.b(16));
-    b.addActionListener(e -> {
-      recibido = recibido.add(BigDecimal.valueOf(valor)).setScale(2, RoundingMode.HALF_UP);
-      actualizarUI();
-    });
+    b.addActionListener(e -> seleccionarDenominacion(valor));
     return b;
+  }
+
+  private void seleccionarDenominacion(int valor) {
+    recibido = recibido.add(BigDecimal.valueOf(valor)).setScale(2, RoundingMode.HALF_UP);
+    actualizarUI();
   }
 
   private JPanel cajaInfo(String etiqueta, String valor, Color colorVal, Color bg) {

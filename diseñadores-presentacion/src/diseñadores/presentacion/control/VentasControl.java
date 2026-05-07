@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RegistrarVentaControl {
+public class VentasControl {
 
   public enum ResultadoEscaneo {
     OK,
@@ -21,7 +21,7 @@ public class RegistrarVentaControl {
   private VentaDTO ventaActual;
   private List<ProductoDTO> catalogoProductos;
 
-  public RegistrarVentaControl(IVentas ventasFachada) {
+  public VentasControl(IVentas ventasFachada) {
     this.ventasFachada = ventasFachada;
     this.ventaActual = new VentaDTO();
     this.catalogoProductos = ventasFachada.obtenerCatalogo();

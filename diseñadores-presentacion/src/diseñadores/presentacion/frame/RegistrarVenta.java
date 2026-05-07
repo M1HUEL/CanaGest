@@ -5,7 +5,7 @@ import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
-import diseñadores.presentacion.control.RegistrarVentaControl;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -23,7 +23,7 @@ public class RegistrarVenta extends JFrame {
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
   private final UsuarioDTO usuarioActivo;
-  private final RegistrarVentaControl control;
+  private final VentasControl control;
 
   private JPanel panelCarritoItems;
   private JPanel panelGrid;
@@ -46,7 +46,7 @@ public class RegistrarVenta extends JFrame {
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
     this.usuarioActivo = usuarioActivo;
-    this.control = new RegistrarVentaControl(ventasFachada);
+    this.control = new VentasControl(ventasFachada);
 
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
@@ -235,7 +235,7 @@ public class RegistrarVenta extends JFrame {
 
       @Override
       protected void paintComponent(Graphics g2d) {
-        pintarRedondeado((Graphics2D) g2d, hov ? Colores.AZUL_HOVER : Colores.AZUL, 14);
+        pintarRedondeado((Graphics2D) g2d, getWidth(), getHeight(), Colores.AZUL, 14);
         super.paintComponent(g2d);
       }
 
@@ -325,7 +325,7 @@ public class RegistrarVenta extends JFrame {
     JPanel cuadro = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
       protected void paintComponent(Graphics g2d) {
-        pintarRedondeado((Graphics2D) g2d, Colores.AZUL, 14);
+        pintarRedondeado((Graphics2D) g2d, getWidth(), getHeight(), Colores.AZUL, 14);
         super.paintComponent(g2d);
       }
 
@@ -431,7 +431,7 @@ public class RegistrarVenta extends JFrame {
     ctrlCant.add(btnMas);
 
     JLabel lblSub = new JLabel(String.format("$%.2f", item.getSubtotal()));
-    lblSub.setFont(Fuentes.b(15));
+    lblSub.setFont(Fuentes.b(12));
     lblSub.setForeground(Colores.AZUL);
 
     JPanel row = new JPanel(new BorderLayout());
@@ -442,7 +442,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void procesarEscaneoUI(String codigo) {
-    RegistrarVentaControl.ResultadoEscaneo resultado = control.procesarEscaneo(codigo);
+    VentasControl.ResultadoEscaneo resultado = control.procesarEscaneo(codigo);
     switch (resultado) {
       case NO_EXISTE ->
         JOptionPane.showMessageDialog(this,
@@ -524,7 +524,7 @@ public class RegistrarVenta extends JFrame {
     JTextField tf = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
-        pintarRedondeado((Graphics2D) g2d, Colores.FONDO_INPUT, 10);
+        pintarRedondeado((Graphics2D) g2d, getWidth(), getHeight(), Colores.FONDO_INPUT, 10);
         super.paintComponent(g2d);
       }
 
@@ -576,9 +576,8 @@ public class RegistrarVenta extends JFrame {
         });
       }
 
-      @Override
       protected void paintComponent(Graphics g2d) {
-        pintarRedondeado((Graphics2D) g2d, ov ? hover : base, 10);
+        pintarRedondeado((Graphics2D) g2d, getWidth(), getHeight(), ov ? hover : base, 10);
         super.paintComponent(g2d);
       }
 
@@ -649,13 +648,10 @@ public class RegistrarVenta extends JFrame {
     return l;
   }
 
-  private void pintarRedondeado(Graphics2D g, Color color, int arc) {
+  private void pintarRedondeado(Graphics2D g, int width, int height, Color color, int arc) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(color);
-    g.fill(new RoundRectangle2D.Float(0, 0, g.getClipBounds() != null
-      ? (float) g.getClipBounds().getWidth() : 0,
-      g.getClipBounds() != null ? (float) g.getClipBounds().getHeight() : 0,
-      arc, arc));
+    g.fill(new RoundRectangle2D.Float(0, 0, width, height, arc, arc));
   }
 
 }

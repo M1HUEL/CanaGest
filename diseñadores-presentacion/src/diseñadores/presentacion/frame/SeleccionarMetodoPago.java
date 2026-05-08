@@ -244,11 +244,7 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void abrirPagoCoDi() {
-    new RegistrarMetodoPagoCoDi(this, frameAnterior,
-      control.getVentasFachada(), control.getInventarioFachada(),
-      control.getUsuariosFachada(), control.getProveedoresFachada(),
-      control.getVentaActual(), control.getVentaActual().getTotal(),
-      onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoCoDi(this, frameAnterior, control, onVentaFinalizada);
   }
 
   private void abrirPagoTransferencia() {

@@ -1,10 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.ventas.IVentas;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
-import diseñadores.negocios.usuarios.IUsuarios;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
 
 import javax.swing.*;
@@ -20,33 +17,20 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
   private final JFrame mainFrame;
-  private final IVentas ventasFachada;
-  private final IInventario inventarioFachada;
-  private final IUsuarios usuariosFachada;
-  private final IProveedores proveedoresFachada;
-  private final VentaDTO ventaActual;
-  private final BigDecimal total;
+  private final VentasControl control;
   private final Runnable onVentaFinalizada;
-  private final UsuarioDTO usuarioActivo;
 
   public RegistrarMetodoPagoTarjeta(
-    SeleccionarMetodoPago seleccionarMetodoPago, JFrame mainFrame,
-    IVentas ventasFachada, IInventario inventarioFachada,
-    IUsuarios usuariosFachada, IProveedores proveedoresFachada,
-    VentaDTO ventaActual, BigDecimal total,
-    Runnable onVentaFinalizada, UsuarioDTO usuarioActivo) {
+    SeleccionarMetodoPago seleccionarMetodoPago,
+    JFrame mainFrame,
+    VentasControl control,
+    Runnable onVentaFinalizada) {
 
     super("Pago con Tarjeta");
     this.seleccionarMetodoPago = seleccionarMetodoPago;
     this.mainFrame = mainFrame;
-    this.ventasFachada = ventasFachada;
-    this.inventarioFachada = inventarioFachada;
-    this.usuariosFachada = usuariosFachada;
-    this.proveedoresFachada = proveedoresFachada;
-    this.ventaActual = ventaActual;
-    this.total = total;
+    this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
-    this.usuarioActivo = usuarioActivo;
 
     configurarVentana();
     inicializarComponentes();
@@ -59,28 +43,28 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
   }
 
   private void inicializarComponentes() {
-    JPanel root = fondoPanel();
+    JPanel root = crearFondoPanel();
     root.add(crearTopBar(), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);
     cuerpo.setBorder(new EmptyBorder(16, 40, 20, 40));
-    cuerpo.add(btnVolverRow(), BorderLayout.NORTH);
-    cuerpo.add(centrar(scroll(buildCard()), 240, 10), BorderLayout.CENTER);
+    cuerpo.add(crearFilaVolver(), BorderLayout.NORTH);
+    cuerpo.add(centrar(crearScroll(crearCard()), 240, 10), BorderLayout.CENTER);
 
     root.add(cuerpo, BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
   }
 
-  private JPanel buildCard() {
-    JPanel card = tarjetaBlanca();
+  private JPanel crearCard() {
+    JPanel card = crearTarjetaBlanca();
     card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
     card.setBorder(new EmptyBorder(28, 32, 32, 32));
 
-    card.add(header("TC", "Pago con Tarjeta", Colores.AZUL));
+    card.add(crearHeader("TC", "Pago con Tarjeta", Colores.AZUL));
     card.add(Box.createVerticalStrut(22));
-    card.add(cajaTotalColor(total, Colores.AZUL_CLARO, Colores.AZUL));
+    card.add(crearCajaTotal(control.getVentaActual().getTotal(), Colores.AZUL_CLARO, Colores.AZUL));
     card.add(Box.createVerticalStrut(20));
     card.add(crearSeccionInstrucciones());
     card.add(Box.createVerticalStrut(20));
@@ -90,12 +74,11 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
     card.add(Box.createVerticalStrut(24));
     card.add(crearBotonProcesar(campoNum, campoNom));
-
     return card;
   }
 
   private JPanel crearSeccionInstrucciones() {
-    return instrucciones(
+    return crearInstrucciones(
       new String[]{
         "Inserte o deslice la tarjeta en el lector",
         "Ingrese el PIN cuando se le solicite",
@@ -104,33 +87,32 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
   }
 
   private JTextField crearCampoNumeroTarjeta(JPanel card) {
-    card.add(label("Número de tarjeta"));
+    card.add(crearLabel("Número de tarjeta"));
     card.add(Box.createVerticalStrut(6));
-    JTextField campoNum = pill("**** **** **** ****");
-    formatearTarjeta(campoNum);
-    card.add(campoNum);
+    JTextField campo = crearPill("**** **** **** ****");
+    aplicarFormatoTarjeta(campo);
+    card.add(campo);
     card.add(Box.createVerticalStrut(14));
-    return campoNum;
+    return campo;
   }
 
   private JTextField crearCampoNombreTitular(JPanel card) {
-    card.add(label("Nombre del titular"));
+    card.add(crearLabel("Nombre del titular"));
     card.add(Box.createVerticalStrut(6));
-    JTextField campoNom = pill("Nombre como aparece en la tarjeta");
-    card.add(campoNom);
-    return campoNom;
+    JTextField campo = crearPill("Nombre como aparece en la tarjeta");
+    card.add(campo);
+    return campo;
   }
 
   private JButton crearBotonProcesar(JTextField campoNum, JTextField campoNom) {
-    JButton btnProcesar = boton("Procesar Pago", Colores.AZUL, Colores.AZUL_HOVER);
-    btnProcesar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
-    btnProcesar.addActionListener(e -> seleccionarProcesarPago(campoNum.getText(), campoNom.getText()));
-    return btnProcesar;
+    JButton btn = crearBoton("Procesar Pago", Colores.AZUL, Colores.AZUL_HOVER);
+    btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+    btn.addActionListener(e -> onProcesarPago(campoNum.getText(), campoNom.getText()));
+    return btn;
   }
 
-  private void seleccionarProcesarPago(String numRaw, String titular) {
+  private void onProcesarPago(String numRaw, String titular) {
     String numero = numRaw.replaceAll("\\s", "");
-
     if (validarDatos(numero, titular)) {
       ejecutarProcesoPago(numero, titular);
     }
@@ -138,11 +120,13 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private boolean validarDatos(String numero, String titular) {
     if (numero.length() != 16 || !numero.matches("[0-9]+")) {
-      JOptionPane.showMessageDialog(this, "Ingrese un número de tarjeta válido (16 dígitos).", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+      JOptionPane.showMessageDialog(this,
+        "Ingrese un número de tarjeta válido (16 dígitos).", "Dato inválido", JOptionPane.WARNING_MESSAGE);
       return false;
     }
     if (titular.isBlank() || titular.equals("Nombre como aparece en la tarjeta")) {
-      JOptionPane.showMessageDialog(this, "Ingrese el nombre del titular.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
+      JOptionPane.showMessageDialog(this,
+        "Ingrese el nombre del titular.", "Dato inválido", JOptionPane.WARNING_MESSAGE);
       return false;
     }
     return true;
@@ -150,20 +134,20 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void ejecutarProcesoPago(String numero, String titular) {
     alternarEstadoCarga(true);
-
     SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
       @Override
       protected ResultadoPagoDTO doInBackground() {
-        return ventasFachada.procesarPagoTarjeta(ventaActual, new PagoTarjetaDTO(numero, titular));
+        return control.procesarPagoTarjeta(new PagoTarjetaDTO(numero, titular));
       }
 
       @Override
       protected void done() {
         alternarEstadoCarga(false);
         try {
-          manejarResultado(get(), onVentaFinalizada, BigDecimal.ZERO);
+          manejarResultado(get());
         } catch (InterruptedException | ExecutionException ex) {
-          JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
+            ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
 
@@ -176,22 +160,26 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     setCursor(cargando ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
   }
 
-  private void manejarResultado(ResultadoPagoDTO resultado, Runnable onConfirmado, BigDecimal efectivo) {
+  private void manejarResultado(ResultadoPagoDTO resultado) {
     if (resultado.isAprobado()) {
-      finalizarVenta(onConfirmado, efectivo);
+      finalizarVenta();
     } else {
-      JOptionPane.showMessageDialog(this, "❌ Pago rechazado por el banco:\n\n" + resultado.getMensaje(), "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+      JOptionPane.showMessageDialog(this,
+        "Pago rechazado por el banco:\n\n" + resultado.getMensaje(),
+        "Pago rechazado", JOptionPane.WARNING_MESSAGE);
     }
   }
 
-  private void finalizarVenta(Runnable onConfirmado, BigDecimal efectivo) {
+  private void finalizarVenta() {
     try {
-      ventasFachada.procesarFinalizarVenta(ventaActual);
-      TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, efectivo);
-      this.setVisible(false);
-      new PantallaTicket(mainFrame, ticketDTO, onConfirmado, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
+      control.finalizarVenta();
+      TicketDTO ticketDTO = control.generarTicket();
+      setVisible(false);
+      new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
     } catch (Exception ex) {
-      JOptionPane.showMessageDialog(this, "Pago aprobado, pero ocurrió un error al cerrar la venta:\n" + ex.getMessage(), "Error al finalizar", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this,
+        "Pago aprobado, pero ocurrió un error al cerrar la venta:\n" + ex.getMessage(),
+        "Error al finalizar", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -199,22 +187,29 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-
-    JButton btn = boton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
-    btn.setForeground(Colores.TEXTO_OSCURO);
-    btn.setPreferredSize(new Dimension(160, 38));
-    btn.addActionListener(e -> seleccionarMenuPrincipal());
-
-    bar.add(btn);
+    bar.add(crearBotonMenuPrincipal());
     return bar;
   }
 
-  private void seleccionarMenuPrincipal() {
-    dispose();
-    new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
+  private JButton crearBotonMenuPrincipal() {
+    JButton btn = crearBoton("Menu Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
+    btn.setForeground(Colores.TEXTO_OSCURO);
+    btn.setPreferredSize(new Dimension(160, 38));
+    btn.addActionListener(e -> onMenuPrincipal());
+    return btn;
   }
 
-  private JPanel btnVolverRow() {
+  private void onMenuPrincipal() {
+    dispose();
+    new MenuPrincipal(
+      control.getUsuarioActivo(),
+      control.getUsuariosFachada(),
+      control.getVentasFachada(),
+      control.getInventarioFachada(),
+      control.getProveedoresFachada()).setVisible(true);
+  }
+
+  private JPanel crearFilaVolver() {
     JButton b = new JButton("← Volver a métodos de pago");
     b.setContentAreaFilled(false);
     b.setBorderPainted(false);
@@ -222,20 +217,19 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     b.setFont(new Font("Segoe UI", Font.PLAIN, 14));
     b.setForeground(Colores.TEXTO_OSCURO);
     b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    b.addActionListener(e -> seleccionarVolver());
-
+    b.addActionListener(e -> onVolver());
     JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     p.setOpaque(false);
     p.add(b);
     return p;
   }
 
-  private void seleccionarVolver() {
+  private void onVolver() {
     dispose();
     seleccionarMetodoPago.setVisible(true);
   }
 
-  private JPanel fondoPanel() {
+  private JPanel crearFondoPanel() {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -249,7 +243,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return p;
   }
 
-  private JPanel tarjetaBlanca() {
+  private JPanel crearTarjetaBlanca() {
     JPanel p = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -279,7 +273,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return p;
   }
 
-  private JScrollPane scroll(JPanel c) {
+  private JScrollPane crearScroll(JPanel c) {
     JScrollPane sp = new JScrollPane(c);
     sp.setBorder(BorderFactory.createEmptyBorder());
     sp.setOpaque(false);
@@ -289,36 +283,39 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return sp;
   }
 
-  private JPanel header(String ico, String tit, Color col) {
+  private JPanel crearHeader(String icono, String titulo, Color color) {
     JPanel h = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
     h.setOpaque(false);
     h.setAlignmentX(LEFT_ALIGNMENT);
-    JPanel ib = new JPanel(new BorderLayout()) {
+
+    JPanel iconBox = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(col);
+        g.setColor(color);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
         super.paintComponent(g2d);
       }
 
     };
-    ib.setOpaque(false);
-    ib.setPreferredSize(new Dimension(52, 52));
-    JLabel il = new JLabel(ico, SwingConstants.CENTER);
-    il.setFont(new Font("Segoe UI", Font.BOLD, 16));
-    il.setForeground(Colores.BLANCO);
-    ib.add(il);
-    JLabel tl = new JLabel(tit);
-    tl.setFont(new Font("Segoe UI", Font.BOLD, 24));
-    tl.setForeground(Colores.TEXTO_OSCURO);
-    h.add(ib);
-    h.add(tl);
+    iconBox.setOpaque(false);
+    iconBox.setPreferredSize(new Dimension(52, 52));
+    JLabel iconLabel = new JLabel(icono, SwingConstants.CENTER);
+    iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+    iconLabel.setForeground(Colores.BLANCO);
+    iconBox.add(iconLabel);
+
+    JLabel tituloLabel = new JLabel(titulo);
+    tituloLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    tituloLabel.setForeground(Colores.TEXTO_OSCURO);
+
+    h.add(iconBox);
+    h.add(tituloLabel);
     return h;
   }
 
-  private JPanel cajaTotalColor(BigDecimal total, Color bg, Color fg) {
+  private JPanel crearCajaTotal(BigDecimal total, Color bg, Color fg) {
     JPanel c = new JPanel(new GridLayout(2, 1, 0, 8)) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -334,18 +331,21 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     c.setBorder(new EmptyBorder(22, 20, 22, 20));
     c.setAlignmentX(LEFT_ALIGNMENT);
     c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+
     JLabel lt = new JLabel("Total a pagar", SwingConstants.CENTER);
     lt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     lt.setForeground(Colores.GRIS_TEXTO);
+
     JLabel lv = new JLabel(String.format("$%,.2f", total), SwingConstants.CENTER);
     lv.setFont(new Font("Segoe UI", Font.BOLD, 38));
     lv.setForeground(fg);
+
     c.add(lt);
     c.add(lv);
     return c;
   }
 
-  private JPanel instrucciones(String[] pasos, Color colorNum, Color bg) {
+  private JPanel crearInstrucciones(String[] pasos, Color colorNum, Color bg) {
     JPanel box = new JPanel(new GridBagLayout()) {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -361,35 +361,38 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     box.setBorder(new EmptyBorder(16, 18, 16, 18));
     box.setAlignmentX(LEFT_ALIGNMENT);
     box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
+
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.weightx = 1;
+
     JLabel tit = new JLabel("Instrucciones:");
     tit.setFont(new Font("Segoe UI", Font.BOLD, 14));
     tit.setForeground(Colores.TEXTO_OSCURO);
     c.gridy = 0;
     c.insets = new Insets(0, 0, 10, 0);
     box.add(tit, c);
+
     for (int i = 0; i < pasos.length; i++) {
-      JPanel f = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-      f.setOpaque(false);
-      JLabel n = new JLabel((i + 1) + ".");
-      n.setFont(new Font("Segoe UI", Font.BOLD, 13));
-      n.setForeground(colorNum);
-      JLabel t = new JLabel(pasos[i]);
-      t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-      t.setForeground(Colores.TEXTO_OSCURO);
-      f.add(n);
-      f.add(t);
+      JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+      fila.setOpaque(false);
+      JLabel num = new JLabel((i + 1) + ".");
+      num.setFont(new Font("Segoe UI", Font.BOLD, 13));
+      num.setForeground(colorNum);
+      JLabel texto = new JLabel(pasos[i]);
+      texto.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+      texto.setForeground(Colores.TEXTO_OSCURO);
+      fila.add(num);
+      fila.add(texto);
       c.gridy = i + 1;
       c.insets = new Insets(0, 0, i < pasos.length - 1 ? 6 : 0, 0);
-      box.add(f, c);
+      box.add(fila, c);
     }
     return box;
   }
 
-  private JLabel label(String txt) {
+  private JLabel crearLabel(String txt) {
     JLabel l = new JLabel(txt);
     l.setFont(new Font("Segoe UI", Font.PLAIN, 13));
     l.setForeground(Colores.TEXTO_OSCURO);
@@ -397,7 +400,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return l;
   }
 
-  private JTextField pill(String ph) {
+  private JTextField crearPill(String placeholder) {
     JTextField tf = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -417,11 +420,11 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     tf.setPreferredSize(new Dimension(0, 50));
     tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
     tf.setAlignmentX(LEFT_ALIGNMENT);
-    tf.setText(ph);
+    tf.setText(placeholder);
     tf.setForeground(Colores.GRIS_TEXTO);
     tf.addFocusListener(new FocusAdapter() {
       public void focusGained(FocusEvent e) {
-        if (tf.getText().equals(ph)) {
+        if (tf.getText().equals(placeholder)) {
           tf.setText("");
           tf.setForeground(Colores.TEXTO_OSCURO);
         }
@@ -429,7 +432,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
       public void focusLost(FocusEvent e) {
         if (tf.getText().isEmpty()) {
-          tf.setText(ph);
+          tf.setText(placeholder);
           tf.setForeground(Colores.GRIS_TEXTO);
         }
       }
@@ -438,11 +441,11 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return tf;
   }
 
-  private void formatearTarjeta(JTextField tf) {
+  private void aplicarFormatoTarjeta(JTextField tf) {
     tf.getDocument().addDocumentListener(new DocumentListener() {
       boolean editando = false;
 
-      private void fmt() {
+      private void formatear() {
         if (editando) {
           return;
         }
@@ -463,9 +466,9 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
               }
               sb.append(raw.charAt(i));
             }
-            int caretPos = Math.min(tf.getCaretPosition(), sb.length());
+            int caret = Math.min(tf.getCaretPosition(), sb.length());
             tf.setText(sb.toString());
-            tf.setCaretPosition(caretPos);
+            tf.setCaretPosition(caret);
           } finally {
             editando = false;
           }
@@ -473,11 +476,11 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       }
 
       public void insertUpdate(DocumentEvent e) {
-        fmt();
+        formatear();
       }
 
       public void removeUpdate(DocumentEvent e) {
-        fmt();
+        formatear();
       }
 
       public void changedUpdate(DocumentEvent e) {
@@ -486,7 +489,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     });
   }
 
-  private JButton boton(String txt, Color base, Color hover) {
+  private JButton crearBoton(String txt, Color base, Color hover) {
     JButton b = new JButton(txt) {
       boolean ov = false;
 

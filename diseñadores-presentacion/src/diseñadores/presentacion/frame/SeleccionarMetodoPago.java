@@ -1,10 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
-import diseñadores.negocios.usuarios.IUsuarios;
-import diseñadores.negocios.ventas.IVentas;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
 
 import javax.swing.*;
@@ -13,7 +10,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
-import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -22,6 +18,7 @@ public class SeleccionarMetodoPago extends JFrame {
   private static final Font FONT_TITULO = new Font("Segoe UI", Font.BOLD, 22);
   private static final Font FONT_BOTON_METODO = new Font("Segoe UI", Font.BOLD, 20);
   private static final Font FONT_BOTON_ACCION = new Font("Segoe UI", Font.BOLD, 14);
+
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
 
   static {
@@ -32,34 +29,19 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private final JFrame frameAnterior;
-  private final VentaDTO ventaActual;
+  private final VentasControl control;
   private final UsuarioDTO usuarioActivo;
-  private final BigDecimal total;
   private final Runnable onVentaFinalizada;
-  private final IVentas ventasFachada;
-  private final IUsuarios usuariosFachada;
-  private final IInventario inventarioFachada;
-  private final IProveedores proveedoresFachada;
 
   public SeleccionarMetodoPago(JFrame frameAnterior,
-    VentaDTO ventaActual,
-    BigDecimal total,
+    VentasControl control,
     Runnable onVentaFinalizada,
-    IUsuarios usuariosFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada,
-    IVentas ventasFachada,
     UsuarioDTO usuarioActivo) {
-    super("Método de Pago");
 
+    super("Método de Pago");
     this.frameAnterior = frameAnterior;
-    this.ventaActual = ventaActual;
+    this.control = control;
     this.usuarioActivo = usuarioActivo;
-    this.ventasFachada = ventasFachada;
-    this.usuariosFachada = usuariosFachada;
-    this.inventarioFachada = inventarioFachada;
-    this.proveedoresFachada = proveedoresFachada;
-    this.total = total;
     this.onVentaFinalizada = onVentaFinalizada;
 
     configurarVentana();
@@ -73,14 +55,14 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void inicializarComponentes() {
-    JPanel root = panelBase();
+    JPanel root = crearPanelBase();
     root.add(crearTopBar(), BorderLayout.NORTH);
-    root.add(crearContenedorCentrado(buildCard(), 280, 30), BorderLayout.CENTER);
+    root.add(crearContenedorCentrado(crearCard(), 280, 30), BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
   }
 
-  private JPanel panelBase() {
+  private JPanel crearPanelBase() {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -98,25 +80,28 @@ public class SeleccionarMetodoPago extends JFrame {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Colores.BORDE_GRIS));
-    bar.add(configurarBotonMenu());
+    bar.add(crearBotonMenuPrincipal());
     return bar;
   }
 
-  private JButton configurarBotonMenu() {
-    JButton btnMenu = crearBotonAccion("Menú Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
-    btnMenu.setForeground(Colores.TEXTO_OSCURO);
-    btnMenu.setPreferredSize(new Dimension(160, 38));
-    btnMenu.addActionListener(e -> seleccionarMenuPrincipal());
-    return btnMenu;
+  private JButton crearBotonMenuPrincipal() {
+    JButton btn = crearBotonAccion("Menú Principal", Colores.AMARILLO_BTN, Colores.AMARILLO_BTN_HOVER);
+    btn.setForeground(Colores.TEXTO_OSCURO);
+    btn.setPreferredSize(new Dimension(160, 38));
+    btn.addActionListener(e -> irAlMenuPrincipal());
+    return btn;
   }
 
-  private void seleccionarMenuPrincipal() {
+  private void irAlMenuPrincipal() {
     dispose();
-    new MenuPrincipal(usuarioActivo, usuariosFachada, ventasFachada,
-      inventarioFachada, proveedoresFachada).setVisible(true);
+    new MenuPrincipal(usuarioActivo,
+      control.getUsuariosFachada(),
+      control.getVentasFachada(),
+      control.getInventarioFachada(),
+      control.getProveedoresFachada()).setVisible(true);
   }
 
-  private JPanel buildCard() {
+  private JPanel crearCard() {
     JPanel card = crearContenedorTarjeta();
     card.add(crearTituloCard(), BorderLayout.NORTH);
     card.add(crearGridMetodos(), BorderLayout.CENTER);
@@ -192,7 +177,6 @@ public class SeleccionarMetodoPago extends JFrame {
       }
 
     };
-
     btn.setBorder(new EmptyBorder(28, 20, 28, 20));
     btn.add(new JLabel("", SwingConstants.CENTER));
     btn.add(crearLabelNombreMetodo(nombre));
@@ -200,34 +184,34 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private JLabel crearLabelNombreMetodo(String nombre) {
-    JLabel lblNombre = new JLabel(nombre, SwingConstants.CENTER);
-    lblNombre.setFont(FONT_BOTON_METODO);
-    lblNombre.setForeground(Colores.BLANCO);
-    return lblNombre;
+    JLabel lbl = new JLabel(nombre, SwingConstants.CENTER);
+    lbl.setFont(FONT_BOTON_METODO);
+    lbl.setForeground(Colores.BLANCO);
+    return lbl;
   }
 
   private JPanel crearPanelBotonesInferiores() {
     JPanel row = new JPanel(new GridLayout(1, 2, 16, 0));
     row.setOpaque(false);
     row.setPreferredSize(new Dimension(0, 60));
-    row.add(configurarBotonCancelar());
-    row.add(configurarBotonVolver());
+    row.add(crearBotonCancelar());
+    row.add(crearBotonVolver());
     return row;
   }
 
-  private JButton configurarBotonCancelar() {
-    JButton btnCancelar = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
-    btnCancelar.addActionListener(e -> seleccionarCancelarVenta());
-    return btnCancelar;
+  private JButton crearBotonCancelar() {
+    JButton btn = crearBotonAccion("Cancelar", Colores.ROJO, Colores.ROJO_HOVER);
+    btn.addActionListener(e -> onCancelarVenta());
+    return btn;
   }
 
-  private JButton configurarBotonVolver() {
-    JButton btnVolver = crearBotonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
-    btnVolver.addActionListener(e -> seleccionarVolver());
-    return btnVolver;
+  private JButton crearBotonVolver() {
+    JButton btn = crearBotonAccion("Volver", Colores.GRIS_BTN, Colores.GRIS_BTN_HOVER);
+    btn.addActionListener(e -> volverAtras());
+    return btn;
   }
 
-  private void seleccionarCancelarVenta() {
+  private void onCancelarVenta() {
     int op = JOptionPane.showConfirmDialog(this, "¿Cancelar la venta?", "Confirmar",
       JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
     if (op == JOptionPane.YES_OPTION) {
@@ -235,12 +219,8 @@ public class SeleccionarMetodoPago extends JFrame {
     }
   }
 
-  private void seleccionarVolver() {
-    volverAtras();
-  }
-
   private void seleccionarMetodo(String nombre) {
-    this.setVisible(false);
+    setVisible(false);
     switch (nombre) {
       case "Efectivo" ->
         abrirPagoEfectivo();
@@ -256,24 +236,28 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void abrirPagoEfectivo() {
-    new RegistrarMetodoPagoEfectivo(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoEfectivo(this, frameAnterior, control, onVentaFinalizada, usuarioActivo);
   }
 
   private void abrirPagoTarjeta() {
-    new RegistrarMetodoPagoTarjeta(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoTarjeta(this, frameAnterior, control, onVentaFinalizada);
   }
 
   private void abrirPagoCoDi() {
-    new RegistrarMetodoPagoCoDi(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoCoDi(this, frameAnterior,
+      control.getVentasFachada(), control.getInventarioFachada(),
+      control.getUsuariosFachada(), control.getProveedoresFachada(),
+      control.getVentaActual(), control.getVentaActual().getTotal(),
+      onVentaFinalizada, usuarioActivo);
   }
 
   private void abrirPagoTransferencia() {
-    new RegistrarMetodoPagoTransferencia(this, frameAnterior, ventasFachada, inventarioFachada, usuariosFachada, proveedoresFachada, ventaActual, total, onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoTransferencia(this, frameAnterior, this.control, onVentaFinalizada);
   }
 
   private void manejarMetodoNoDisponible() {
     JOptionPane.showMessageDialog(frameAnterior, "Método no disponible", "Error", JOptionPane.ERROR_MESSAGE);
-    this.setVisible(true);
+    setVisible(true);
   }
 
   private void volverAtras() {

@@ -239,8 +239,8 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
       ventasFachada.procesarFinalizarVenta(ventaActual);
       TicketDTO ticketDTO = ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
       this.setVisible(false);
-      new PantallaTicket(frame, ticketDTO, onVentaFinalizada,
-        usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
+//      new PantallaTicket(frame, ticketDTO, onVentaFinalizada,
+//        usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada);
     } catch (Exception ex) {
       JOptionPane.showMessageDialog(this,
         "Pago aprobado, pero error al cerrar la venta:\n" + ex.getMessage(),

@@ -1,9 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
-import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.presentacion.control.VentasControl;
-import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -104,7 +102,7 @@ public class OrdenesCompras extends JFrame {
     tituloCol.add(lblDesc);
 
     JButton btnNueva = btnAzul("Nueva Orden");
-    btnNueva.addActionListener(e -> abrirFormularioNueva());
+    btnNueva.addActionListener(e -> new RegistrarNuevaOrdenCompra(this, control, this::recargarOrdenes).setVisible(true));
 
     JPanel derH = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
     derH.setOpaque(false);
@@ -337,7 +335,7 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle",
       new Color(245, 246, 248), new Color(229, 231, 235), false);
-    btnDetalle.addActionListener(e -> abrirDetalleOrden(o));
+    btnDetalle.addActionListener(e -> new DetalleOrdenCompra(this, o).setVisible(true));
 
     JPanel botonesRow;
 
@@ -350,7 +348,7 @@ public class OrdenesCompras extends JFrame {
           control.cambiarEstadoOrden(o.getNumero(), "Aprobada");
           recargarOrdenes();
         } catch (Exception ex) {
-          mostrarError(ex.getMessage());
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
       });
       botonesRow.add(btnDetalle);
@@ -364,7 +362,7 @@ public class OrdenesCompras extends JFrame {
           control.cambiarEstadoOrden(o.getNumero(), "Recibida");
           recargarOrdenes();
         } catch (Exception ex) {
-          mostrarError(ex.getMessage());
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.WARNING_MESSAGE);
         }
       });
       botonesRow.add(btnDetalle);
@@ -379,243 +377,6 @@ public class OrdenesCompras extends JFrame {
     bottom.add(sep, BorderLayout.NORTH);
     bottom.add(botonesRow, BorderLayout.SOUTH);
     return bottom;
-  }
-
-  private void abrirDetalleOrden(OrdenCompraDTO o) {
-    JDialog dlg = new JDialog(this, "Detalle de Orden de Compra", true);
-    dlg.setSize(600, 500);
-    dlg.setLocationRelativeTo(this);
-    dlg.setResizable(true);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JPanel headerRow = new JPanel(new BorderLayout(10, 0));
-    headerRow.setOpaque(false);
-
-    JLabel lblNum = new JLabel(o.getNumero());
-    lblNum.setFont(Fuentes.b(22));
-    lblNum.setForeground(Colores.TEXTO_OSCURO);
-
-    Color badgeColor, badgeBg;
-    switch (o.getEstado()) {
-      case "Pendiente" -> {
-        badgeColor = new Color(161, 110, 0);
-        badgeBg = new Color(254, 243, 199);
-      }
-      case "Aprobada" -> {
-        badgeColor = new Color(30, 80, 180);
-        badgeBg = new Color(219, 234, 254);
-      }
-      default -> {
-        badgeColor = new Color(21, 128, 61);
-        badgeBg = new Color(220, 252, 231);
-      }
-    }
-    JLabel badge = new JLabel(o.getEstado(), SwingConstants.CENTER);
-    badge.setFont(Fuentes.b(11));
-    badge.setForeground(badgeColor);
-    badge.setOpaque(true);
-    badge.setBackground(badgeBg);
-    badge.setBorder(new EmptyBorder(4, 12, 4, 12));
-
-    headerRow.add(lblNum, BorderLayout.WEST);
-    headerRow.add(badge, BorderLayout.EAST);
-
-    JLabel lblFecha = new JLabel("Fecha: " + o.getFecha());
-    lblFecha.setFont(Fuentes.r(13));
-    lblFecha.setForeground(Colores.GRIS_TEXTO);
-
-    panel.add(headerRow);
-    panel.add(Box.createVerticalStrut(6));
-    panel.add(lblFecha);
-    panel.add(Box.createVerticalStrut(24));
-
-    JLabel sec1 = new JLabel("PROVEEDOR");
-    sec1.setFont(Fuentes.b(12));
-    sec1.setForeground(Colores.GRIS_TEXTO);
-    sec1.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sec1);
-    panel.add(Box.createVerticalStrut(12));
-    panel.add(crearFilaInfo("Nombre", o.getProveedorNombre()));
-    panel.add(Box.createVerticalStrut(20));
-
-    JLabel sec2 = new JLabel("DETALLE DE LA ORDEN");
-    sec2.setFont(Fuentes.b(12));
-    sec2.setForeground(Colores.GRIS_TEXTO);
-    sec2.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sec2);
-    panel.add(Box.createVerticalStrut(12));
-    panel.add(crearFilaInfo("Cantidad de productos", o.getProductos() + " items"));
-    panel.add(Box.createVerticalStrut(8));
-    panel.add(crearFilaInfo("Total", String.format("$%,.2f", o.getTotal().doubleValue())));
-    panel.add(Box.createVerticalStrut(8));
-    panel.add(crearFilaInfo("Estado", o.getEstado()));
-
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
-  }
-
-  private void abrirFormularioNueva() {
-    JDialog dlg = new JDialog(this, "Nueva Orden de Compra", true);
-    dlg.setSize(520, 520);
-    dlg.setLocationRelativeTo(this);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JLabel titulo = new JLabel("Nueva Orden de Compra");
-    titulo.setFont(Fuentes.b(20));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(titulo);
-    panel.add(Box.createVerticalStrut(20));
-
-    List<ProveedorDTO> proveedores = control.obtenerProveedores();
-    List<ProveedorDTO> activos = proveedores.stream()
-      .filter(ProveedorDTO::isActivo)
-      .toList();
-
-    String[] nombresProveedores = activos.stream()
-      .map(ProveedorDTO::getNombre)
-      .toArray(String[]::new);
-
-    JComboBox<String> comboProveedor = new JComboBox<>(nombresProveedores);
-    comboProveedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-    comboProveedor.setAlignmentX(LEFT_ALIGNMENT);
-
-    panel.add(crearEtiquetaForm("Proveedor"));
-    panel.add(Box.createVerticalStrut(4));
-    panel.add(comboProveedor);
-    panel.add(Box.createVerticalStrut(10));
-
-    JTextField tfCant = crearCampoForm();
-    JTextField tfTotal = crearCampoForm();
-
-    panel.add(crearEtiquetaForm("Cantidad de productos"));
-    panel.add(Box.createVerticalStrut(4));
-    panel.add(tfCant);
-    panel.add(Box.createVerticalStrut(10));
-    panel.add(crearEtiquetaForm("Total ($)"));
-    panel.add(Box.createVerticalStrut(4));
-    panel.add(tfTotal);
-    panel.add(Box.createVerticalStrut(20));
-
-    JButton btnCrear = btnAzul("Crear Orden");
-    btnCrear.setAlignmentX(LEFT_ALIGNMENT);
-    btnCrear.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
-
-    btnCrear.addActionListener(e -> {
-      String nombreProv = (String) comboProveedor.getSelectedItem();
-
-      if (nombreProv == null || activos.isEmpty()) {
-        mostrarError("No hay proveedores activos disponibles.");
-        return;
-      }
-
-      ProveedorDTO prov = activos.stream()
-        .filter(p -> p.getNombre().equals(nombreProv))
-        .findFirst().orElse(null);
-
-      if (prov == null) {
-        mostrarError("No se encontró el proveedor seleccionado.");
-        return;
-      }
-
-      try {
-        int cant = Integer.parseInt(tfCant.getText().trim());
-        java.math.BigDecimal tot = new java.math.BigDecimal(tfTotal.getText().trim());
-
-        if (cant <= 0) {
-          mostrarErrorEnDlg(dlg, "La cantidad de productos debe ser mayor a cero.");
-          return;
-        }
-        if (tot.compareTo(java.math.BigDecimal.ZERO) <= 0) {
-          mostrarErrorEnDlg(dlg, "El total debe ser mayor a cero.");
-          return;
-        }
-
-        OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, prov, "Pendiente", cant, tot);
-        control.guardarOrdenCompra(nueva);
-        recargarOrdenes();
-        dlg.dispose();
-
-      } catch (NumberFormatException ex) {
-        mostrarErrorEnDlg(dlg, "Ingrese números válidos en cantidad y total.");
-      } catch (IllegalArgumentException | IllegalStateException ex) {
-        mostrarErrorEnDlg(dlg, ex.getMessage());
-      } catch (Exception ex) {
-        mostrarErrorEnDlg(dlg, "Error inesperado: " + ex.getMessage());
-      }
-    });
-
-    panel.add(btnCrear);
-
-    JScrollPane sp = new JScrollPane(panel);
-    sp.setBorder(BorderFactory.createEmptyBorder());
-    dlg.setContentPane(sp);
-    dlg.setVisible(true);
-  }
-
-  private JPanel crearFilaInfo(String label, String valor) {
-    JPanel row = new JPanel(new BorderLayout(10, 0)) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_GRIS_CLARO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-        super.paintComponent(g2d);
-      }
-
-    };
-    row.setOpaque(false);
-    row.setBorder(new EmptyBorder(12, 14, 12, 14));
-    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-    row.setAlignmentX(LEFT_ALIGNMENT);
-
-    JLabel l = new JLabel(label);
-    l.setFont(Fuentes.r(12));
-    l.setForeground(Colores.GRIS_TEXTO);
-
-    JLabel v = new JLabel(valor != null ? valor : "-");
-    v.setFont(Fuentes.r(14));
-    v.setForeground(Colores.TEXTO_OSCURO);
-
-    row.add(l, BorderLayout.WEST);
-    row.add(v, BorderLayout.EAST);
-    return row;
-  }
-
-  private JLabel crearEtiquetaForm(String texto) {
-    JLabel lbl = new JLabel(texto);
-    lbl.setFont(Fuentes.b(12));
-    lbl.setForeground(Colores.TEXTO_OSCURO);
-    lbl.setAlignmentX(LEFT_ALIGNMENT);
-    return lbl;
-  }
-
-  private JTextField crearCampoForm() {
-    JTextField tf = new JTextField();
-    tf.setFont(Fuentes.r(13));
-    tf.setBorder(BorderFactory.createCompoundBorder(
-      new Bordes(Colores.BORDE_GRIS, 1, 8),
-      new EmptyBorder(8, 12, 8, 12)));
-    tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-    tf.setAlignmentX(LEFT_ALIGNMENT);
-    return tf;
-  }
-
-  private void mostrarError(String msg) {
-    JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.WARNING_MESSAGE);
-  }
-
-  private void mostrarErrorEnDlg(JDialog dlg, String msg) {
-    JOptionPane.showMessageDialog(dlg, msg, "Error", JOptionPane.WARNING_MESSAGE);
   }
 
   private JButton crearTab(String texto, boolean seleccionado) {

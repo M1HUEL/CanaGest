@@ -14,11 +14,10 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AsociarProductosProveedores extends JFrame {
+public class AsociarProveedorProducto extends JFrame {
 
   private final JFrame frame;
   private final VentasControl control;
@@ -26,7 +25,7 @@ public class AsociarProductosProveedores extends JFrame {
   private JPanel panelLista;
   private JTextField campoBusqueda;
 
-  public AsociarProductosProveedores(JFrame frame, VentasControl control) {
+  public AsociarProveedorProducto(JFrame frame, VentasControl control) {
     this.frame = frame;
     this.control = control;
 
@@ -273,7 +272,8 @@ public class AsociarProductosProveedores extends JFrame {
     derTop.setOpaque(false);
     if (prod.getProveedor() == null) {
       JButton btnAgregar = btnAzul("Agregar Proveedor");
-      btnAgregar.addActionListener(e -> abrirDialogoAgregarProveedor(prod));
+      btnAgregar.addActionListener(e -> new AgregarProveedorProducto(
+        this, control, prod, productos, () -> construirLista(productos)).setVisible(true));
       derTop.add(btnAgregar);
     }
 
@@ -440,7 +440,8 @@ public class AsociarProductosProveedores extends JFrame {
     };
     btnEditar.setForeground(Colores.TEXTO_OSCURO);
     btnEditar.setFont(Fuentes.r(12));
-    btnEditar.addActionListener(e -> abrirDialogoEditarProveedor(pv, prod));
+    btnEditar.addActionListener(e -> new EditarProveedorProducto(
+      this, pv, prod, () -> construirLista(productos)).setVisible(true));
 
     JButton btnRemover = new JButton("Remover") {
       boolean ov = false;
@@ -499,161 +500,6 @@ public class AsociarProductosProveedores extends JFrame {
     return card;
   }
 
-  private boolean proveedorYaUsado(String nombre, ProductoDTO excluir) {
-    for (ProductoDTO p : productos) {
-      if (p != excluir && p.getProveedor() != null && p.getProveedor().getNombre().equalsIgnoreCase(nombre)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void abrirDialogoAgregarProveedor(ProductoDTO prod) {
-    JDialog dlg = new JDialog(this, "Agregar Proveedor a " + prod.getNombre(), true);
-    dlg.setSize(460, 420);
-    dlg.setLocationRelativeTo(this);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JLabel titulo = new JLabel("Asociar Proveedor");
-    titulo.setFont(Fuentes.b(20));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(titulo);
-
-    panel.add(Box.createVerticalStrut(6));
-    JLabel sub = new JLabel("Producto: " + prod.getNombre() + " (" + prod.getCodigo() + ")");
-    sub.setFont(Fuentes.r(13));
-    sub.setForeground(Colores.GRIS_TEXTO);
-    sub.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sub);
-
-    panel.add(Box.createVerticalStrut(20));
-    JLabel lblProv = new JLabel("Seleccionar Proveedor");
-    lblProv.setFont(Fuentes.b(12));
-    lblProv.setForeground(Colores.TEXTO_OSCURO);
-    lblProv.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(lblProv);
-
-    List<ProveedorDTO> proveedores = control.obtenerProveedores();
-    String[] nombresProv = proveedores.stream()
-      .map(ProveedorDTO::getNombre)
-      .toArray(String[]::new);
-    JComboBox<String> comboProveedor = new JComboBox<>(nombresProv);
-    comboProveedor.setFont(Fuentes.r(13));
-    comboProveedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-    comboProveedor.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(comboProveedor);
-
-    panel.add(Box.createVerticalStrut(10));
-    JLabel lblPrecio = new JLabel("Precio ($)");
-    lblPrecio.setFont(Fuentes.b(12));
-    panel.add(lblPrecio);
-
-    JTextField campoPrecio = new JTextField();
-    campoPrecio.setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 8), new EmptyBorder(8, 12, 8, 12)));
-    campoPrecio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-    campoPrecio.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(campoPrecio);
-
-    panel.add(Box.createVerticalStrut(10));
-    JLabel lblTiempo = new JLabel("Tiempo de Entrega");
-    lblTiempo.setFont(Fuentes.b(12));
-    panel.add(lblTiempo);
-
-    JTextField campoTiempo = new JTextField();
-    campoTiempo.setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 8), new EmptyBorder(8, 12, 8, 12)));
-    campoTiempo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-    campoTiempo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(campoTiempo);
-
-    panel.add(Box.createVerticalStrut(18));
-    JButton btnGuardar = btnAzulDialog("Asociar Proveedor");
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-    btnGuardar.addActionListener(e -> {
-      String nombre = (String) comboProveedor.getSelectedItem();
-      String precio = campoPrecio.getText().trim();
-      String tiempo = campoTiempo.getText().trim();
-
-      if (nombre == null || precio.isEmpty() || tiempo.isEmpty()) {
-        JOptionPane.showMessageDialog(dlg, "Campos obligatorios.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-
-      if (proveedorYaUsado(nombre, prod)) {
-        JOptionPane.showMessageDialog(dlg, "Proveedor ya ocupado.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-
-      ProveedorDTO provDto = proveedores.stream()
-        .filter(p -> p.getNombre().equals(nombre))
-        .findFirst().orElse(null);
-
-      provDto.setPrecioProveedor(new BigDecimal(precio.replace("$", "")));
-      provDto.setTiempoEntregaProveedor(tiempo.contains("día") ? tiempo : tiempo + " días");
-      prod.setProveedor(provDto);
-      construirLista(productos);
-      dlg.dispose();
-    });
-
-    panel.add(btnGuardar);
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
-  }
-
-  private void abrirDialogoEditarProveedor(ProveedorDTO pv, ProductoDTO prod) {
-    JDialog dlg = new JDialog(this, "Editar Proveedor: " + pv.getNombre(), true);
-    dlg.setSize(460, 380);
-    dlg.setLocationRelativeTo(this);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JLabel titulo = new JLabel("Editar Proveedor Asociado");
-    titulo.setFont(Fuentes.b(20));
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(titulo);
-    panel.add(Box.createVerticalStrut(20));
-
-    String[] etqs = {"Nombre", "Precio ($)", "Tiempo Entrega"};
-    String[] vals = {pv.getNombre(), pv.getPrecioProveedor() != null ? pv.getPrecioProveedor().toString() : "", pv.getTiempoEntregaProveedor()};
-    JTextField[] campos = new JTextField[3];
-
-    for (int i = 0; i < 3; i++) {
-      JLabel lbl = new JLabel(etqs[i]);
-      lbl.setFont(Fuentes.b(12));
-      panel.add(lbl);
-      campos[i] = new JTextField(vals[i]);
-      campos[i].setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 8), new EmptyBorder(8, 12, 8, 12)));
-      campos[i].setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-      campos[i].setAlignmentX(LEFT_ALIGNMENT);
-      panel.add(campos[i]);
-      panel.add(Box.createVerticalStrut(10));
-    }
-
-    JButton btnGuardar = btnAzulDialog("Guardar Cambios");
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-    btnGuardar.addActionListener(e -> {
-      pv.setNombre(campos[0].getText().trim());
-      pv.setPrecioProveedor(new BigDecimal(campos[1].getText().trim()));
-      pv.setTiempoEntregaProveedor(campos[2].getText().trim());
-      prod.setProveedor(pv);
-      construirLista(productos);
-      dlg.dispose();
-    });
-
-    panel.add(btnGuardar);
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
-  }
-
   private JButton btnAmarillo(String texto) {
     JButton b = createBaseButton(texto, new Color(255, 200, 0), new Color(240, 180, 0), new Color(30, 30, 30));
     b.setPreferredSize(new Dimension(180, 42));
@@ -664,10 +510,6 @@ public class AsociarProductosProveedores extends JFrame {
     JButton b = createBaseButton(texto, Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO);
     b.setPreferredSize(new Dimension(170, 40));
     return b;
-  }
-
-  private JButton btnAzulDialog(String texto) {
-    return createBaseButton(texto, Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO);
   }
 
   private JButton createBaseButton(String texto, Color bg, Color hover, Color fg) {

@@ -170,7 +170,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
-      new AsociarProductosProveedores(
+      new AsociarProveedorProducto(
         this,
         control
       ).setVisible(true);

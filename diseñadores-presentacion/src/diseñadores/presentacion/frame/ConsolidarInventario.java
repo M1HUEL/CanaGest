@@ -52,7 +52,6 @@ public class ConsolidarInventario extends JFrame {
     items.clear();
     List<ProductoDTO> productos = control.obtenerProductosInventario();
     for (ProductoDTO p : productos) {
-      // Inicializamos el stock físico igual al del sistema por defecto
       items.add(new ItemConteoDTO(p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()));
     }
   }
@@ -148,7 +147,8 @@ public class ConsolidarInventario extends JFrame {
     statsRow.add(cardStat("Diferencias Totales", lblDiferencias));
 
     JButton btnNuevoConteo = btnAzul("Iniciar Nuevo Conteo");
-    btnNuevoConteo.addActionListener(e -> iniciarNuevoConteo());
+    btnNuevoConteo.addActionListener(e -> new ConteoInventario(
+      this, control, items, this::actualizarStatsYTabla).setVisible(true));
 
     JPanel accionesRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     accionesRow.setOpaque(false);
@@ -250,7 +250,6 @@ public class ConsolidarInventario extends JFrame {
       }
 
     });
-
     fila.add(new JLabel(item.getNombre()) {
       {
         setFont(Fuentes.r(13));
@@ -258,14 +257,12 @@ public class ConsolidarInventario extends JFrame {
       }
 
     });
-
     fila.add(new JLabel(String.valueOf(item.getStockSistema())) {
       {
         setFont(Fuentes.b(14));
       }
 
     });
-
     fila.add(new JLabel(String.valueOf(item.getStockFisico())) {
       {
         setFont(Fuentes.b(14));
@@ -315,7 +312,8 @@ public class ConsolidarInventario extends JFrame {
       wrapAccion.add(sinDiff);
     } else {
       JButton btnAjustar = btnAzulTabla("Ajustar");
-      btnAjustar.addActionListener(e -> abrirDialogoAjuste(item));
+      btnAjustar.addActionListener(e -> new AjusteInventario(
+        this, control, item, this::actualizarStatsYTabla).setVisible(true));
       wrapAccion.add(btnAjustar);
     }
     fila.add(wrapAccion);
@@ -323,131 +321,15 @@ public class ConsolidarInventario extends JFrame {
     return fila;
   }
 
-  private void abrirDialogoAjuste(ItemConteoDTO item) {
-    JDialog dlg = new JDialog(this, "Ajustar Inventario", true);
-    dlg.setSize(440, 350);
-    dlg.setLocationRelativeTo(this);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JLabel titulo = new JLabel("Ajustar: " + item.getNombre());
-    titulo.setFont(Fuentes.b(18));
-    panel.add(titulo);
-    panel.add(Box.createVerticalStrut(18));
-
-    JPanel infoRow = new JPanel(new GridLayout(1, 3, 12, 0));
-    infoRow.setOpaque(false);
-    infoRow.add(miniCard("Sistema", String.valueOf(item.getStockSistema()), Colores.AZUL));
-    infoRow.add(miniCard("Físico", String.valueOf(item.getStockFisico()), new Color(217, 119, 6)));
-
-    int d = item.getDiferencia();
-    infoRow.add(miniCard("Diff", (d > 0 ? "+" + d : String.valueOf(d)), d < 0 ? Colores.ROJO : new Color(21, 128, 61)));
-    panel.add(infoRow);
-    panel.add(Box.createVerticalStrut(18));
-
-    JTextField campoFisico = new JTextField(String.valueOf(item.getStockFisico()));
-    campoFisico.setFont(Fuentes.r(14));
-    campoFisico.setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 8), new EmptyBorder(8, 12, 8, 12)));
-    campoFisico.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-
-    panel.add(new JLabel("Corregir Stock Físico Actual:"));
-    panel.add(Box.createVerticalStrut(6));
-    panel.add(campoFisico);
-    panel.add(Box.createVerticalStrut(18));
-
-    JButton btnConfirmar = btnAzulDialog("Confirmar Ajuste");
-    btnConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-    btnConfirmar.addActionListener(e -> {
-      try {
-        int nuevoFisico = Integer.parseInt(campoFisico.getText().trim());
-        control.ajustarStock(item.getCodigo(), nuevoFisico);
-        item.setStockFisico(nuevoFisico); // El DTO actualiza su estado de verificado automáticamente
-
-        actualizarStats();
-        construirTabla();
-        dlg.dispose();
-      } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(dlg, "Ingrese un número válido.", "Error", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-    panel.add(btnConfirmar);
-
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
-  }
-
-  private void iniciarNuevoConteo() {
-    JDialog dlg = new JDialog(this, "Iniciar Nuevo Conteo", true);
-    dlg.setSize(500, 500);
-    dlg.setLocationRelativeTo(this);
-
-    JPanel mainPanel = new JPanel(new BorderLayout());
-
-    JPanel listPanel = new JPanel();
-    listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-    listPanel.setBorder(new EmptyBorder(20, 24, 20, 24));
-    listPanel.setBackground(Colores.BLANCO);
-
-    JTextField[] campos = new JTextField[items.size()];
-    for (int i = 0; i < items.size(); i++) {
-      ItemConteoDTO item = items.get(i);
-      JPanel filaForm = new JPanel(new BorderLayout(15, 0));
-      filaForm.setOpaque(false);
-      filaForm.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-
-      JLabel lbl = new JLabel(item.getNombre());
-      lbl.setFont(Fuentes.r(13));
-      lbl.setPreferredSize(new Dimension(220, 30));
-
-      JTextField tf = new JTextField(String.valueOf(item.getStockFisico()));
-      tf.setBorder(BorderFactory.createCompoundBorder(new Bordes(Colores.BORDE_GRIS, 1, 6), new EmptyBorder(4, 8, 4, 8)));
-      campos[i] = tf;
-
-      filaForm.add(lbl, BorderLayout.WEST);
-      filaForm.add(tf, BorderLayout.CENTER);
-      listPanel.add(filaForm);
-      listPanel.add(Box.createVerticalStrut(10));
-    }
-
-    JScrollPane scroll = new JScrollPane(listPanel);
-    scroll.setBorder(BorderFactory.createEmptyBorder());
-
-    JButton btnGuardar = btnAzulDialog("Guardar Todo el Conteo");
-    btnGuardar.addActionListener(e -> {
-      try {
-        for (int i = 0; i < items.size(); i++) {
-          int nf = Integer.parseInt(campos[i].getText().trim());
-          ItemConteoDTO item = items.get(i);
-          control.ajustarStock(item.getCodigo(), nf);
-          item.setStockFisico(nf);
-        }
-        actualizarStats();
-        construirTabla();
-        dlg.dispose();
-      } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(dlg, "Hay valores inválidos en el formulario.", "Error", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-
-    JPanel south = new JPanel(new FlowLayout(FlowLayout.CENTER));
-    south.setBackground(Colores.BLANCO);
-    south.setBorder(new EmptyBorder(10, 0, 15, 0));
-    south.add(btnGuardar);
-
-    mainPanel.add(scroll, BorderLayout.CENTER);
-    mainPanel.add(south, BorderLayout.SOUTH);
-
-    dlg.setContentPane(mainPanel);
-    dlg.setVisible(true);
-  }
-
   private void actualizarStats() {
     lblAuditados.setText(String.valueOf(items.size()));
     lblPendientes.setText(String.valueOf(items.stream().filter(i -> !i.isVerificado()).count()));
     lblDiferencias.setText(String.valueOf(items.stream().mapToInt(i -> Math.abs(i.getDiferencia())).sum()));
+  }
+
+  private void actualizarStatsYTabla() {
+    actualizarStats();
+    construirTabla();
   }
 
   private JPanel cardStat(String etiqueta, JLabel valorLabel) {
@@ -478,34 +360,6 @@ public class ConsolidarInventario extends JFrame {
     card.add(Box.createVerticalStrut(6));
     card.add(valorLabel);
     return card;
-  }
-
-  private JPanel miniCard(String etiqueta, String valor, Color colorVal) {
-    JPanel p = new JPanel() {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_GRIS_CLARO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    p.setOpaque(false);
-    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-    p.setBorder(new EmptyBorder(10, 14, 10, 14));
-
-    JLabel lE = new JLabel(etiqueta);
-    lE.setFont(Fuentes.r(11));
-    JLabel lV = new JLabel(valor);
-    lV.setFont(Fuentes.b(18));
-    lV.setForeground(colorVal);
-
-    p.add(lE);
-    p.add(Box.createVerticalStrut(3));
-    p.add(lV);
-    return p;
   }
 
   private JPanel crearSeparador() {
@@ -541,10 +395,6 @@ public class ConsolidarInventario extends JFrame {
     b.setPreferredSize(new Dimension(88, 30));
     b.setFont(Fuentes.b(11));
     return b;
-  }
-
-  private JButton btnAzulDialog(String texto) {
-    return createStyledButton(texto, Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO);
   }
 
   private JButton createStyledButton(String texto, Color bg, Color hover, Color fg) {

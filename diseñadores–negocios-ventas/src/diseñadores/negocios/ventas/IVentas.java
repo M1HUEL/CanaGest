@@ -28,4 +28,8 @@ public interface IVentas {
 
   TicketDTO generarTicket(VentaDTO venta, BigDecimal efectivoRecibido);
 
+  void guardarProducto(ProductoDTO producto);
+
+  void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo);
+
 }

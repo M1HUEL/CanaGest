@@ -1,10 +1,6 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
-import diseñadores.negocios.usuarios.IUsuarios;
-import diseñadores.negocios.ventas.IVentas;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
@@ -27,18 +23,13 @@ public class RegistrarVenta extends JFrame {
   private JLabel lblTotal, lblCantItems, lblProductosCount;
   private JTextField campoBusqueda, campoEscanear;
 
-  public RegistrarVenta(IVentas ventasFachada,
-    UsuarioDTO usuarioActivo,
-    IUsuarios usuariosFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada) {
-
+  public RegistrarVenta(VentasControl control) {
     super("Punto de Venta");
+
+    this.usuarioActivo = control.getUsuarioActivo();
+    this.control = control;
+
     Fuentes.cargar();
-
-    this.usuarioActivo = usuarioActivo;
-
-    this.control = new VentasControl(ventasFachada, usuariosFachada, inventarioFachada, proveedoresFachada, this.usuarioActivo);
 
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setSize(1350, 780);
@@ -113,11 +104,9 @@ public class RegistrarVenta extends JFrame {
 
   private void irAlMenuPrincipal() {
     dispose();
-    new MenuPrincipal(usuarioActivo,
-      control.getUsuariosFachada(),
-      control.getVentasFachada(),
-      control.getInventarioFachada(),
-      control.getProveedoresFachada()).setVisible(true);
+    new MenuPrincipal(
+      control.getUsuarioActivo(),
+      this.control);
   }
 
   private JPanel panelIzquierdo() {
@@ -486,7 +475,7 @@ public class RegistrarVenta extends JFrame {
   }
 
   private void procesarEscaneoUI(String codigo) {
-    VentasControl.ResultadoEscaneo resultado = control.procesarEscaneo(codigo);
+    ResultadoEscaneo resultado = control.procesarEscaneo(codigo);
     switch (resultado) {
       case NO_EXISTE ->
         JOptionPane.showMessageDialog(this, "El producto no existe.", "Error", JOptionPane.ERROR_MESSAGE);

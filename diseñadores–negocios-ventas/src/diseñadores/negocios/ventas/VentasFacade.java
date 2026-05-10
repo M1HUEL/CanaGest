@@ -1,9 +1,6 @@
 package diseñadores.negocios.ventas;
 
-import diseñadores.infraestructura.notificaciones.INotificaciones;
-import diseñadores.infraestructura.pagos.IPagos;
 import diseñadores.negocios.dto.*;
-import diseñadores.negocios.productos.IProductos;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -15,8 +12,8 @@ public class VentasFacade implements IVentas {
     this.control = new VentasControl();
   }
 
-  public VentasFacade(INotificaciones n, IPagos p, IProductos pr) {
-    this.control = new VentasControl(n, p, pr);
+  public VentasFacade(VentasControl control) {
+    this.control = control;
   }
 
   @Override
@@ -72,6 +69,16 @@ public class VentasFacade implements IVentas {
   @Override
   public TicketDTO generarTicket(VentaDTO v, BigDecimal ef) {
     return control.generarTicket(v, ef);
+  }
+
+  @Override
+  public void guardarProducto(ProductoDTO producto) {
+    control.guardarProducto(producto);
+  }
+
+  @Override
+  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+    control.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
 }

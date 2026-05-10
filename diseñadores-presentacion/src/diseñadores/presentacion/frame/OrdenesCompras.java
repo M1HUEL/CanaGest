@@ -2,13 +2,13 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
@@ -18,19 +18,19 @@ import java.util.List;
 public class OrdenesCompras extends JFrame {
 
   private final JFrame menuOrigen;
-  private final IProveedores proveedoresFachada;
+  private final VentasControl control;
   private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
 
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
 
-  public OrdenesCompras(JFrame menuOrigen, IProveedores proveedoresFachada) {
+  public OrdenesCompras(JFrame menuOrigen, VentasControl control) {
     this.menuOrigen = menuOrigen;
-    this.proveedoresFachada = proveedoresFachada;
+    this.control = control;
 
     configurarVentana();
-    ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
+    ordenes.addAll(control.obtenerOrdenesCompra());
 
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
@@ -209,7 +209,7 @@ public class OrdenesCompras extends JFrame {
 
   private void recargarOrdenes() {
     ordenes.clear();
-    ordenes.addAll(proveedoresFachada.obtenerOrdenesCompra());
+    ordenes.addAll(control.obtenerOrdenesCompra());
     construirOrdenes(filtrar());
   }
 
@@ -337,7 +337,6 @@ public class OrdenesCompras extends JFrame {
 
     JButton btnDetalle = crearBotonCardOrdenes("Ver Detalle",
       new Color(245, 246, 248), new Color(229, 231, 235), false);
-
     btnDetalle.addActionListener(e -> abrirDetalleOrden(o));
 
     JPanel botonesRow;
@@ -348,7 +347,7 @@ public class OrdenesCompras extends JFrame {
       JButton btnAprobar = crearBotonCardOrdenes("Aprobar", Colores.VERDE, Colores.VERDE_HOVER, true);
       btnAprobar.addActionListener(e -> {
         try {
-          proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Aprobada");
+          control.cambiarEstadoOrden(o.getNumero(), "Aprobada");
           recargarOrdenes();
         } catch (Exception ex) {
           mostrarError(ex.getMessage());
@@ -356,14 +355,13 @@ public class OrdenesCompras extends JFrame {
       });
       botonesRow.add(btnDetalle);
       botonesRow.add(btnAprobar);
-
     } else if (o.getEstado().equals("Aprobada")) {
       botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
       botonesRow.setOpaque(false);
       JButton btnRecibir = crearBotonCardOrdenes("Recibir", Colores.AZUL, Colores.AZUL_HOVER, true);
       btnRecibir.addActionListener(e -> {
         try {
-          proveedoresFachada.cambiarEstadoOrden(o.getNumero(), "Recibida");
+          control.cambiarEstadoOrden(o.getNumero(), "Recibida");
           recargarOrdenes();
         } catch (Exception ex) {
           mostrarError(ex.getMessage());
@@ -371,7 +369,6 @@ public class OrdenesCompras extends JFrame {
       });
       botonesRow.add(btnDetalle);
       botonesRow.add(btnRecibir);
-
     } else {
       botonesRow = new JPanel(new GridLayout(1, 1, 0, 0));
       botonesRow.setOpaque(false);
@@ -379,7 +376,6 @@ public class OrdenesCompras extends JFrame {
     }
 
     botonesRow.setPreferredSize(new Dimension(0, 40));
-
     bottom.add(sep, BorderLayout.NORTH);
     bottom.add(botonesRow, BorderLayout.SOUTH);
     return bottom;
@@ -479,7 +475,7 @@ public class OrdenesCompras extends JFrame {
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(20));
 
-    List<ProveedorDTO> proveedores = proveedoresFachada.obtenerProveedores();
+    List<ProveedorDTO> proveedores = control.obtenerProveedores();
     List<ProveedorDTO> activos = proveedores.stream()
       .filter(ProveedorDTO::isActivo)
       .toList();
@@ -544,7 +540,7 @@ public class OrdenesCompras extends JFrame {
         }
 
         OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, prov, "Pendiente", cant, tot);
-        proveedoresFachada.guardarOrdenCompra(nueva);
+        control.guardarOrdenCompra(nueva);
         recargarOrdenes();
         dlg.dispose();
 

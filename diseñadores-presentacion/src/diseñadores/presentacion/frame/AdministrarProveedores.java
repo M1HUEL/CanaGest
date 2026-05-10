@@ -1,13 +1,15 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
@@ -17,25 +19,42 @@ import java.util.List;
 public class AdministrarProveedores extends JFrame {
 
   private final JFrame frame;
-  private final IProveedores fachada;
+  private final VentasControl ventasControl;
   private final List<ProveedorDTO> proveedores = new ArrayList<>();
 
   private JPanel panelGrid;
   private JLabel lblActivos;
   private JTextField campoBusqueda;
 
-  public AdministrarProveedores(JFrame frame, IProveedores fachada) {
+  public AdministrarProveedores(JFrame frame, VentasControl ventasControl) {
     this.frame = frame;
-    this.fachada = fachada;
+    this.ventasControl = ventasControl;
 
+    configurarVentana();
+    cargarDatosIniciales();
+    inicializarComponentes();
+  }
+
+  private void configurarVentana() {
     setTitle("La Canasta - Administrar Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
+  }
 
-    proveedores.addAll(fachada.obtenerProveedores());
+  private void cargarDatosIniciales() {
+    proveedores.addAll(ventasControl.obtenerProveedores());
+  }
 
+  private void inicializarComponentes() {
+    JPanel root = crearPanelRaiz();
+    root.add(crearBarraSuperior(), BorderLayout.NORTH);
+    root.add(crearContenido(), BorderLayout.CENTER);
+    setContentPane(root);
+  }
+
+  private JPanel crearPanelRaiz() {
     JPanel root = new JPanel(new BorderLayout()) {
       @Override
       protected void paintComponent(Graphics g) {
@@ -46,12 +65,10 @@ public class AdministrarProveedores extends JFrame {
 
     };
     root.setOpaque(false);
-    root.add(buildTopBar(), BorderLayout.NORTH);
-    root.add(buildContenido(), BorderLayout.CENTER);
-    setContentPane(root);
+    return root;
   }
 
-  private JPanel buildTopBar() {
+  private JPanel crearBarraSuperior() {
     JPanel bar = new JPanel(new BorderLayout());
     bar.setBackground(Colores.BLANCO);
     bar.setBorder(BorderFactory.createCompoundBorder(
@@ -59,6 +76,11 @@ public class AdministrarProveedores extends JFrame {
       new EmptyBorder(0, 24, 0, 24)));
     bar.setPreferredSize(new Dimension(0, 66));
 
+    bar.add(crearPanelBotonMenu(), BorderLayout.EAST);
+    return bar;
+  }
+
+  private JPanel crearPanelBotonMenu() {
     JButton btnMenu = crearBotonAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
@@ -68,57 +90,65 @@ public class AdministrarProveedores extends JFrame {
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));
     der.setOpaque(false);
     der.add(btnMenu);
-
-    bar.add(der, BorderLayout.EAST);
-    return bar;
+    return der;
   }
 
-  private JPanel buildContenido() {
+  private JPanel crearContenido() {
     JPanel contenido = new JPanel(new BorderLayout());
     contenido.setOpaque(false);
     contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
 
+    contenido.add(crearEncabezado(), BorderLayout.NORTH);
+    contenido.add(crearCentroBusquedaYGrid(), BorderLayout.CENTER);
+    return contenido;
+  }
+
+  private JPanel crearEncabezado() {
     JPanel header = new JPanel(new BorderLayout());
     header.setOpaque(false);
     header.setBorder(new EmptyBorder(0, 0, 20, 0));
 
+    header.add(crearTituloColumna(), BorderLayout.WEST);
+    header.add(crearTarjetaActivos(), BorderLayout.EAST);
+    return header;
+  }
+
+  private JPanel crearTituloColumna() {
     JPanel tituloCol = new JPanel();
     tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
     tituloCol.setOpaque(false);
+
     JLabel lblTitulo = new JLabel("Administrar Proveedores");
     lblTitulo.setFont(Fuentes.b(26));
     lblTitulo.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel lblDesc = new JLabel("Gestiona la información de tus proveedores");
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
+
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
+    return tituloCol;
+  }
 
+  private JPanel crearTarjetaActivos() {
     JPanel cardActivos = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.SOMBRA);
-        g.fill(new RoundRectangle2D.Float(3, 3, getWidth() - 3, getHeight() - 3, 14, 14));
-        g.setColor(Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
+        dibujarFondoRedondeado(g2d, getWidth(), getHeight(), 14);
         super.paintComponent(g2d);
       }
 
     };
-    cardActivos.setOpaque(false);
-    cardActivos.setLayout(new BoxLayout(cardActivos, BoxLayout.Y_AXIS));
-    cardActivos.setBorder(new EmptyBorder(14, 24, 14, 24));
-    cardActivos.setPreferredSize(new Dimension(200, 90));
+    configurarEstiloTarjetaActivos(cardActivos);
 
     JLabel lblActivosTxt = new JLabel("Proveedores Activos");
     lblActivosTxt.setFont(Fuentes.r(12));
     lblActivosTxt.setForeground(Colores.GRIS_TEXTO);
     lblActivosTxt.setAlignmentX(CENTER_ALIGNMENT);
 
-    lblActivos = new JLabel(String.valueOf(fachada.contarProveedoresActivos()), SwingConstants.CENTER);
+    lblActivos = new JLabel(String.valueOf(ventasControl.contarProveedoresActivos()), SwingConstants.CENTER);
     lblActivos.setFont(Fuentes.b(36));
     lblActivos.setForeground(Colores.AZUL);
     lblActivos.setAlignmentX(CENTER_ALIGNMENT);
@@ -126,19 +156,30 @@ public class AdministrarProveedores extends JFrame {
     cardActivos.add(lblActivosTxt);
     cardActivos.add(Box.createVerticalStrut(4));
     cardActivos.add(lblActivos);
+    return cardActivos;
+  }
 
-    header.add(tituloCol, BorderLayout.WEST);
-    header.add(cardActivos, BorderLayout.EAST);
+  private void configurarEstiloTarjetaActivos(JPanel card) {
+    card.setOpaque(false);
+    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+    card.setBorder(new EmptyBorder(14, 24, 14, 24));
+    card.setPreferredSize(new Dimension(200, 90));
+  }
 
+  private JPanel crearCentroBusquedaYGrid() {
+    JPanel centro = new JPanel(new BorderLayout(0, 16));
+    centro.setOpaque(false);
+
+    centro.add(crearBarraBusqueda(), BorderLayout.NORTH);
+    centro.add(crearScrollGrid(), BorderLayout.CENTER);
+    return centro;
+  }
+
+  private JPanel crearBarraBusqueda() {
     JPanel barBusqueda = new JPanel(new BorderLayout(12, 0)) {
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.SOMBRA);
-        g.fill(new RoundRectangle2D.Float(3, 3, getWidth() - 3, getHeight() - 3, 14, 14));
-        g.setColor(Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 14, 14));
+        dibujarFondoRedondeado(g2d, getWidth(), getHeight(), 14);
         super.paintComponent(g2d);
       }
 
@@ -147,7 +188,17 @@ public class AdministrarProveedores extends JFrame {
     barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
     barBusqueda.setPreferredSize(new Dimension(0, 68));
 
-    campoBusqueda = new JTextField() {
+    campoBusqueda = crearCampoBusqueda();
+    JButton btnNuevo = crearBotonAzul("Nuevo Proveedor", 170, 42);
+    btnNuevo.addActionListener(e -> abrirFormulario(null));
+
+    barBusqueda.add(campoBusqueda, BorderLayout.CENTER);
+    barBusqueda.add(btnNuevo, BorderLayout.EAST);
+    return barBusqueda;
+  }
+
+  private JTextField crearCampoBusqueda() {
+    JTextField campo = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -158,56 +209,60 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-    campoBusqueda.setOpaque(false);
-    campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
+    configurarEstiloCampoBusqueda(campo);
+    agregarEventosBusqueda(campo);
+    return campo;
+  }
+
+  private void configurarEstiloCampoBusqueda(JTextField campo) {
+    campo.setOpaque(false);
+    campo.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
       new EmptyBorder(8, 14, 8, 14)));
-    campoBusqueda.setFont(Fuentes.r(14));
-    campoBusqueda.setForeground(Colores.GRIS_TEXTO);
-    campoBusqueda.setText("Buscar por nombre, código o contacto...");
+    campo.setFont(Fuentes.r(14));
+    campo.setForeground(Colores.GRIS_TEXTO);
+    campo.setText("Buscar por nombre, código o contacto...");
+  }
 
-    campoBusqueda.addFocusListener(new FocusAdapter() {
+  private void agregarEventosBusqueda(JTextField campo) {
+    campo.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        if (campoBusqueda.getText().startsWith("Buscar")) {
-          campoBusqueda.setText("");
-          campoBusqueda.setForeground(Colores.TEXTO_OSCURO);
+        if (campo.getText().startsWith("Buscar")) {
+          campo.setText("");
+          campo.setForeground(Colores.TEXTO_OSCURO);
         }
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        if (campoBusqueda.getText().isEmpty()) {
-          campoBusqueda.setText("Buscar por nombre, código o contacto...");
-          campoBusqueda.setForeground(Colores.GRIS_TEXTO);
+        if (campo.getText().isEmpty()) {
+          campo.setText("Buscar por nombre, código o contacto...");
+          campo.setForeground(Colores.GRIS_TEXTO);
         }
       }
 
     });
 
-    campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+    campo.getDocument().addDocumentListener(new DocumentListener() {
       @Override
-      public void insertUpdate(javax.swing.event.DocumentEvent e) {
+      public void insertUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void removeUpdate(javax.swing.event.DocumentEvent e) {
+      public void removeUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void changedUpdate(javax.swing.event.DocumentEvent e) {
+      public void changedUpdate(DocumentEvent e) {
       }
 
     });
+  }
 
-    JButton btnNuevo = crearBotonAzul("Nuevo Proveedor", 170, 42);
-    btnNuevo.addActionListener(e -> abrirFormulario(null));
-
-    barBusqueda.add(campoBusqueda, BorderLayout.CENTER);
-    barBusqueda.add(btnNuevo, BorderLayout.EAST);
-
+  private JScrollPane crearScrollGrid() {
     panelGrid = new JPanel(new GridLayout(0, 2, 16, 16));
     panelGrid.setOpaque(false);
     construirGrid(proveedores);
@@ -218,30 +273,26 @@ public class AdministrarProveedores extends JFrame {
     scroll.getViewport().setOpaque(false);
     scroll.getVerticalScrollBar().setUnitIncrement(16);
     scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-    JPanel centro = new JPanel(new BorderLayout(0, 16));
-    centro.setOpaque(false);
-    centro.add(barBusqueda, BorderLayout.NORTH);
-    centro.add(scroll, BorderLayout.CENTER);
-
-    contenido.add(header, BorderLayout.NORTH);
-    contenido.add(centro, BorderLayout.CENTER);
-    return contenido;
+    return scroll;
   }
 
   private void construirGrid(List<ProveedorDTO> lista) {
     panelGrid.removeAll();
     for (ProveedorDTO p : lista) {
-      panelGrid.add(cardProveedor(p));
+      panelGrid.add(crearTarjetaProveedor(p));
     }
     if (lista.isEmpty()) {
-      JLabel vacio = new JLabel("No se encontraron proveedores.", SwingConstants.CENTER);
-      vacio.setFont(Fuentes.r(15));
-      vacio.setForeground(Colores.GRIS_TEXTO);
-      panelGrid.add(vacio);
+      panelGrid.add(crearLabelVacio());
     }
     panelGrid.revalidate();
     panelGrid.repaint();
+  }
+
+  private JLabel crearLabelVacio() {
+    JLabel vacio = new JLabel("No se encontraron proveedores.", SwingConstants.CENTER);
+    vacio.setFont(Fuentes.r(15));
+    vacio.setForeground(Colores.GRIS_TEXTO);
+    return vacio;
   }
 
   private void filtrar() {
@@ -251,84 +302,128 @@ public class AdministrarProveedores extends JFrame {
       return;
     }
     String ql = q.toLowerCase();
-    List<ProveedorDTO> f = new ArrayList<>();
-    for (ProveedorDTO p : proveedores) {
-      if (p.getNombre().toLowerCase().contains(ql)
-        || p.getCodigo().toLowerCase().contains(ql)
-        || p.getContacto().toLowerCase().contains(ql)) {
-        f.add(p);
-      }
-    }
-    construirGrid(f);
+    List<ProveedorDTO> filtrados = proveedores.stream()
+      .filter(p -> p.getNombre().toLowerCase().contains(ql)
+      || p.getCodigo().toLowerCase().contains(ql)
+      || p.getContacto().toLowerCase().contains(ql))
+      .toList();
+    construirGrid(filtrados);
   }
 
   private void recargarLista() {
     proveedores.clear();
-    proveedores.addAll(fachada.obtenerProveedores());
-    lblActivos.setText(String.valueOf(fachada.contarProveedoresActivos()));
+    proveedores.addAll(ventasControl.obtenerProveedores());
+    lblActivos.setText(String.valueOf(ventasControl.contarProveedoresActivos()));
     filtrar();
   }
 
-  private JPanel cardProveedor(ProveedorDTO p) {
-    JPanel card = new JPanel(new BorderLayout(0, 10)) {
+  private JPanel crearTarjetaProveedor(ProveedorDTO p) {
+    JPanel card = crearPanelConSombra(16);
+    card.setLayout(new BorderLayout(0, 10));
+    card.setBorder(new EmptyBorder(20, 22, 20, 22));
+
+    card.add(crearFilaSuperiorProveedor(p), BorderLayout.NORTH);
+    card.add(crearPanelDatosProveedor(p), BorderLayout.CENTER);
+    card.add(crearPanelInferiorTarjeta(p), BorderLayout.SOUTH);
+    return card;
+  }
+
+  private JPanel crearPanelConSombra(int radio) {
+    JPanel panel = new JPanel() {
       @Override
       protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.SOMBRA);
-        g.fill(new RoundRectangle2D.Float(3, 3, getWidth() - 3, getHeight() - 3, 16, 16));
-        g.setColor(Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 16, 16));
+        dibujarFondoRedondeado(g2d, getWidth(), getHeight(), radio);
         super.paintComponent(g2d);
       }
 
     };
-    card.setOpaque(false);
-    card.setBorder(new EmptyBorder(20, 22, 20, 22));
+    panel.setOpaque(false);
+    return panel;
+  }
 
+  private void dibujarFondoRedondeado(Graphics g2d, int w, int h, int radio) {
+    Graphics2D g = (Graphics2D) g2d;
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(Colores.SOMBRA);
+    g.fill(new RoundRectangle2D.Float(3, 3, w - 3, h - 3, radio, radio));
+    g.setColor(Colores.BLANCO);
+    g.fill(new RoundRectangle2D.Float(0, 0, w - 2, h - 2, radio, radio));
+  }
+
+  private JPanel crearFilaSuperiorProveedor(ProveedorDTO p) {
     JPanel topRow = new JPanel(new BorderLayout());
     topRow.setOpaque(false);
 
     JPanel nombreCol = new JPanel();
     nombreCol.setLayout(new BoxLayout(nombreCol, BoxLayout.Y_AXIS));
     nombreCol.setOpaque(false);
+
     JLabel lblN = new JLabel(p.getNombre());
     lblN.setFont(Fuentes.b(16));
     lblN.setForeground(Colores.TEXTO_OSCURO);
+
     JLabel lblC = new JLabel(p.getCodigo());
     lblC.setFont(Fuentes.r(12));
     lblC.setForeground(Colores.GRIS_TEXTO);
+
     nombreCol.add(lblN);
     nombreCol.add(Box.createVerticalStrut(3));
     nombreCol.add(lblC);
 
-    JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
+    topRow.add(nombreCol, BorderLayout.CENTER);
+    topRow.add(crearBadgeActivo(p.isActivo()), BorderLayout.EAST);
+    return topRow;
+  }
+
+  private JPanel crearBadgeActivo(boolean activo) {
+    JLabel badge = new JLabel(activo ? "Activo" : "Inactivo", SwingConstants.CENTER);
     badge.setFont(Fuentes.b(11));
-    badge.setForeground(p.isActivo() ? new Color(21, 128, 61) : new Color(100, 100, 100));
+    badge.setForeground(activo ? new Color(21, 128, 61) : new Color(100, 100, 100));
     badge.setOpaque(true);
-    badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
+    badge.setBackground(activo ? new Color(220, 252, 231) : new Color(229, 231, 235));
     badge.setBorder(new EmptyBorder(4, 12, 4, 12));
 
     JPanel badgeW = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     badgeW.setOpaque(false);
     badgeW.add(badge);
+    return badgeW;
+  }
 
-    topRow.add(nombreCol, BorderLayout.CENTER);
-    topRow.add(badgeW, BorderLayout.EAST);
-
+  private JPanel crearPanelDatosProveedor(ProveedorDTO p) {
     JPanel datos = new JPanel();
     datos.setLayout(new BoxLayout(datos, BoxLayout.Y_AXIS));
     datos.setOpaque(false);
     datos.setBorder(new EmptyBorder(8, 0, 8, 0));
-    datos.add(filaDato("Contacto", p.getContacto()));
+
+    datos.add(crearFilaDato("Contacto", p.getContacto()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Teléfono", p.getTelefono()));
+    datos.add(crearFilaDato("Teléfono", p.getTelefono()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Email", p.getEmail()));
+    datos.add(crearFilaDato("Email", p.getEmail()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Dirección", p.getDireccion()));
+    datos.add(crearFilaDato("Dirección", p.getDireccion()));
     datos.add(Box.createVerticalStrut(5));
-    datos.add(filaDato("Términos de pago", p.getTerminosPago()));
+    datos.add(crearFilaDato("Términos de pago", p.getTerminosPago()));
+    return datos;
+  }
+
+  private JPanel crearFilaDato(String etiqueta, String valor) {
+    JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    row.setOpaque(false);
+    JLabel lbl = new JLabel(etiqueta + ": ");
+    lbl.setFont(Fuentes.b(13));
+    lbl.setForeground(Colores.TEXTO_OSCURO);
+    JLabel val = new JLabel(valor != null ? valor : "-");
+    val.setFont(Fuentes.r(13));
+    val.setForeground(Colores.TEXTO_OSCURO);
+    row.add(lbl);
+    row.add(val);
+    return row;
+  }
+
+  private JPanel crearPanelInferiorTarjeta(ProveedorDTO p) {
+    JPanel bottom = new JPanel(new BorderLayout(0, 10));
+    bottom.setOpaque(false);
 
     JPanel sep = new JPanel() {
       @Override
@@ -343,440 +438,57 @@ public class AdministrarProveedores extends JFrame {
     sep.setPreferredSize(new Dimension(0, 1));
     sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 
+    bottom.add(sep, BorderLayout.NORTH);
+    bottom.add(crearBotonesTarjeta(p), BorderLayout.SOUTH);
+    return bottom;
+  }
+
+  private JPanel crearBotonesTarjeta(ProveedorDTO p) {
     JPanel botonesRow = new JPanel(new GridLayout(1, 2, 10, 0));
     botonesRow.setOpaque(false);
     botonesRow.setPreferredSize(new Dimension(0, 40));
 
     JButton btnEditar = crearBotonCard("Editar", Colores.AZUL, Colores.AZUL_HOVER, true);
     JButton btnDetalle = crearBotonCard("Ver Detalle", new Color(245, 246, 248), new Color(229, 231, 235), false);
+
     btnEditar.addActionListener(e -> abrirFormulario(p));
     btnDetalle.addActionListener(e -> abrirDetalle(p));
 
     botonesRow.add(btnEditar);
     botonesRow.add(btnDetalle);
-
-    JPanel bottom = new JPanel(new BorderLayout(0, 10));
-    bottom.setOpaque(false);
-    bottom.add(sep, BorderLayout.NORTH);
-    bottom.add(botonesRow, BorderLayout.SOUTH);
-
-    card.add(topRow, BorderLayout.NORTH);
-    card.add(datos, BorderLayout.CENTER);
-    card.add(bottom, BorderLayout.SOUTH);
-    return card;
-  }
-
-  private JPanel filaDato(String etiqueta, String valor) {
-    JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    row.setOpaque(false);
-    JLabel lbl = new JLabel(etiqueta + ": ");
-    lbl.setFont(Fuentes.b(13));
-    lbl.setForeground(Colores.TEXTO_OSCURO);
-    JLabel val = new JLabel(valor != null ? valor : "-");
-    val.setFont(Fuentes.r(13));
-    val.setForeground(Colores.TEXTO_OSCURO);
-    row.add(lbl);
-    row.add(val);
-    return row;
+    return botonesRow;
   }
 
   private void abrirFormulario(ProveedorDTO prov) {
-    boolean esNuevo = prov == null;
-
-    JDialog dlg = new JDialog(this, esNuevo ? "Nuevo Proveedor" : "Editar Proveedor", true);
-    dlg.setSize(540, 680);
-    dlg.setLocationRelativeTo(this);
-    dlg.setResizable(true);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(24, 28, 24, 28));
-    panel.setBackground(Colores.BLANCO);
-
-    JLabel titulo = new JLabel(esNuevo ? "Nuevo Proveedor"
-      : "Editar: " + (prov != null ? prov.getNombre() : ""));
-    titulo.setFont(Fuentes.b(20));
-    titulo.setForeground(Colores.TEXTO_OSCURO);
-    titulo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(titulo);
-    panel.add(Box.createVerticalStrut(4));
-
-    JLabel subtitulo = new JLabel("Ingrese la información del proveedor");
-    subtitulo.setFont(Fuentes.r(13));
-    subtitulo.setForeground(Colores.GRIS_TEXTO);
-    subtitulo.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(subtitulo);
-    panel.add(Box.createVerticalStrut(18));
-
-    JLabel sep1 = new JLabel("DATOS GENERALES");
-    sep1.setFont(Fuentes.b(11));
-    sep1.setForeground(Colores.GRIS_TEXTO);
-    sep1.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sep1);
-    panel.add(Box.createVerticalStrut(10));
-
-    JTextField[] campos = new JTextField[7];
-
-    JTextField tfNombre = crearCampo(esNuevo ? "" : prov.getNombre(), 50);
-    campos[0] = tfNombre;
-    panel.add(crearFilaCampo("Nombre *", tfNombre));
-    panel.add(Box.createVerticalStrut(8));
-
-    JTextField tfCodigo = crearCampo(esNuevo ? "" : prov.getCodigo(), 20);
-    campos[1] = tfCodigo;
-    panel.add(crearFilaCampo("Código", tfCodigo));
-    panel.add(Box.createVerticalStrut(8));
-
-    JTextField tfTerminos = crearCampo(esNuevo ? "" : prov.getTerminosPago(), 100);
-    campos[6] = tfTerminos;
-    panel.add(crearFilaCampo("Términos de pago", tfTerminos));
-    panel.add(Box.createVerticalStrut(16));
-
-    JLabel sep2 = new JLabel("CONTACTO");
-    sep2.setFont(Fuentes.b(11));
-    sep2.setForeground(Colores.GRIS_TEXTO);
-    sep2.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sep2);
-    panel.add(Box.createVerticalStrut(10));
-
-    JTextField tfContacto = crearCampo(esNuevo ? "" : prov.getContacto(), 100);
-    campos[2] = tfContacto;
-    panel.add(crearFilaCampo("Contacto *", tfContacto));
-    panel.add(Box.createVerticalStrut(8));
-
-    JTextField tfTelefono = crearCampo(esNuevo ? "" : prov.getTelefono(), 20);
-    campos[3] = tfTelefono;
-    panel.add(crearFilaCampo("Teléfono *", tfTelefono));
-    panel.add(Box.createVerticalStrut(8));
-
-    JTextField tfEmail = crearCampo(esNuevo ? "" : prov.getEmail(), 100);
-    campos[4] = tfEmail;
-    panel.add(crearFilaCampo("Email *", tfEmail));
-    panel.add(Box.createVerticalStrut(8));
-
-    JTextField tfDireccion = crearCampo(esNuevo ? "" : prov.getDireccion(), 200);
-    campos[5] = tfDireccion;
-    panel.add(crearFilaCampo("Dirección", tfDireccion));
-    panel.add(Box.createVerticalStrut(16));
-
-    JPanel estadoRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    estadoRow.setOpaque(false);
-    estadoRow.setAlignmentX(LEFT_ALIGNMENT);
-    estadoRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-
-    JCheckBox chk = new JCheckBox("Proveedor activo",
-      esNuevo || (prov != null && prov.isActivo()));
-    chk.setFont(Fuentes.r(13));
-    chk.setForeground(Colores.TEXTO_OSCURO);
-    chk.setOpaque(false);
-    estadoRow.add(chk);
-
-    panel.add(estadoRow);
-    panel.add(Box.createVerticalStrut(20));
-
-    JButton btnGuardar = crearBotonAzul(
-      esNuevo ? "Agregar Proveedor" : "Guardar Cambios",
-      Integer.MAX_VALUE, 44);
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-
-    btnGuardar.addActionListener(e -> {
-
-      String nombre = campos[0].getText().trim();
-      String contacto = campos[2].getText().trim();
-      String telefono = campos[3].getText().trim();
-      String email = campos[4].getText().trim();
-
-      if (nombre.isEmpty()) {
-        JOptionPane.showMessageDialog(dlg,
-          "El nombre es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-      if (contacto.isEmpty()) {
-        JOptionPane.showMessageDialog(dlg,
-          "El contacto es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-      if (telefono.isEmpty()) {
-        JOptionPane.showMessageDialog(dlg,
-          "El teléfono es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-      if (email.isEmpty()) {
-        JOptionPane.showMessageDialog(dlg,
-          "El email es obligatorio.", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-      }
-
-      try {
-        if (esNuevo) {
-          ProveedorDTO nuevo = new ProveedorDTO(
-            nombre,
-            campos[1].getText().trim().isEmpty() ? null : campos[1].getText().trim(),
-            contacto, telefono, email,
-            campos[5].getText().trim(),
-            campos[6].getText().trim(),
-            chk.isSelected());
-          fachada.guardarProveedor(nuevo);
-        } else {
-          prov.setNombre(nombre);
-          prov.setCodigo(campos[1].getText().trim());
-          prov.setContacto(contacto);
-          prov.setTelefono(telefono);
-          prov.setEmail(email);
-          prov.setDireccion(campos[5].getText().trim());
-          prov.setTerminosPago(campos[6].getText().trim());
-          prov.setActivo(chk.isSelected());
-          fachada.actualizarProveedor(prov);
-        }
-        recargarLista();
-        dlg.dispose();
-
-      } catch (IllegalArgumentException | IllegalStateException ex) {
-        JOptionPane.showMessageDialog(dlg,
-          ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
-      } catch (Exception ex) {
-        JOptionPane.showMessageDialog(dlg,
-          "Error inesperado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-      }
-    });
-
-    panel.add(btnGuardar);
-
-    JScrollPane sp = new JScrollPane(panel);
-    sp.setBorder(BorderFactory.createEmptyBorder());
-    sp.getVerticalScrollBar().setUnitIncrement(12);
-    sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    dlg.setContentPane(sp);
-    dlg.setVisible(true);
+    if (prov == null) {
+      new AgregarProveedor(this, ventasControl, this::recargarLista).setVisible(true);
+    } else {
+      new EditarProveedor(this, ventasControl, prov, this::recargarLista).setVisible(true);
+    }
   }
 
   private void abrirDetalle(ProveedorDTO p) {
-    JDialog dlg = new JDialog(this, "Detalle del Proveedor", true);
-    dlg.setSize(600, 520);
-    dlg.setLocationRelativeTo(this);
-    dlg.setResizable(true);
-
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
-    panel.setBackground(Colores.BLANCO);
-
-    JPanel headerRow = new JPanel(new BorderLayout(10, 0));
-    headerRow.setOpaque(false);
-
-    JLabel lblN = new JLabel(p.getNombre());
-    lblN.setFont(Fuentes.b(22));
-    lblN.setForeground(Colores.TEXTO_OSCURO);
-
-    JLabel badge = new JLabel(p.isActivo() ? "Activo" : "Inactivo", SwingConstants.CENTER);
-    badge.setFont(Fuentes.b(11));
-    badge.setForeground(p.isActivo() ? new Color(21, 128, 61) : new Color(100, 100, 100));
-    badge.setOpaque(true);
-    badge.setBackground(p.isActivo() ? new Color(220, 252, 231) : new Color(229, 231, 235));
-    badge.setBorder(new EmptyBorder(4, 12, 4, 12));
-
-    headerRow.add(lblN, BorderLayout.WEST);
-    headerRow.add(badge, BorderLayout.EAST);
-
-    JLabel lblCod = new JLabel("Código: " + p.getCodigo());
-    lblCod.setFont(Fuentes.r(13));
-    lblCod.setForeground(Colores.GRIS_TEXTO);
-
-    panel.add(headerRow);
-    panel.add(Box.createVerticalStrut(6));
-    panel.add(lblCod);
-    panel.add(Box.createVerticalStrut(24));
-
-    JLabel sep = new JLabel("INFORMACIÓN DE CONTACTO");
-    sep.setFont(Fuentes.b(12));
-    sep.setForeground(Colores.GRIS_TEXTO);
-    sep.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sep);
-    panel.add(Box.createVerticalStrut(12));
-
-    panel.add(crearFilaInfo("Contacto", p.getContacto()));
-    panel.add(Box.createVerticalStrut(8));
-    panel.add(crearFilaInfo("Teléfono", p.getTelefono()));
-    panel.add(Box.createVerticalStrut(8));
-    panel.add(crearFilaInfo("Email", p.getEmail()));
-    panel.add(Box.createVerticalStrut(8));
-    panel.add(crearFilaInfo("Dirección", p.getDireccion()));
-    panel.add(Box.createVerticalStrut(20));
-
-    JLabel sep2 = new JLabel("TÉRMINOS COMERCIALES");
-    sep2.setFont(Fuentes.b(12));
-    sep2.setForeground(Colores.GRIS_TEXTO);
-    sep2.setAlignmentX(LEFT_ALIGNMENT);
-    panel.add(sep2);
-    panel.add(Box.createVerticalStrut(12));
-    panel.add(crearFilaInfo("Términos de pago", p.getTerminosPago()));
-
-    dlg.setContentPane(panel);
-    dlg.setVisible(true);
-  }
-
-  private JTextField crearCampo(String valor, int limite) {
-    JTextField tf = new JTextField(valor);
-    tf.setFont(Fuentes.r(13));
-    tf.setForeground(Colores.TEXTO_OSCURO);
-    tf.setBorder(BorderFactory.createCompoundBorder(
-      new Bordes(Colores.BORDE_GRIS, 1, 8),
-      new EmptyBorder(8, 12, 8, 12)));
-    tf.setAlignmentX(LEFT_ALIGNMENT);
-    tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-    tf.setPreferredSize(new Dimension(0, 40));
-
-    if (limite > 0) {
-      tf.setDocument(new javax.swing.text.PlainDocument() {
-        @Override
-        public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
-          throws javax.swing.text.BadLocationException {
-          if (getLength() + str.length() <= limite) {
-            super.insertString(offs, str, a);
-          }
-        }
-
-      });
-      try {
-        tf.getDocument().insertString(0, valor, null);
-      } catch (javax.swing.text.BadLocationException ignored) {
-      }
-    }
-    return tf;
-  }
-
-  private JPanel crearFilaCampo(String label, JTextField campo) {
-    JPanel row = new JPanel();
-    row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
-    row.setOpaque(false);
-    row.setAlignmentX(LEFT_ALIGNMENT);
-    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
-
-    JLabel l = new JLabel(label);
-    l.setFont(Fuentes.b(12));
-    l.setForeground(Colores.TEXTO_OSCURO);
-    l.setAlignmentX(LEFT_ALIGNMENT);
-
-    row.add(l);
-    row.add(Box.createVerticalStrut(5));
-    row.add(campo);
-    return row;
-  }
-
-  private JPanel crearFilaInfo(String label, String valor) {
-    JPanel row = new JPanel(new BorderLayout(10, 0)) {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Colores.FONDO_GRIS_CLARO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-        super.paintComponent(g2d);
-      }
-
-    };
-    row.setOpaque(false);
-    row.setBorder(new EmptyBorder(12, 14, 12, 14));
-    row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-    row.setAlignmentX(LEFT_ALIGNMENT);
-
-    JLabel l = new JLabel(label);
-    l.setFont(Fuentes.r(12));
-    l.setForeground(Colores.GRIS_TEXTO);
-
-    JLabel v = new JLabel(valor != null ? valor : "-");
-    v.setFont(Fuentes.r(14));
-    v.setForeground(Colores.TEXTO_OSCURO);
-
-    row.add(l, BorderLayout.WEST);
-    row.add(v, BorderLayout.EAST);
-    return row;
+    new MostrarDetalleProveedor(this, p).setVisible(true);
   }
 
   private JButton crearBotonAmarillo(String texto) {
-    JButton b = new JButton(texto) {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? new Color(240, 180, 0) : new Color(255, 200, 0));
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    b.setForeground(new Color(30, 30, 30));
-    b.setFont(Fuentes.b(13));
-    b.setPreferredSize(new Dimension(180, 42));
-    return b;
+    return crearBotonAnimado(texto, new Color(255, 200, 0), new Color(240, 180, 0), new Color(30, 30, 30),
+      new Dimension(180, 42));
   }
 
   private JButton crearBotonAzul(String texto, int ancho, int alto) {
-    JButton b = new JButton(texto) {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    b.setForeground(Colores.BLANCO);
-    b.setFont(Fuentes.b(14));
-    b.setPreferredSize(new Dimension(ancho, alto));
-    return b;
+    return crearBotonAnimado(texto, Colores.AZUL, Colores.AZUL_HOVER, Colores.BLANCO,
+      new Dimension(ancho, alto));
   }
 
   private JButton crearBotonCard(String texto, Color base, Color hov, boolean blanco) {
+    Color fg = blanco ? Colores.BLANCO : Colores.TEXTO_OSCURO;
+    JButton b = crearBotonAnimado(texto, base, hov, fg, null);
+    b.setFont(Fuentes.b(13));
+    return b;
+  }
+
+  private JButton crearBotonAnimado(String texto, Color base, Color hov, Color fg, Dimension size) {
     JButton b = new JButton(texto) {
       boolean ov = false;
 
@@ -811,8 +523,11 @@ public class AdministrarProveedores extends JFrame {
       }
 
     };
-    b.setForeground(blanco ? Colores.BLANCO : Colores.TEXTO_OSCURO);
-    b.setFont(Fuentes.b(13));
+    b.setForeground(fg);
+    b.setFont(Fuentes.b(14));
+    if (size != null) {
+      b.setPreferredSize(size);
+    }
     return b;
   }
 

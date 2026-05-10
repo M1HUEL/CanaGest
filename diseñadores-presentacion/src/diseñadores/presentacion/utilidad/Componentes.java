@@ -5,6 +5,7 @@ import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.frame.MenuPrincipal;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -70,9 +71,7 @@ public final class Componentes {
     return c;
   }
 
-  public static JPanel topBar(JFrame owner, UsuarioDTO usuario,
-    IUsuarios usuariosFachada, IVentas ventasFachada,
-    IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  public static JPanel topBar(JFrame owner, UsuarioDTO usuario, VentasControl control) {
 
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
@@ -81,8 +80,7 @@ public final class Componentes {
     JButton btnCS = botonTopBar("Menu Principal");
     btnCS.addActionListener(e -> {
       owner.dispose();
-      new MenuPrincipal(usuario, usuariosFachada, ventasFachada,
-        inventarioFachada, proveedoresFachada).setVisible(true);
+      new MenuPrincipal(usuario, control).setVisible(true);
     });
 
     bar.add(btnCS);

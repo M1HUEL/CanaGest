@@ -1,38 +1,24 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
-import diseñadores.negocios.usuarios.IUsuarios;
-import diseñadores.negocios.ventas.IVentas;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class MenuPrincipal extends JFrame {
 
   private final UsuarioDTO usuarioActivo;
-  private final IUsuarios usuariosFachada;
-  private final IVentas ventasFachada;
-  private final IInventario inventarioFachada;
-  private final IProveedores proveedoresFachada;
+  private final VentasControl control;
 
-  public MenuPrincipal(
-    UsuarioDTO usuarioActivo,
-    IUsuarios usuariosFachada,
-    IVentas ventasFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada) {
+  public MenuPrincipal(UsuarioDTO usuarioActivo, VentasControl control) {
     this.usuarioActivo = usuarioActivo;
-    this.usuariosFachada = usuariosFachada;
-    this.ventasFachada = ventasFachada;
-    this.inventarioFachada = inventarioFachada;
-    this.proveedoresFachada = proveedoresFachada;
+    this.control = control;
 
     configurarVentana();
     inicializarComponentes();
@@ -136,7 +122,7 @@ public class MenuPrincipal extends JFrame {
     btnVender.addActionListener(e -> {
       this.setVisible(false);
       Fuentes.cargar();
-      new RegistrarVenta(ventasFachada, usuarioActivo, usuariosFachada, inventarioFachada, proveedoresFachada).setVisible(true);
+      new RegistrarVenta(control).setVisible(true);
     });
 
     tarjeta.add(btnVender);
@@ -150,13 +136,13 @@ public class MenuPrincipal extends JFrame {
     JButton btnExistencia = Botones.menuAzul("Existencia de Productos");
     btnExistencia.addActionListener(e -> {
       this.setVisible(false);
-      new ExistenciaProductos(this, inventarioFachada).setVisible(true);
+      new ExistenciaProductos(this, control).setVisible(true);
     });
 
     JButton btnConsolidar = Botones.menuAzul("Consolidar Inventario");
     btnConsolidar.addActionListener(e -> {
       this.setVisible(false);
-      new ConsolidarInventario(this, inventarioFachada).setVisible(true);
+      new ConsolidarInventario(this, control).setVisible(true);
     });
 
     tarjeta.add(btnExistencia);
@@ -172,19 +158,22 @@ public class MenuPrincipal extends JFrame {
     JButton btnProveedores = Botones.menuAzul("Administrar Proveedores");
     btnProveedores.addActionListener(e -> {
       this.setVisible(false);
-      new AdministrarProveedores(this, proveedoresFachada).setVisible(true);
+      new AdministrarProveedores(this, control).setVisible(true);
     });
 
     JButton btnOrdenes = Botones.menuAzul("Órdenes de Compra");
     btnOrdenes.addActionListener(e -> {
       this.setVisible(false);
-      new OrdenesCompras(this, proveedoresFachada).setVisible(true);
+      new OrdenesCompras(this, control).setVisible(true);
     });
 
     JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
-      new AsociarProductosProveedores(this, inventarioFachada, proveedoresFachada).setVisible(true);
+      new AsociarProductosProveedores(
+        this,
+        control
+      ).setVisible(true);
     });
 
     tarjeta.add(btnProveedores);
@@ -199,7 +188,9 @@ public class MenuPrincipal extends JFrame {
     JButton btnCerrar = Botones.menuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
-      new PantallaAutenticacion(usuariosFachada, ventasFachada, inventarioFachada, proveedoresFachada).setVisible(true);
+      new PantallaAutenticacion(
+        this.control
+      ).setVisible(true);
     });
     tarjeta.add(btnCerrar);
   }

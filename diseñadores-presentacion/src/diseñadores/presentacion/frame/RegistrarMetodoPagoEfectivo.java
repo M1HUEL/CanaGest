@@ -46,9 +46,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private void inicializarComponentes(SeleccionarMetodoPago pantallaPago, JFrame mainFrame, Runnable onConfirmado) {
     JPanel root = Componentes.fondoAmarillo();
-    root.add(Componentes.topBar(this, usuarioActivo, control.getUsuariosFachada(),
-      control.getVentasFachada(), control.getInventarioFachada(),
-      control.getProveedoresFachada()), BorderLayout.NORTH);
+    root.add(Componentes.topBar(this, usuarioActivo, this.control), BorderLayout.NORTH);
 
     JPanel cuerpo = new JPanel(new BorderLayout());
     cuerpo.setOpaque(false);

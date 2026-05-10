@@ -1,35 +1,24 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
-import diseñadores.negocios.usuarios.IUsuarios;
-import diseñadores.negocios.ventas.IVentas;
+import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.Optional;
 
 public class PantallaAutenticacion extends JFrame {
 
-  private final IUsuarios usuariosFachada;
-  private final IVentas ventasFachada;
-  private final IInventario inventarioFachada;
-  private final IProveedores proveedoresFachada;
+  private final VentasControl ventasControl;
 
-  public PantallaAutenticacion(
-    IUsuarios usuariosFachada,
-    IVentas ventasFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada) {
-    this.usuariosFachada = usuariosFachada;
-    this.ventasFachada = ventasFachada;
-    this.inventarioFachada = inventarioFachada;
-    this.proveedoresFachada = proveedoresFachada;
+  public PantallaAutenticacion(VentasControl ventasControl) {
+    this.ventasControl = ventasControl;
 
     configurarVentana();
     iniciarComponentes();
@@ -90,23 +79,12 @@ public class PantallaAutenticacion extends JFrame {
     tarjeta.setBorder(new EmptyBorder(48, 52, 48, 52));
     tarjeta.setPreferredSize(new Dimension(420, 460));
 
-    JLabel lblTitulo = new JLabel("La Canasta", SwingConstants.CENTER);
-    lblTitulo.setFont(Fuentes.b(30));
-    lblTitulo.setForeground(new Color(30, 50, 200));
-    lblTitulo.setAlignmentX(CENTER_ALIGNMENT);
+    JLabel lblTitulo = crearLabelTitulo();
+    JLabel lblSubtitulo = crearLabelSubtitulo();
 
-    JLabel lblSubtitulo = new JLabel("Inicie sesión para continuar", SwingConstants.CENTER);
-    lblSubtitulo.setFont(Fuentes.r(14));
-    lblSubtitulo.setForeground(Colores.GRIS_TEXTO);
-    lblSubtitulo.setAlignmentX(CENTER_ALIGNMENT);
-
-    JTextField campoUsuario = campoLogin("Ingrese su usuario", false);
-    JPasswordField campoContrasena = (JPasswordField) campoLogin("Ingrese su contraseña", true);
-    JLabel lblError = new JLabel(" ", SwingConstants.CENTER);
-    lblError.setFont(Fuentes.r(12));
-    lblError.setForeground(Colores.ROJO);
-    lblError.setAlignmentX(CENTER_ALIGNMENT);
-
+    JTextField campoUsuario = crearCampoTexto("Ingrese su usuario");
+    JPasswordField campoContrasena = crearCampoContrasena("Ingrese su contraseña");
+    JLabel lblError = crearLabelError();
     JButton btnIniciar = crearBotonLogin(campoUsuario, campoContrasena, lblError);
 
     tarjeta.add(lblTitulo);
@@ -122,6 +100,121 @@ public class PantallaAutenticacion extends JFrame {
     tarjeta.add(btnIniciar);
 
     return tarjeta;
+  }
+
+  private JLabel crearLabelTitulo() {
+    JLabel lbl = new JLabel("La Canasta", SwingConstants.CENTER);
+    lbl.setFont(Fuentes.b(30));
+    lbl.setForeground(new Color(30, 50, 200));
+    lbl.setAlignmentX(CENTER_ALIGNMENT);
+    return lbl;
+  }
+
+  private JLabel crearLabelSubtitulo() {
+    JLabel lbl = new JLabel("Inicie sesión para continuar", SwingConstants.CENTER);
+    lbl.setFont(Fuentes.r(14));
+    lbl.setForeground(Colores.GRIS_TEXTO);
+    lbl.setAlignmentX(CENTER_ALIGNMENT);
+    return lbl;
+  }
+
+  private JLabel crearLabelError() {
+    JLabel lbl = new JLabel(" ", SwingConstants.CENTER);
+    lbl.setFont(Fuentes.r(12));
+    lbl.setForeground(Colores.ROJO);
+    lbl.setAlignmentX(CENTER_ALIGNMENT);
+    return lbl;
+  }
+
+  private JTextField crearCampoTexto(String placeholder) {
+    JTextField tf = new JTextField() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
+        super.paintComponent(g2d);
+      }
+
+    };
+    configurarCampoBase(tf, placeholder);
+    configurarPlaceholderTexto(tf, placeholder);
+    return tf;
+  }
+
+  private JPasswordField crearCampoContrasena(String placeholder) {
+    JPasswordField pf = new JPasswordField() {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
+        super.paintComponent(g2d);
+      }
+
+    };
+    configurarCampoBase(pf, placeholder);
+    configurarPlaceholderContrasena(pf, placeholder);
+    return pf;
+  }
+
+  private void configurarCampoBase(JTextField campo, String placeholder) {
+    campo.setOpaque(false);
+    campo.setBorder(BorderFactory.createCompoundBorder(
+      new Bordes(new Color(213, 218, 230), 1, 10),
+      new EmptyBorder(10, 16, 10, 16)));
+    campo.setFont(Fuentes.r(14));
+    campo.setForeground(Colores.GRIS_TEXTO);
+    campo.setPreferredSize(new Dimension(0, 50));
+  }
+
+  private void dibujarFondoCampo(Graphics2D g, int w, int h) {
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(new Color(248, 249, 252));
+    g.fill(new RoundRectangle2D.Float(0, 0, w, h, 10, 10));
+  }
+
+  private void configurarPlaceholderTexto(JTextField tf, String placeholder) {
+    tf.setText(placeholder);
+    tf.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (tf.getText().equals(placeholder)) {
+          tf.setText("");
+          tf.setForeground(Colores.TEXTO_OSCURO);
+        }
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        if (tf.getText().isEmpty()) {
+          tf.setText(placeholder);
+          tf.setForeground(Colores.GRIS_TEXTO);
+        }
+      }
+
+    });
+  }
+
+  private void configurarPlaceholderContrasena(JPasswordField pf, String placeholder) {
+    pf.setEchoChar((char) 0);
+    pf.setText(placeholder);
+    pf.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (new String(pf.getPassword()).equals(placeholder)) {
+          pf.setText("");
+          pf.setEchoChar('\u2022');
+          pf.setForeground(Colores.TEXTO_OSCURO);
+        }
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        if (new String(pf.getPassword()).isEmpty()) {
+          pf.setEchoChar((char) 0);
+          pf.setText(placeholder);
+          pf.setForeground(Colores.GRIS_TEXTO);
+        }
+      }
+
+    });
   }
 
   private JPanel crearFilaCampo(String titulo, JComponent campo) {
@@ -145,7 +238,7 @@ public class PantallaAutenticacion extends JFrame {
     return fila;
   }
 
-  private JButton crearBotonLogin(JTextField u, JPasswordField c, JLabel error) {
+  private JButton crearBotonLogin(JTextField campoUsuario, JPasswordField campoContrasena, JLabel lblError) {
     JButton btn = new JButton("Iniciar Sesión") {
       boolean hover = false;
 
@@ -186,114 +279,39 @@ public class PantallaAutenticacion extends JFrame {
     btn.setAlignmentX(CENTER_ALIGNMENT);
     btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
 
-    Runnable accionLogin = () -> {
-      String usuario = u.getText().trim();
-      String contrasena = new String(c.getPassword()).trim();
-      var usuarioOpt = usuariosFachada.autenticarse(usuario, contrasena);
-
-      if (usuarioOpt.isPresent()) {
-        dispose();
-        new MenuPrincipal(usuarioOpt.get(), usuariosFachada, ventasFachada,
-          inventarioFachada, proveedoresFachada).setVisible(true);
-      } else {
-        error.setText("Usuario o contraseña incorrectos.");
-        c.setText("");
-        c.requestFocus();
-      }
-    };
+    Runnable accionLogin = () -> ejecutarLogin(campoUsuario, campoContrasena, lblError);
 
     btn.addActionListener(e -> accionLogin.run());
-    c.addActionListener(e -> accionLogin.run());
-    u.addActionListener(e -> c.requestFocus());
+    campoContrasena.addActionListener(e -> accionLogin.run());
+    campoUsuario.addActionListener(e -> campoContrasena.requestFocus());
 
     return btn;
   }
 
-  private JTextField campoLogin(String placeholder, boolean esContrasena) {
-    JTextField tf = esContrasena ? new JPasswordField() {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
-        super.paintComponent(g2d);
-      }
+  private void ejecutarLogin(JTextField campoUsuario, JPasswordField campoContrasena, JLabel lblError) {
+    String usuario = campoUsuario.getText().trim();
+    String contrasena = new String(campoContrasena.getPassword()).trim();
 
-    } : new JTextField() {
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
-        super.paintComponent(g2d);
-      }
+    Optional<UsuarioDTO> usuarioOpt = ventasControl.autenticar(usuario, contrasena);
 
-    };
-
-    tf.setOpaque(false);
-    tf.setBorder(BorderFactory.createCompoundBorder(
-      new Bordes(new Color(213, 218, 230), 1, 10),
-      new EmptyBorder(10, 16, 10, 16)));
-    tf.setFont(Fuentes.r(14));
-    tf.setForeground(Colores.GRIS_TEXTO);
-    tf.setPreferredSize(new Dimension(0, 50));
-
-    if (esContrasena) {
-      configurarPlaceholderContrasena((JPasswordField) tf, placeholder);
+    if (usuarioOpt.isPresent()) {
+      dispose();
+      new MenuPrincipal(usuarioOpt.get(), crearVentasControlAutenticado(usuarioOpt.get())).setVisible(true);
     } else {
-      configurarPlaceholderTexto(tf, placeholder);
+      lblError.setText("Usuario o contraseña incorrectos.");
+      campoContrasena.setText("");
+      campoContrasena.requestFocus();
     }
-
-    return tf;
   }
 
-  private void dibujarFondoCampo(Graphics2D g2d, int w, int h) {
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setColor(new Color(248, 249, 252));
-    g2d.fill(new RoundRectangle2D.Float(0, 0, w, h, 10, 10));
-  }
-
-  private void configurarPlaceholderTexto(JTextField tf, String sh) {
-    tf.setText(sh);
-    tf.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (tf.getText().equals(sh)) {
-          tf.setText("");
-          tf.setForeground(Colores.TEXTO_OSCURO);
-        }
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (tf.getText().isEmpty()) {
-          tf.setText(sh);
-          tf.setForeground(Colores.GRIS_TEXTO);
-        }
-      }
-
-    });
-  }
-
-  private void configurarPlaceholderContrasena(JPasswordField pf, String sh) {
-    pf.setEchoChar((char) 0);
-    pf.setText(sh);
-    pf.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (new String(pf.getPassword()).equals(sh)) {
-          pf.setText("");
-          pf.setEchoChar('\u2022');
-          pf.setForeground(Colores.TEXTO_OSCURO);
-        }
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (new String(pf.getPassword()).isEmpty()) {
-          pf.setEchoChar((char) 0);
-          pf.setText(sh);
-          pf.setForeground(Colores.GRIS_TEXTO);
-        }
-      }
-
-    });
+  private VentasControl crearVentasControlAutenticado(UsuarioDTO usuario) {
+    return new VentasControl(
+      ventasControl.getVentasFachada(),
+      ventasControl.getUsuariosFachada(),
+      ventasControl.getInventarioFachada(),
+      ventasControl.getProveedoresFachada(),
+      usuario
+    );
   }
 
 }

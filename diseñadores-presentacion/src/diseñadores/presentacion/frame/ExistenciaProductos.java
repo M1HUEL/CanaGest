@@ -1,33 +1,36 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
-import diseñadores.negocios.inventario.IInventario;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExistenciaProductos extends JFrame {
 
   private final JFrame menuOrigen;
-  private final IInventario facade;
+  private final VentasControl control;
   private final List<ProductoDTO> productos = new ArrayList<>();
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
-  public ExistenciaProductos(JFrame menuOrigen, IInventario facade) {
+  public ExistenciaProductos(JFrame menuOrigen, VentasControl control) {
     this.menuOrigen = menuOrigen;
-    this.facade = facade;
+    this.control = control;
 
     configurarVentana();
-    productos.addAll(facade.obtenerTodos());
+    productos.addAll(control.obtenerProductosInventario());
     inicializarComponentes();
   }
 
@@ -117,7 +120,50 @@ public class ExistenciaProductos extends JFrame {
     tituloCol.add(lblTitulo);
     tituloCol.add(Box.createVerticalStrut(4));
     tituloCol.add(lblDesc);
+
+    JButton btnNuevo = new JButton("Nuevo Producto") {
+      boolean hover = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setForeground(Colores.BLANCO);
+        setFont(Fuentes.b(14));
+        setPreferredSize(new Dimension(180, 42));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            hover = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            hover = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    btnNuevo.addActionListener(e -> abrirDialogoNuevoProducto());
+
+    JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    derecha.setOpaque(false);
+    derecha.add(btnNuevo);
+
     header.add(tituloCol, BorderLayout.WEST);
+    header.add(derecha, BorderLayout.EAST);
     return header;
   }
 
@@ -133,7 +179,6 @@ public class ExistenciaProductos extends JFrame {
       }
 
     };
-
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -161,19 +206,19 @@ public class ExistenciaProductos extends JFrame {
 
     });
 
-    campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+    campoBusqueda.getDocument().addDocumentListener(new DocumentListener() {
       @Override
-      public void insertUpdate(javax.swing.event.DocumentEvent e) {
+      public void insertUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void removeUpdate(javax.swing.event.DocumentEvent e) {
+      public void removeUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void changedUpdate(javax.swing.event.DocumentEvent e) {
+      public void changedUpdate(DocumentEvent e) {
       }
 
     });
@@ -420,10 +465,8 @@ public class ExistenciaProductos extends JFrame {
         int stock = Integer.parseInt(campos[0].getText().trim());
         int min = Integer.parseInt(campos[1].getText().trim());
         int max = Integer.parseInt(campos[2].getText().trim());
-        facade.actualizarStockCompleto(p.getCodigo(), stock, min, max);
-        productos.clear();
-        productos.addAll(facade.obtenerTodos());
-        construirTabla(productos);
+        control.actualizarStockCompleto(p.getCodigo(), stock, min, max);
+        recargarProductos();
         dlg.dispose();
       } catch (NumberFormatException ex) {
         JOptionPane.showMessageDialog(dlg, "Valores no válidos.", "Error", JOptionPane.WARNING_MESSAGE);
@@ -434,6 +477,91 @@ public class ExistenciaProductos extends JFrame {
     panel.add(btnGuardar);
     dlg.setContentPane(panel);
     dlg.setVisible(true);
+  }
+
+  private void abrirDialogoNuevoProducto() {
+    JDialog dlg = new JDialog(this, "Nuevo Producto", true);
+    dlg.setSize(520, 520);
+    dlg.setLocationRelativeTo(this);
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setBorder(new EmptyBorder(28, 32, 28, 32));
+    panel.setBackground(Colores.BLANCO);
+
+    JLabel titulo = new JLabel("Nuevo Producto");
+    titulo.setFont(Fuentes.b(20));
+    titulo.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(titulo);
+    panel.add(Box.createVerticalStrut(20));
+
+    JTextField tfCodigo = crearCampoForm("Código");
+    JTextField tfNombre = crearCampoForm("Nombre");
+    JTextField tfPrecio = crearCampoForm("Precio");
+    JTextField tfStock = crearCampoForm("Stock Inicial");
+    JTextField tfMinimo = crearCampoForm("Stock Mínimo");
+    JTextField tfMaximo = crearCampoForm("Stock Máximo");
+
+    panel.add(tfCodigo);
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(tfNombre);
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(tfPrecio);
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(tfStock);
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(tfMinimo);
+    panel.add(Box.createVerticalStrut(10));
+    panel.add(tfMaximo);
+    panel.add(Box.createVerticalStrut(20));
+
+    JButton btnGuardar = crearBotonGuardar();
+    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
+    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+    btnGuardar.addActionListener(e -> {
+      try {
+        String codigo = tfCodigo.getText().trim();
+        String nombre = tfNombre.getText().trim();
+        BigDecimal precio = new BigDecimal(tfPrecio.getText().trim());
+        int stock = Integer.parseInt(tfStock.getText().trim());
+        int min = Integer.parseInt(tfMinimo.getText().trim());
+        int max = Integer.parseInt(tfMaximo.getText().trim());
+        if (codigo.isEmpty() || nombre.isEmpty()) {
+          JOptionPane.showMessageDialog(dlg, "Código y nombre son obligatorios.", "Error", JOptionPane.WARNING_MESSAGE);
+          return;
+        }
+        ProductoDTO nuevo = new ProductoDTO(codigo, nombre, precio, stock, min, max, null);
+        control.guardarProducto(nuevo);
+        recargarProductos();
+        dlg.dispose();
+      } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(dlg, "Valores numéricos inválidos.", "Error", JOptionPane.WARNING_MESSAGE);
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(dlg, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    });
+
+    panel.add(btnGuardar);
+    dlg.setContentPane(panel);
+    dlg.setVisible(true);
+  }
+
+  private JTextField crearCampoForm(String placeholder) {
+    JTextField tf = new JTextField();
+    tf.setFont(Fuentes.r(13));
+    tf.setBorder(BorderFactory.createCompoundBorder(
+      new Bordes(Colores.BORDE_GRIS, 1, 8),
+      new EmptyBorder(8, 12, 8, 12)));
+    tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+    tf.setAlignmentX(LEFT_ALIGNMENT);
+    tf.setToolTipText(placeholder);
+    return tf;
+  }
+
+  private void recargarProductos() {
+    productos.clear();
+    productos.addAll(control.obtenerProductosInventario());
+    construirTabla(productos);
   }
 
   private JButton crearBotonTabla(String texto) {

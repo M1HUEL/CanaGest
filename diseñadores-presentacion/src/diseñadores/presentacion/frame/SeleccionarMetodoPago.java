@@ -94,11 +94,9 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private void irAlMenuPrincipal() {
     dispose();
-    new MenuPrincipal(usuarioActivo,
-      control.getUsuariosFachada(),
-      control.getVentasFachada(),
-      control.getInventarioFachada(),
-      control.getProveedoresFachada()).setVisible(true);
+    new MenuPrincipal(
+      control.getUsuarioActivo(),
+      this.control);
   }
 
   private JPanel crearCard() {

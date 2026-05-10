@@ -10,15 +10,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VentasControl {
-
-  public enum ResultadoEscaneo {
-    OK,
-    NO_EXISTE,
-    SIN_STOCK
-  }
 
   private final IVentas ventasFachada;
   private final IUsuarios usuariosFachada;
@@ -29,18 +24,25 @@ public class VentasControl {
   private VentaDTO ventaActual;
   private List<ProductoDTO> catalogoProductos;
 
-  public VentasControl(IVentas ventasFachada,
-    IUsuarios usuariosFachada,
-    IInventario inventarioFachada,
-    IProveedores proveedoresFachada,
+  public VentasControl(IVentas ventasFachada, IUsuarios usuariosFachada,
+    IInventario inventarioFachada, IProveedores proveedoresFachada,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
     this.usuarioActivo = usuarioActivo;
-    this.ventaActual = new VentaDTO();
-    this.catalogoProductos = ventasFachada.obtenerCatalogo();
+
+    inicializarEstado();
+  }
+
+  private void inicializarEstado() {
+    iniciarNuevaVenta();
+    refrescarCatalogo();
+  }
+
+  public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
+    return usuariosFachada.autenticarse(nombre, contrasena);
   }
 
   public IVentas getVentasFachada() {
@@ -63,8 +65,56 @@ public class VentasControl {
     return usuarioActivo;
   }
 
+  public List<ProveedorDTO> obtenerProveedores() {
+    return proveedoresFachada.obtenerProveedores();
+  }
+
+  public int contarProveedoresActivos() {
+    return proveedoresFachada.contarProveedoresActivos();
+  }
+
+  public void guardarProveedor(ProveedorDTO proveedor) {
+    proveedoresFachada.guardarProveedor(proveedor);
+  }
+
+  public void actualizarProveedor(ProveedorDTO proveedor) {
+    proveedoresFachada.actualizarProveedor(proveedor);
+  }
+
+  public List<OrdenCompraDTO> obtenerOrdenesCompra() {
+    return proveedoresFachada.obtenerOrdenesCompra();
+  }
+
+  public void guardarOrdenCompra(OrdenCompraDTO orden) {
+    proveedoresFachada.guardarOrdenCompra(orden);
+  }
+
+  public void cambiarEstadoOrden(String numero, String nuevoEstado) {
+    proveedoresFachada.cambiarEstadoOrden(numero, nuevoEstado);
+  }
+
+  public List<ProductoDTO> obtenerProductosInventario() {
+    return inventarioFachada.obtenerTodos();
+  }
+
+  public void ajustarStock(String codigo, int nuevoStockFisico) {
+    inventarioFachada.ajustarStock(codigo, nuevoStockFisico);
+  }
+
   public ResultadoEscaneo procesarEscaneo(String codigo) {
     EscanearProductoDTO dto = new EscanearProductoDTO(codigo);
+    return validarYProcesarProducto(dto);
+  }
+
+  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+    inventarioFachada.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
+  }
+
+  public void guardarProducto(ProductoDTO producto) {
+    ventasFachada.guardarProducto(producto);
+  }
+
+  private ResultadoEscaneo validarYProcesarProducto(EscanearProductoDTO dto) {
     if (!ventasFachada.existeProducto(dto)) {
       return ResultadoEscaneo.NO_EXISTE;
     }
@@ -72,21 +122,25 @@ public class VentasControl {
       return ResultadoEscaneo.SIN_STOCK;
     }
     ventasFachada.procesarProducto(ventaActual, dto);
+    recalcularTotales();
     return ResultadoEscaneo.OK;
   }
 
   public void decrementarItem(ItemVentaDTO item) {
-    List<ItemVentaDTO> items = ventaActual.getItems();
     if (item.getCantidad() > 1) {
-      int idx = items.indexOf(item);
-      if (idx >= 0) {
-        items.set(idx, item.conCantidad(item.getCantidad() - 1));
-      }
+      ajustarCantidadItem(item, item.getCantidad() - 1);
     } else {
       eliminarItem(item);
-      return;
     }
-    recalcularTotales();
+  }
+
+  private void ajustarCantidadItem(ItemVentaDTO item, int nuevaCantidad) {
+    List<ItemVentaDTO> items = ventaActual.getItems();
+    int idx = items.indexOf(item);
+    if (idx >= 0) {
+      items.set(idx, item.conCantidad(nuevaCantidad));
+      recalcularTotales();
+    }
   }
 
   public void eliminarItem(ItemVentaDTO item) {
@@ -100,7 +154,7 @@ public class VentasControl {
   }
 
   public void iniciarNuevaVenta() {
-    ventaActual = new VentaDTO();
+    this.ventaActual = new VentaDTO();
   }
 
   public boolean carritoVacio() {
@@ -136,14 +190,21 @@ public class VentasControl {
   }
 
   public TicketDTO generarTicket() {
-    return ventasFachada.generarTicket(ventaActual, BigDecimal.ZERO);
+    return generarTicket(BigDecimal.ZERO);
   }
 
   public List<ProductoDTO> filtrarCatalogo(String query) {
-    if (query == null || query.isEmpty()) {
+    if (esQueryInvalida(query)) {
       return new ArrayList<>(catalogoProductos);
     }
-    String q = query.toLowerCase();
+    return ejecutarFiltro(query.toLowerCase());
+  }
+
+  private boolean esQueryInvalida(String query) {
+    return query == null || query.isEmpty();
+  }
+
+  private List<ProductoDTO> ejecutarFiltro(String q) {
     return catalogoProductos.stream()
       .filter(p -> p.getNombre().toLowerCase().contains(q)
       || p.getCodigo().toLowerCase().contains(q))
@@ -151,7 +212,7 @@ public class VentasControl {
   }
 
   public List<ProductoDTO> refrescarCatalogo() {
-    catalogoProductos = ventasFachada.obtenerCatalogo();
+    this.catalogoProductos = ventasFachada.obtenerCatalogo();
     return catalogoProductos;
   }
 
@@ -169,10 +230,14 @@ public class VentasControl {
     BigDecimal subtotal = calcularSubtotal(total);
     BigDecimal iva = calcularIva(total, subtotal);
     int totalUnidades = calcularUnidades(items);
+    actualizarDatosVenta(total, subtotal, iva, totalUnidades);
+  }
+
+  private void actualizarDatosVenta(BigDecimal total, BigDecimal subtotal, BigDecimal iva, int unidades) {
     ventaActual.setTotal(total);
     ventaActual.setSubtotal(subtotal);
     ventaActual.setIva(iva);
-    ventaActual.setTotalUnidades(totalUnidades);
+    ventaActual.setTotalUnidades(unidades);
   }
 
   private BigDecimal calcularTotal(List<ItemVentaDTO> items) {

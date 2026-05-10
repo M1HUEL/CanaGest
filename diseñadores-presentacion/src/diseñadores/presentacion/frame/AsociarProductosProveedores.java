@@ -2,36 +2,33 @@ package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
-import diseñadores.negocios.inventario.IInventario;
-import diseñadores.negocios.proveedores.IProveedores;
+import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AsociarProductosProveedores extends JFrame {
 
   private final JFrame frame;
-
-  private final IInventario inventarioFachada;
-  private final IProveedores proveedoresFachada;
-
+  private final VentasControl control;
   private final List<ProductoDTO> productos = new ArrayList<>();
-
   private JPanel panelLista;
   private JTextField campoBusqueda;
 
-  public AsociarProductosProveedores(JFrame frame, IInventario inventarioFachada, IProveedores proveedoresFachada) {
+  public AsociarProductosProveedores(JFrame frame, VentasControl control) {
     this.frame = frame;
-    this.inventarioFachada = inventarioFachada;
-    this.proveedoresFachada = proveedoresFachada;
+    this.control = control;
 
     setTitle("La Canasta - Asociar Productos con Proveedores");
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -39,7 +36,7 @@ public class AsociarProductosProveedores extends JFrame {
     setLocationRelativeTo(null);
     setResizable(true);
 
-    for (ProductoDTO p : inventarioFachada.obtenerTodos()) {
+    for (ProductoDTO p : control.obtenerProductosInventario()) {
       productos.add(p);
     }
 
@@ -52,7 +49,6 @@ public class AsociarProductosProveedores extends JFrame {
       }
 
     };
-
     root.setOpaque(false);
     root.add(buildTopBar(), BorderLayout.NORTH);
     root.add(buildContenido(), BorderLayout.CENTER);
@@ -124,7 +120,6 @@ public class AsociarProductosProveedores extends JFrame {
       }
 
     };
-
     barBusqueda.setOpaque(false);
     barBusqueda.setBorder(new EmptyBorder(14, 20, 14, 20));
     barBusqueda.setPreferredSize(new Dimension(0, 66));
@@ -140,7 +135,6 @@ public class AsociarProductosProveedores extends JFrame {
       }
 
     };
-
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -168,19 +162,19 @@ public class AsociarProductosProveedores extends JFrame {
 
     });
 
-    campoBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+    campoBusqueda.getDocument().addDocumentListener(new DocumentListener() {
       @Override
-      public void insertUpdate(javax.swing.event.DocumentEvent e) {
+      public void insertUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void removeUpdate(javax.swing.event.DocumentEvent e) {
+      public void removeUpdate(DocumentEvent e) {
         filtrar();
       }
 
       @Override
-      public void changedUpdate(javax.swing.event.DocumentEvent e) {
+      public void changedUpdate(DocumentEvent e) {
         filtrar();
       }
 
@@ -251,7 +245,6 @@ public class AsociarProductosProveedores extends JFrame {
       }
 
     };
-
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(20, 22, 20, 22));
     card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -337,7 +330,6 @@ public class AsociarProductosProveedores extends JFrame {
       wrapProv.add(cardProveedorUnico(prod.getProveedor(), prod));
       proveedorArea.add(wrapProv, BorderLayout.CENTER);
     }
-
     card.add(topRow, BorderLayout.NORTH);
     card.add(proveedorArea, BorderLayout.CENTER);
     return card;
@@ -358,7 +350,6 @@ public class AsociarProductosProveedores extends JFrame {
       }
 
     };
-
     card.setOpaque(false);
     card.setBorder(new EmptyBorder(14, 16, 14, 16));
     card.setPreferredSize(new Dimension(330, 130));
@@ -547,7 +538,8 @@ public class AsociarProductosProveedores extends JFrame {
     lblProv.setAlignmentX(LEFT_ALIGNMENT);
     panel.add(lblProv);
 
-    String[] nombresProv = proveedoresFachada.obtenerProveedores().stream()
+    List<ProveedorDTO> proveedores = control.obtenerProveedores();
+    String[] nombresProv = proveedores.stream()
       .map(ProveedorDTO::getNombre)
       .toArray(String[]::new);
     JComboBox<String> comboProveedor = new JComboBox<>(nombresProv);
@@ -597,11 +589,11 @@ public class AsociarProductosProveedores extends JFrame {
         return;
       }
 
-      ProveedorDTO provDto = proveedoresFachada.obtenerProveedores().stream()
+      ProveedorDTO provDto = proveedores.stream()
         .filter(p -> p.getNombre().equals(nombre))
         .findFirst().orElse(null);
 
-      provDto.setPrecioProveedor(new java.math.BigDecimal(precio.replace("$", "")));
+      provDto.setPrecioProveedor(new BigDecimal(precio.replace("$", "")));
       provDto.setTiempoEntregaProveedor(tiempo.contains("día") ? tiempo : tiempo + " días");
       prod.setProveedor(provDto);
       construirLista(productos);
@@ -650,7 +642,7 @@ public class AsociarProductosProveedores extends JFrame {
     btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
     btnGuardar.addActionListener(e -> {
       pv.setNombre(campos[0].getText().trim());
-      pv.setPrecioProveedor(new java.math.BigDecimal(campos[1].getText().trim()));
+      pv.setPrecioProveedor(new BigDecimal(campos[1].getText().trim()));
       pv.setTiempoEntregaProveedor(campos[2].getText().trim());
       prod.setProveedor(pv);
       construirLista(productos);

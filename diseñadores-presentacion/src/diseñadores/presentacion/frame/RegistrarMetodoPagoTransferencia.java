@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -350,10 +349,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      control.getUsuariosFachada(),
-      control.getVentasFachada(),
-      control.getInventarioFachada(),
-      control.getProveedoresFachada()).setVisible(true);
+      this.control);
   }
 
   private JPanel crearFilaVolver() {

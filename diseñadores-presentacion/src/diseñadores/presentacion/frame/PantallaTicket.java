@@ -115,10 +115,7 @@ public class PantallaTicket extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      control.getUsuariosFachada(),
-      control.getVentasFachada(),
-      control.getInventarioFachada(),
-      control.getProveedoresFachada()).setVisible(true);
+      this.control);
   }
 
   private JPanel buildTicket(TicketDTO t) {

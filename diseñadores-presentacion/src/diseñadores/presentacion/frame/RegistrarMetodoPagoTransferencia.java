@@ -349,7 +349,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      this.control);
+      this.control).setVisible(true);
   }
 
   private JPanel crearFilaVolver() {

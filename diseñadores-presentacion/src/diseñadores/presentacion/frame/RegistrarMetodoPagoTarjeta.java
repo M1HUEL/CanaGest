@@ -203,7 +203,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      this.control);
+      this.control).setVisible(true);
   }
 
   private JPanel crearFilaVolver() {

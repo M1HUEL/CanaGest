@@ -455,7 +455,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      this.control);
+      this.control).setVisible(true);
   }
 
   private JPanel crearCentrado(JComponent contenido, int margenH, int margenV) {

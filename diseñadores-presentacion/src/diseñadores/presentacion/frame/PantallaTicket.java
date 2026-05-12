@@ -14,22 +14,22 @@ import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
 
 public class PantallaTicket extends JFrame {
-
+  
   private final VentasControl control;
-
+  
   public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado, VentasControl control) {
     super("Ticket de Venta");
     this.control = control;
     configurarVentana(mainFrame);
     inicializarInterfaz(mainFrame, ticket, onConfirmado);
   }
-
+  
   private void configurarVentana(JFrame mainFrame) {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setSize(mainFrame.getWidth(), mainFrame.getHeight());
     setLocation(mainFrame.getLocation());
   }
-
+  
   private void inicializarInterfaz(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado) {
     JPanel root = crearFondoAmarillo();
     root.add(crearTopBar(), BorderLayout.NORTH);
@@ -38,7 +38,7 @@ public class PantallaTicket extends JFrame {
     setContentPane(root);
     setVisible(true);
   }
-
+  
   private JPanel crearContenedorCentral(TicketDTO ticket) {
     JScrollPane scroll = crearScroll(buildTicket(ticket));
     JPanel centrado = new JPanel(new GridBagLayout());
@@ -52,7 +52,7 @@ public class PantallaTicket extends JFrame {
     centrado.add(scroll, gbc);
     return centrado;
   }
-
+  
   private JScrollPane crearScroll(JPanel contenido) {
     JScrollPane scroll = new JScrollPane(contenido);
     scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -62,7 +62,7 @@ public class PantallaTicket extends JFrame {
     scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     return scroll;
   }
-
+  
   private JPanel crearBarraInferior(JFrame mainFrame, Runnable onConfirmado) {
     JPanel barra = new JPanel(new GridLayout(1, 2, 12, 0));
     barra.setOpaque(false);
@@ -72,31 +72,31 @@ public class PantallaTicket extends JFrame {
     barra.add(crearBotonFinalizar(mainFrame, onConfirmado));
     return barra;
   }
-
+  
   private JButton crearBotonDescargar() {
     JButton btn = accionBtn("Descargar Ticket", Colores.AZUL, Colores.AZUL_HOVER);
     btn.addActionListener(e -> onDescargarTicket());
     return btn;
   }
-
+  
   private JButton crearBotonFinalizar(JFrame mainFrame, Runnable onConfirmado) {
     JButton btn = accionBtn("Finalizar Venta", Colores.VERDE, Colores.VERDE_HOVER);
     btn.addActionListener(e -> onFinalizarVenta(mainFrame, onConfirmado));
     return btn;
   }
-
+  
   private void onDescargarTicket() {
     JOptionPane.showMessageDialog(this,
       "Función de descarga pendiente de implementar.", "Descargar",
       JOptionPane.INFORMATION_MESSAGE);
   }
-
+  
   private void onFinalizarVenta(JFrame mainFrame, Runnable onConfirmado) {
     onConfirmado.run();
     dispose();
     mainFrame.setVisible(true);
   }
-
+  
   private JPanel crearTopBar() {
     JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 10));
     bar.setBackground(Colores.BLANCO);
@@ -104,20 +104,20 @@ public class PantallaTicket extends JFrame {
     bar.add(crearBotonMenuPrincipal());
     return bar;
   }
-
+  
   private JButton crearBotonMenuPrincipal() {
     JButton btn = topBarBtn("Menu Principal");
     btn.addActionListener(e -> onMenuPrincipal());
     return btn;
   }
-
+  
   private void onMenuPrincipal() {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      this.control);
+      this.control).setVisible(true);
   }
-
+  
   private JPanel buildTicket(TicketDTO t) {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override
@@ -130,14 +130,14 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 2, getHeight() - 2, 20, 20));
         super.paintComponent(g2d);
       }
-
+      
     };
     p.setOpaque(false);
     p.add(crearCabeceraTicket(), BorderLayout.NORTH);
     p.add(crearCuerpoTicket(t), BorderLayout.CENTER);
     return p;
   }
-
+  
   private JPanel crearCabeceraTicket() {
     JPanel cab = new JPanel(new GridLayout(2, 1, 0, 6)) {
       @Override
@@ -148,7 +148,7 @@ public class PantallaTicket extends JFrame {
         g.fillRoundRect(0, 0, getWidth(), getHeight() + 20, 20, 20);
         super.paintComponent(g2d);
       }
-
+      
     };
     cab.setOpaque(false);
     cab.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -157,41 +157,41 @@ public class PantallaTicket extends JFrame {
     cab.add(crearLabelSubtituloTicket());
     return cab;
   }
-
+  
   private JLabel crearLabelTituloTicket() {
     JLabel lbl = new JLabel("TICKET DE VENTA", SwingConstants.CENTER);
     lbl.setFont(Fuentes.b(20));
     lbl.setForeground(Colores.BLANCO);
     return lbl;
   }
-
+  
   private JLabel crearLabelSubtituloTicket() {
     JLabel lbl = new JLabel("Sistema de Punto de Venta", SwingConstants.CENTER);
     lbl.setFont(Fuentes.r(12));
     lbl.setForeground(new Color(180, 210, 255));
     return lbl;
   }
-
+  
   private JPanel crearCuerpoTicket(TicketDTO t) {
     JPanel body = new JPanel(new GridBagLayout());
     body.setOpaque(false);
     body.setBorder(new EmptyBorder(20, 28, 24, 28));
-
+    
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.weightx = 1.0;
-
+    
     int row = 0;
     row = agregarInfoTienda(body, t, c, row);
     row = agregarMetaDatos(body, t, c, row);
     row = agregarListaProductos(body, t, c, row);
     row = agregarResumenTotales(body, t, c, row);
     agregarPieTicket(body, t, c, row);
-
+    
     return body;
   }
-
+  
   private int agregarInfoTienda(JPanel body, TicketDTO t, GridBagConstraints c, int row) {
     c.gridy = row++;
     c.insets = new Insets(0, 0, 0, 0);
@@ -207,7 +207,7 @@ public class PantallaTicket extends JFrame {
     body.add(sepLine(), c);
     return row;
   }
-
+  
   private int agregarMetaDatos(JPanel body, TicketDTO t, GridBagConstraints c, int row) {
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
@@ -223,14 +223,14 @@ public class PantallaTicket extends JFrame {
     body.add(sepLine(), c);
     return row;
   }
-
+  
   private JLabel crearLabelCajero(TicketDTO t) {
     JLabel lbl = new JLabel("Cajero: " + t.getCajero());
     lbl.setFont(Fuentes.r(12));
     lbl.setForeground(Colores.TEXTO_OSCURO);
     return lbl;
   }
-
+  
   private int agregarListaProductos(JPanel body, TicketDTO t, GridBagConstraints c, int row) {
     c.gridy = row++;
     c.insets = new Insets(10, 0, 10, 0);
@@ -245,7 +245,7 @@ public class PantallaTicket extends JFrame {
     body.add(sepLine(), c);
     return row;
   }
-
+  
   private int agregarResumenTotales(JPanel body, TicketDTO t, GridBagConstraints c, int row) {
     c.gridy = row++;
     c.insets = new Insets(0, 0, 6, 0);
@@ -265,7 +265,7 @@ public class PantallaTicket extends JFrame {
     }
     return row;
   }
-
+  
   private void agregarPieTicket(JPanel body, TicketDTO t, GridBagConstraints c, int row) {
     c.gridy = row++;
     c.insets = new Insets(4, 0, 12, 0);
@@ -282,7 +282,7 @@ public class PantallaTicket extends JFrame {
     c.gridy = row++;
     body.add(fullLabel("*** TICKET VÁLIDO ***", 10, false, Colores.GRIS_TEXTO, SwingConstants.CENTER), c);
   }
-
+  
   private JPanel filaTipoPago(TipoPago tipo) {
     JPanel row = new JPanel(new BorderLayout()) {
       @Override
@@ -293,7 +293,7 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
+      
     };
     row.setOpaque(false);
     row.setBorder(new EmptyBorder(10, 14, 10, 14));
@@ -301,21 +301,21 @@ public class PantallaTicket extends JFrame {
     row.add(crearLabelValorPago(tipo), BorderLayout.EAST);
     return row;
   }
-
+  
   private JLabel crearLabelEtiquetaPago() {
     JLabel lbl = new JLabel("Método de pago");
     lbl.setFont(Fuentes.r(12));
     lbl.setForeground(Colores.GRIS_TEXTO);
     return lbl;
   }
-
+  
   private JLabel crearLabelValorPago(TipoPago tipo) {
     JLabel lbl = new JLabel(nombreTipoPago(tipo));
     lbl.setFont(Fuentes.b(13));
     lbl.setForeground(colorTextoTipoPago(tipo));
     return lbl;
   }
-
+  
   private String nombreTipoPago(TipoPago tipo) {
     if (tipo == null) {
       return "—";
@@ -333,7 +333,7 @@ public class PantallaTicket extends JFrame {
         tipo.name();
     };
   }
-
+  
   private Color colorTextoTipoPago(TipoPago tipo) {
     if (tipo == null) {
       return Colores.GRIS_TEXTO;
@@ -351,7 +351,7 @@ public class PantallaTicket extends JFrame {
         Colores.TEXTO_OSCURO;
     };
   }
-
+  
   private Color colorFondoTipoPago(TipoPago tipo) {
     if (tipo == null) {
       return Colores.FONDO_ITEM;
@@ -369,7 +369,7 @@ public class PantallaTicket extends JFrame {
         Colores.FONDO_ITEM;
     };
   }
-
+  
   private JPanel crearFilaMeta(TicketDTO t) {
     JPanel row = new JPanel(new BorderLayout());
     row.setOpaque(false);
@@ -383,7 +383,7 @@ public class PantallaTicket extends JFrame {
     row.add(lHora, BorderLayout.EAST);
     return row;
   }
-
+  
   private JPanel crearCajaFolio(String folio) {
     JPanel box = new JPanel(new GridLayout(2, 1, 0, 4)) {
       @Override
@@ -394,7 +394,7 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
+      
     };
     box.setOpaque(false);
     box.setBorder(new EmptyBorder(10, 14, 10, 14));
@@ -402,7 +402,7 @@ public class PantallaTicket extends JFrame {
     box.add(fullLabel(folio, 15, true, Colores.TEXTO_OSCURO, SwingConstants.LEFT));
     return box;
   }
-
+  
   private JPanel filaProducto(ItemVentaDTO item) {
     JPanel row = new JPanel(new GridBagLayout()) {
       @Override
@@ -413,29 +413,29 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
+      
     };
     row.setOpaque(false);
     row.setBorder(new EmptyBorder(10, 12, 10, 12));
-
+    
     GridBagConstraints c = new GridBagConstraints();
     c.gridy = 0;
     c.fill = GridBagConstraints.HORIZONTAL;
-
+    
     c.gridx = 0;
     c.weightx = 1;
     JLabel lNom = new JLabel(item.getNombre());
     lNom.setFont(Fuentes.b(13));
     lNom.setForeground(Colores.TEXTO_OSCURO);
     row.add(lNom, c);
-
+    
     c.gridx = 1;
     c.weightx = 0;
     JLabel lSub = new JLabel(String.format("$%.2f", item.getSubtotal().doubleValue()));
     lSub.setFont(Fuentes.b(13));
     lSub.setForeground(Colores.TEXTO_OSCURO);
     row.add(lSub, c);
-
+    
     c.gridx = 0;
     c.gridy = 1;
     c.gridwidth = 2;
@@ -444,17 +444,17 @@ public class PantallaTicket extends JFrame {
     lCod.setFont(Fuentes.r(10));
     lCod.setForeground(Colores.GRIS_TEXTO);
     row.add(lCod, c);
-
+    
     c.gridy = 2;
     c.insets = new Insets(2, 0, 0, 0);
     JLabel lCant = new JLabel(item.getCantidad() + " x $" + String.format("%.2f", item.getPrecioUnitario().doubleValue()));
     lCant.setFont(Fuentes.r(11));
     lCant.setForeground(Colores.GRIS_TEXTO);
     row.add(lCant, c);
-
+    
     return row;
   }
-
+  
   private JPanel filaResumen(String etiqueta, BigDecimal valor, boolean esTotal) {
     JPanel row = new JPanel(new BorderLayout());
     row.setOpaque(false);
@@ -468,7 +468,7 @@ public class PantallaTicket extends JFrame {
     row.add(lV, BorderLayout.EAST);
     return row;
   }
-
+  
   private JPanel crearFondoAmarillo() {
     JPanel p = new JPanel(new BorderLayout()) {
       @Override
@@ -477,19 +477,19 @@ public class PantallaTicket extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
+      
     };
     p.setOpaque(false);
     return p;
   }
-
+  
   private JLabel fullLabel(String txt, int size, boolean bold, Color color, int halign) {
     JLabel l = new JLabel(txt, halign);
     l.setFont(bold ? Fuentes.b(size) : Fuentes.r(size));
     l.setForeground(color);
     return l;
   }
-
+  
   private JPanel sepLine() {
     JPanel s = new JPanel() {
       @Override
@@ -501,17 +501,17 @@ public class PantallaTicket extends JFrame {
         g.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, dash, 0));
         g.drawLine(0, getHeight() / 2, getWidth(), getHeight() / 2);
       }
-
+      
     };
     s.setOpaque(false);
     s.setPreferredSize(new Dimension(0, 2));
     return s;
   }
-
+  
   private JButton accionBtn(String texto, Color base, Color hover) {
     JButton b = new JButton(texto) {
       boolean ov = false;
-
+      
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
@@ -522,15 +522,15 @@ public class PantallaTicket extends JFrame {
             ov = true;
             repaint();
           }
-
+          
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
-
+          
         });
       }
-
+      
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -539,18 +539,18 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
         super.paintComponent(g2d);
       }
-
+      
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(15));
     b.setHorizontalAlignment(SwingConstants.CENTER);
     return b;
   }
-
+  
   private JButton topBarBtn(String texto) {
     JButton b = new JButton(texto) {
       boolean ov = false;
-
+      
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
@@ -561,15 +561,15 @@ public class PantallaTicket extends JFrame {
             ov = true;
             repaint();
           }
-
+          
           public void mouseExited(MouseEvent e) {
             ov = false;
             repaint();
           }
-
+          
         });
       }
-
+      
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -578,12 +578,12 @@ public class PantallaTicket extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
-
+      
     };
     b.setForeground(Colores.BLANCO);
     b.setFont(Fuentes.b(13));
     b.setPreferredSize(new Dimension(160, 38));
     return b;
   }
-
+  
 }

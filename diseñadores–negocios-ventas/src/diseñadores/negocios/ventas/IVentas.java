@@ -32,4 +32,6 @@ public interface IVentas {
 
   void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo);
 
+  List<VentaDTO> obtenerHistorialVentas();
+
 }

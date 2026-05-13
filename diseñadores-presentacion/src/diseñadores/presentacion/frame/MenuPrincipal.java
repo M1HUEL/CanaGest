@@ -125,7 +125,15 @@ public class MenuPrincipal extends JFrame {
       new RegistrarVenta(control).setVisible(true);
     });
 
+    JButton btnHistorial = Botones.menuAzul("Historial de Ventas");
+    btnHistorial.addActionListener(e -> {
+      this.setVisible(false);
+      new HistorialVentas(this, control).setVisible(true);
+    });
+
     tarjeta.add(btnVender);
+    tarjeta.add(Box.createVerticalStrut(10));
+    tarjeta.add(btnHistorial);
     tarjeta.add(Box.createVerticalStrut(20));
   }
 

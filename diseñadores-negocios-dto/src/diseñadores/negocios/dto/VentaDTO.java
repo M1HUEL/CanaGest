@@ -15,6 +15,8 @@ public class VentaDTO {
   private boolean pagada;
   private String folio;
   private TipoPago tipoPago;
+  private String fecha = java.time.LocalDateTime.now()
+    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
 
   public VentaDTO() {
     this.items = new ArrayList<>();
@@ -113,6 +115,14 @@ public class VentaDTO {
 
   public void setTipoPago(TipoPago tipoPago) {
     this.tipoPago = tipoPago;
+  }
+
+  public String getFecha() {
+    return fecha;
+  }
+
+  public void setFecha(String fecha) {
+    this.fecha = fecha;
   }
 
 }

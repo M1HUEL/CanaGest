@@ -334,4 +334,8 @@ public class VentasControl {
     }
   }
 
+  public List<VentaDTO> obtenerHistorialVentas() {
+    return Venta.obtenerTodas();
+  }
+
 }

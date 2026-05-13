@@ -81,4 +81,9 @@ public class VentasFacade implements IVentas {
     control.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
+  @Override
+  public List<VentaDTO> obtenerHistorialVentas() {
+    return control.obtenerHistorialVentas();
+  }
+
 }

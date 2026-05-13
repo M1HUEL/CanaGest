@@ -259,4 +259,8 @@ public class VentasControl {
     return items.stream().mapToInt(ItemVentaDTO::getCantidad).sum();
   }
 
+  public List<VentaDTO> obtenerHistorialVentas() {
+    return ventasFachada.obtenerHistorialVentas();
+  }
+
 }

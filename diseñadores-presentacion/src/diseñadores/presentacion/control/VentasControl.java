@@ -182,6 +182,7 @@ public class VentasControl {
   }
 
   public void finalizarVenta() {
+    ventaActual.setCajero(usuarioActivo.getNombre());
     ventasFachada.procesarFinalizarVenta(ventaActual);
   }
 

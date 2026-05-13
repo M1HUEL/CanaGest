@@ -27,7 +27,6 @@ public class VentasControl {
   private static final String RFC = "LCA123456ABC";
   private static final String DIRECCION = "Av. Principal #123, Col. Centro";
   private static final String TELEFONO = "Tel: (555) 123-4567";
-  private static final String CAJERO = "Juan Pérez - Caja #1";
 
   public VentasControl() {
     this.servicioNotificaciones = new NotificacionesFacade();
@@ -174,7 +173,7 @@ public class VentasControl {
       venta.getTotal(),
       efectivo,
       cambio,
-      CAJERO,
+      venta.getCajero() != null ? venta.getCajero() : "Sin cajero",
       NOMBRE_TIENDA,
       RFC,
       DIRECCION,

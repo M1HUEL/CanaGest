@@ -117,6 +117,7 @@ public class VentaDAOImpl implements IVentaDAO {
     dto.setTotal(BigDecimal.valueOf(doc.getDouble("total")));
     dto.setTotalUnidades(doc.getInteger("totalUnidades", 0));
     dto.setFecha(doc.getString("fecha"));
+    dto.setCajero(doc.getString("cajero"));
 
     List<ItemVentaDTO> items = new ArrayList<>();
     List<Document> itemDocs = doc.getList("items", Document.class);
@@ -144,6 +145,7 @@ public class VentaDAOImpl implements IVentaDAO {
         .append("cantidad", item.getCantidad())
         .append("subtotal", item.getSubtotal().doubleValue())
         .append("fecha", dto.getFecha())
+        .append("cajero", dto.getCajero())
       );
     }
 

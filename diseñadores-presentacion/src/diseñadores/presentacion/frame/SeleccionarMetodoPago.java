@@ -242,7 +242,7 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void abrirPagoCoDi() {
-    new RegistrarMetodoPagoCoDi(this, frameAnterior, control, onVentaFinalizada);
+    new RegistrarMetodoPagoQr(this, frameAnterior, control, onVentaFinalizada);
   }
 
   private void abrirPagoTransferencia() {

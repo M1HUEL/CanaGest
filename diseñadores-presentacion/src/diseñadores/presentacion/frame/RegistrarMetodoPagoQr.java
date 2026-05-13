@@ -12,7 +12,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.time.LocalDate;
 import java.util.Random;
 
-public class RegistrarMetodoPagoCoDi extends JFrame {
+public class RegistrarMetodoPagoQr extends JFrame {
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
   private final JFrame mainFrame;
@@ -20,7 +20,7 @@ public class RegistrarMetodoPagoCoDi extends JFrame {
   private final Runnable onVentaFinalizada;
   private final String referencia;
 
-  public RegistrarMetodoPagoCoDi(
+  public RegistrarMetodoPagoQr(
     SeleccionarMetodoPago seleccionarMetodoPago,
     JFrame mainFrame,
     VentasControl control,

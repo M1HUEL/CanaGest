@@ -84,13 +84,14 @@ public class ExistenciaProductos extends JFrame {
     contenido.setOpaque(false);
     contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
 
-    JPanel header = crearHeader();
-    JPanel busquedaWrap = crearPanelBusqueda();
+    JPanel tituloPanel = crearTitulo();
+    JPanel accionesPanel = crearBarraAcciones();
 
     JPanel topRow = new JPanel(new BorderLayout());
     topRow.setOpaque(false);
-    topRow.add(header, BorderLayout.WEST);
-    topRow.add(busquedaWrap, BorderLayout.EAST);
+    topRow.setBorder(new EmptyBorder(0, 0, 20, 0));
+    topRow.add(tituloPanel, BorderLayout.WEST);
+    topRow.add(accionesPanel, BorderLayout.EAST);
 
     JPanel wrapTabla = crearContenedorTabla();
 
@@ -99,14 +100,10 @@ public class ExistenciaProductos extends JFrame {
     return contenido;
   }
 
-  private JPanel crearHeader() {
-    JPanel header = new JPanel(new BorderLayout());
-    header.setOpaque(false);
-    header.setBorder(new EmptyBorder(0, 0, 20, 0));
-
-    JPanel tituloCol = new JPanel();
-    tituloCol.setLayout(new BoxLayout(tituloCol, BoxLayout.Y_AXIS));
-    tituloCol.setOpaque(false);
+  private JPanel crearTitulo() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(false);
 
     JLabel lblTitulo = new JLabel("Existencia de Productos");
     lblTitulo.setFont(Fuentes.b(26));
@@ -116,57 +113,13 @@ public class ExistenciaProductos extends JFrame {
     lblDesc.setFont(Fuentes.r(14));
     lblDesc.setForeground(Colores.GRIS_TEXTO);
 
-    tituloCol.add(lblTitulo);
-    tituloCol.add(Box.createVerticalStrut(4));
-    tituloCol.add(lblDesc);
-
-    JButton btnNuevo = new JButton("Nuevo Producto") {
-      boolean hover = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        setForeground(Colores.BLANCO);
-        setFont(Fuentes.b(14));
-        setPreferredSize(new Dimension(180, 42));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            hover = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            hover = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnNuevo.addActionListener(e -> new AgregarExistenciaProducto(this, control, this::recargarProductos).setVisible(true));
-
-    JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    derecha.setOpaque(false);
-    derecha.add(btnNuevo);
-
-    header.add(tituloCol, BorderLayout.WEST);
-    header.add(derecha, BorderLayout.EAST);
-    return header;
+    panel.add(lblTitulo);
+    panel.add(Box.createVerticalStrut(4));
+    panel.add(lblDesc);
+    return panel;
   }
 
-  private JPanel crearPanelBusqueda() {
+  private JPanel crearBarraAcciones() {
     campoBusqueda = new JTextField() {
       @Override
       protected void paintComponent(Graphics g2d) {
@@ -178,6 +131,7 @@ public class ExistenciaProductos extends JFrame {
       }
 
     };
+    campoBusqueda.setPreferredSize(new Dimension(240, 42));
     campoBusqueda.setOpaque(false);
     campoBusqueda.setBorder(BorderFactory.createCompoundBorder(
       new Bordes(new Color(213, 218, 230), 1, 8),
@@ -222,10 +176,49 @@ public class ExistenciaProductos extends JFrame {
 
     });
 
-    JPanel busquedaWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 6));
-    busquedaWrap.setOpaque(false);
-    busquedaWrap.add(campoBusqueda);
-    return busquedaWrap;
+    JButton btnNuevo = new JButton("+ Nuevo Producto") {
+      boolean hover = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setForeground(Colores.BLANCO);
+        setFont(Fuentes.b(14));
+        setPreferredSize(new Dimension(180, 42));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            hover = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            hover = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(hover ? Colores.AZUL_HOVER : Colores.AZUL);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        super.paintComponent(g2d);
+      }
+
+    };
+    btnNuevo.addActionListener(e
+      -> new AgregarExistenciaProducto(this, control, this::recargarProductos).setVisible(true));
+
+    JPanel barra = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+    barra.setOpaque(false);
+    barra.add(campoBusqueda);
+    barra.add(btnNuevo);
+    return barra;
   }
 
   private JPanel crearContenedorTabla() {

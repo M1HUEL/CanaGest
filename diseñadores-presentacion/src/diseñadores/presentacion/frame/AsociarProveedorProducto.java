@@ -4,6 +4,7 @@ import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
+import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -65,7 +66,7 @@ public class AsociarProveedorProducto extends JFrame {
     JPanel izq = new JPanel(new GridLayout(2, 1, 0, 2));
     izq.setOpaque(false);
 
-    JButton btnMenu = btnAmarillo("Menu Principal");
+    JButton btnMenu = Botones.amarillo("Menú Principal");
     btnMenu.addActionListener(e -> {
       dispose();
       frame.setVisible(true);
@@ -260,7 +261,7 @@ public class AsociarProveedorProducto extends JFrame {
     lblNombre.setFont(Fuentes.b(18));
     lblNombre.setForeground(Colores.TEXTO_OSCURO);
 
-    JLabel lblCodigo = new JLabel(prod.getCodigo());
+    JLabel lblCodigo = new JLabel("Código: " + prod.getCodigo());
     lblCodigo.setFont(Fuentes.r(12));
     lblCodigo.setForeground(Colores.GRIS_TEXTO);
 
@@ -268,24 +269,24 @@ public class AsociarProveedorProducto extends JFrame {
     infoCol.add(Box.createVerticalStrut(2));
     infoCol.add(lblCodigo);
 
-    JPanel derTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    derTop.setOpaque(false);
+    topRow.add(infoCol, BorderLayout.WEST);
+
     if (prod.getProveedor() == null) {
-      JButton btnAgregar = btnAzul("Agregar Proveedor");
+      JPanel derTop = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+      derTop.setOpaque(false);
+      JButton btnAgregar = Botones.azul("+ Agregar Proveedor");
       btnAgregar.addActionListener(e -> new AgregarProveedorProducto(
         this, control, prod, productos, () -> construirLista(productos)).setVisible(true));
       derTop.add(btnAgregar);
+      topRow.add(derTop, BorderLayout.EAST);
     }
 
-    topRow.add(infoCol, BorderLayout.WEST);
-    topRow.add(derTop, BorderLayout.EAST);
-
-    JLabel lblTitSec = new JLabel("Proveedor asociado:");
-    lblTitSec.setFont(Fuentes.r(13));
-    lblTitSec.setForeground(Colores.GRIS_TEXTO);
-
-    JPanel proveedorArea = new JPanel(new BorderLayout(0, 8));
+    JPanel proveedorArea = new JPanel(new BorderLayout(0, 10));
     proveedorArea.setOpaque(false);
+
+    JLabel lblTitSec = new JLabel("Proveedor asociado");
+    lblTitSec.setFont(Fuentes.b(12));
+    lblTitSec.setForeground(Colores.GRIS_TEXTO);
     proveedorArea.add(lblTitSec, BorderLayout.NORTH);
 
     if (prod.getProveedor() == null) {
@@ -309,12 +310,12 @@ public class AsociarProveedorProducto extends JFrame {
       vacioCentro.setLayout(new BoxLayout(vacioCentro, BoxLayout.Y_AXIS));
       vacioCentro.setOpaque(false);
 
-      JLabel lV1 = new JLabel("No hay proveedor asociado a este producto");
+      JLabel lV1 = new JLabel("Este producto no tiene proveedor asociado");
       lV1.setFont(Fuentes.r(14));
       lV1.setForeground(Colores.GRIS_TEXTO);
       lV1.setAlignmentX(CENTER_ALIGNMENT);
 
-      JLabel lV2 = new JLabel("Haz clic en \"Agregar Proveedor\" para vincular uno");
+      JLabel lV2 = new JLabel("Haz clic en \"+ Agregar Proveedor\" para vincular uno");
       lV2.setFont(Fuentes.r(12));
       lV2.setForeground(new Color(180, 183, 189));
       lV2.setAlignmentX(CENTER_ALIGNMENT);
@@ -325,18 +326,16 @@ public class AsociarProveedorProducto extends JFrame {
       vacioBorder.add(vacioCentro);
       proveedorArea.add(vacioBorder, BorderLayout.CENTER);
     } else {
-      JPanel wrapProv = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-      wrapProv.setOpaque(false);
-      wrapProv.add(cardProveedorUnico(prod.getProveedor(), prod));
-      proveedorArea.add(wrapProv, BorderLayout.CENTER);
+      proveedorArea.add(cardProveedorUnico(prod.getProveedor(), prod), BorderLayout.CENTER);
     }
+
     card.add(topRow, BorderLayout.NORTH);
     card.add(proveedorArea, BorderLayout.CENTER);
     return card;
   }
 
   private JPanel cardProveedorUnico(ProveedorDTO pv, ProductoDTO prod) {
-    JPanel card = new JPanel(new BorderLayout(0, 8)) {
+    JPanel card = new JPanel(new BorderLayout(0, 12)) {
       @Override
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
@@ -351,136 +350,107 @@ public class AsociarProveedorProducto extends JFrame {
 
     };
     card.setOpaque(false);
-    card.setBorder(new EmptyBorder(14, 16, 14, 16));
-    card.setPreferredSize(new Dimension(330, 130));
+    card.setBorder(new EmptyBorder(16, 18, 16, 18));
 
-    JPanel headerCard = new JPanel(new BorderLayout());
-    headerCard.setOpaque(false);
+    JPanel cabecera = new JPanel(new BorderLayout());
+    cabecera.setOpaque(false);
 
     JLabel lblNomProv = new JLabel(pv.getNombre());
-    lblNomProv.setFont(Fuentes.b(14));
+    lblNomProv.setFont(Fuentes.b(16));
     lblNomProv.setForeground(Colores.TEXTO_OSCURO);
 
-    JLabel badgePrin = new JLabel("Principal", SwingConstants.CENTER);
-    badgePrin.setFont(Fuentes.b(11));
-    badgePrin.setForeground(Colores.BLANCO);
-    badgePrin.setOpaque(true);
-    badgePrin.setBackground(Colores.AZUL);
-    badgePrin.setBorder(new EmptyBorder(3, 10, 3, 10));
+    JLabel lblCodigo = new JLabel("Cód. " + (pv.getCodigo() != null ? pv.getCodigo() : "—"));
+    lblCodigo.setFont(Fuentes.r(12));
+    lblCodigo.setForeground(Colores.GRIS_TEXTO);
 
-    JPanel bw = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    bw.setOpaque(false);
-    bw.add(badgePrin);
+    JPanel nombreCol = new JPanel();
+    nombreCol.setLayout(new BoxLayout(nombreCol, BoxLayout.Y_AXIS));
+    nombreCol.setOpaque(false);
+    nombreCol.add(lblNomProv);
+    nombreCol.add(Box.createVerticalStrut(2));
+    nombreCol.add(lblCodigo);
 
-    headerCard.add(lblNomProv, BorderLayout.WEST);
-    headerCard.add(bw, BorderLayout.EAST);
+    cabecera.add(nombreCol, BorderLayout.WEST);
 
-    JPanel datosCol = new JPanel();
-    datosCol.setLayout(new BoxLayout(datosCol, BoxLayout.Y_AXIS));
-    datosCol.setOpaque(false);
+    boolean activo = pv.isActivo();
+    JLabel badge = new JLabel(activo ? "Activo" : "Inactivo", SwingConstants.CENTER);
+    badge.setFont(Fuentes.b(11));
+    badge.setForeground(activo ? new Color(21, 128, 61) : new Color(185, 28, 28));
+    badge.setOpaque(true);
+    badge.setBackground(activo ? new Color(220, 252, 231) : new Color(254, 226, 226));
+    badge.setBorder(new EmptyBorder(3, 10, 3, 10));
 
-    JLabel lblPrecio = new JLabel("Precio: $" + String.format("%.2f", pv.getPrecioProveedor()));
-    lblPrecio.setFont(Fuentes.r(13));
-    lblPrecio.setForeground(Colores.TEXTO_OSCURO);
+    JPanel badgeWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+    badgeWrap.setOpaque(false);
+    badgeWrap.add(badge);
+    cabecera.add(badgeWrap, BorderLayout.EAST);
 
-    JPanel rowTE = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    rowTE.setOpaque(false);
-    JLabel lblTELbl = new JLabel("Tiempo entrega: ");
-    lblTELbl.setFont(Fuentes.b(13));
-    lblTELbl.setForeground(Colores.TEXTO_OSCURO);
-    JLabel lblTEVal = new JLabel(pv.getTiempoEntregaProveedor());
-    lblTEVal.setFont(Fuentes.r(13));
-    lblTEVal.setForeground(Colores.TEXTO_OSCURO);
-    rowTE.add(lblTELbl);
-    rowTE.add(lblTEVal);
-
-    datosCol.add(lblPrecio);
-    datosCol.add(Box.createVerticalStrut(3));
-    datosCol.add(rowTE);
-
-    JPanel botonesRow = new JPanel(new GridLayout(1, 2, 8, 0));
-    botonesRow.setOpaque(false);
-    botonesRow.setPreferredSize(new Dimension(0, 36));
-
-    JButton btnEditar = new JButton("Editar") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
+    JPanel sep = new JPanel() {
       @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? new Color(235, 236, 240) : Colores.BLANCO);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-        g.setColor(Colores.BORDE_GRIS);
-        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
-        super.paintComponent(g2d);
+      protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(new Color(191, 219, 254));
+        g.drawLine(0, 0, getWidth(), 0);
       }
 
     };
-    btnEditar.setForeground(Colores.TEXTO_OSCURO);
-    btnEditar.setFont(Fuentes.r(12));
+    sep.setOpaque(false);
+    sep.setPreferredSize(new Dimension(0, 1));
+
+    JPanel cuerpo = new JPanel(new GridLayout(1, 2, 24, 0));
+    cuerpo.setOpaque(false);
+
+    JPanel colContacto = new JPanel();
+    colContacto.setLayout(new BoxLayout(colContacto, BoxLayout.Y_AXIS));
+    colContacto.setOpaque(false);
+
+    JLabel lblSecContacto = new JLabel("CONTACTO");
+    lblSecContacto.setFont(Fuentes.b(10));
+    lblSecContacto.setForeground(new Color(100, 116, 139));
+
+    colContacto.add(lblSecContacto);
+    colContacto.add(Box.createVerticalStrut(8));
+    colContacto.add(filaDato("Responsable", pv.getContacto()));
+    colContacto.add(Box.createVerticalStrut(5));
+    colContacto.add(filaDato("Teléfono", pv.getTelefono()));
+    colContacto.add(Box.createVerticalStrut(5));
+    colContacto.add(filaDato("Email", pv.getEmail()));
+
+    JPanel colComercial = new JPanel();
+    colComercial.setLayout(new BoxLayout(colComercial, BoxLayout.Y_AXIS));
+    colComercial.setOpaque(false);
+
+    JLabel lblSecComercial = new JLabel("CONDICIONES COMERCIALES");
+    lblSecComercial.setFont(Fuentes.b(10));
+    lblSecComercial.setForeground(new Color(100, 116, 139));
+
+    String precioStr = pv.getPrecioProveedor() != null
+      ? "$" + String.format("%.2f", pv.getPrecioProveedor())
+      : "—";
+    String entregaStr = pv.getTiempoEntregaProveedor() != null
+      ? pv.getTiempoEntregaProveedor()
+      : "—";
+    String pagoStr = pv.getTerminosPago() != null ? pv.getTerminosPago() : "—";
+
+    colComercial.add(lblSecComercial);
+    colComercial.add(Box.createVerticalStrut(8));
+    colComercial.add(filaDato("Precio proveedor", precioStr));
+    colComercial.add(Box.createVerticalStrut(5));
+    colComercial.add(filaDato("Tiempo de entrega", entregaStr));
+    colComercial.add(Box.createVerticalStrut(5));
+    colComercial.add(filaDato("Términos de pago", pagoStr));
+
+    cuerpo.add(colContacto);
+    cuerpo.add(colComercial);
+
+    JPanel botonesRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    botonesRow.setOpaque(false);
+
+    JButton btnEditar = crearBtnOutline("Editar", Colores.TEXTO_OSCURO, Colores.BLANCO, new Color(235, 236, 240));
     btnEditar.addActionListener(e -> new EditarProveedorProducto(
       this, pv, prod, () -> construirLista(productos)).setVisible(true));
 
-    JButton btnRemover = new JButton("Remover") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          @Override
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(ov ? new Color(254, 200, 200) : new Color(254, 226, 226));
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
-        g.setColor(new Color(252, 165, 165));
-        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnRemover.setForeground(Colores.ROJO);
-    btnRemover.setFont(Fuentes.r(12));
+    JButton btnRemover = crearBtnOutline("Remover", Colores.ROJO, new Color(254, 226, 226), new Color(254, 200, 200));
     btnRemover.addActionListener(e -> {
       int op = JOptionPane.showConfirmDialog(this,
         "¿Remover a " + pv.getNombre() + " como proveedor de " + prod.getNombre() + "?",
@@ -494,10 +464,102 @@ public class AsociarProveedorProducto extends JFrame {
     botonesRow.add(btnEditar);
     botonesRow.add(btnRemover);
 
-    card.add(headerCard, BorderLayout.NORTH);
-    card.add(datosCol, BorderLayout.CENTER);
-    card.add(botonesRow, BorderLayout.SOUTH);
+    card.add(cabecera, BorderLayout.NORTH);
+
+    JPanel centro = new JPanel(new BorderLayout(0, 10));
+    centro.setOpaque(false);
+    centro.add(sep, BorderLayout.NORTH);
+    centro.add(cuerpo, BorderLayout.CENTER);
+
+    card.add(centro, BorderLayout.CENTER);
+    card.add(filaBotones(pv, prod), BorderLayout.SOUTH);
     return card;
+  }
+
+  private JPanel filaBotones(ProveedorDTO pv, ProductoDTO prod) {
+    JPanel fila = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    fila.setOpaque(false);
+
+    JButton btnEditar = Botones.gris("Editar");
+    JButton btnRemover = Botones.rojo("Remover");
+
+    btnEditar.addActionListener(e -> new EditarProveedorProducto(
+      AsociarProveedorProducto.this, pv, prod,
+      () -> construirLista(productos)).setVisible(true));
+
+    btnRemover.addActionListener(e -> {
+      int op = JOptionPane.showConfirmDialog(AsociarProveedorProducto.this,
+        "¿Remover a " + pv.getNombre() + " como proveedor de " + prod.getNombre() + "?",
+        "Confirmar", JOptionPane.YES_NO_OPTION);
+      if (op == JOptionPane.YES_OPTION) {
+        prod.setProveedor(null);
+        construirLista(productos);
+      }
+    });
+
+    fila.add(btnEditar);
+    fila.add(btnRemover);
+    return fila;
+  }
+
+  private JPanel filaDato(String label, String valor) {
+    JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    fila.setOpaque(false);
+    fila.setAlignmentX(LEFT_ALIGNMENT);
+
+    JLabel lbl = new JLabel(label + ": ");
+    lbl.setFont(Fuentes.b(12));
+    lbl.setForeground(Colores.TEXTO_OSCURO);
+
+    JLabel val = new JLabel(valor != null && !valor.isBlank() ? valor : "—");
+    val.setFont(Fuentes.r(12));
+    val.setForeground(Colores.GRIS_TEXTO);
+
+    fila.add(lbl);
+    fila.add(val);
+    return fila;
+  }
+
+  private JButton crearBtnOutline(String texto, Color fg, Color bg, Color hover) {
+    JButton btn = new JButton(texto) {
+      boolean ov = false;
+
+      {
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
+        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        setPreferredSize(new Dimension(90, 34));
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(ov ? hover : bg);
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 8, 8));
+        g.setColor(fg.darker());
+        g.setStroke(new BasicStroke(1f));
+        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+        super.paintComponent(g2d);
+      }
+
+    };
+    btn.setForeground(fg);
+    btn.setFont(Fuentes.b(12));
+    return btn;
   }
 
   private JButton btnAmarillo(String texto) {

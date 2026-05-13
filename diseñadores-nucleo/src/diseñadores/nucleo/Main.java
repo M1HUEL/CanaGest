@@ -110,9 +110,9 @@ public class Main {
     System.out.println("── Insertando usuarios...");
 
     List<UsuarioDTO> usuarios = List.of(
-      new UsuarioDTO("admin", "1234", UsuarioRol.ADMINISTRADOR),
-      new UsuarioDTO("cajero", "1234", UsuarioRol.CAJERO),
-      new UsuarioDTO("almacen", "1234", UsuarioRol.ENCARGADO_ALMACEN)
+      new UsuarioDTO("erick armenta", "1234", UsuarioRol.ADMINISTRADOR),
+      new UsuarioDTO("isaias coronado", "1234", UsuarioRol.CAJERO),
+      new UsuarioDTO("miguel angel", "1234", UsuarioRol.ENCARGADO_ALMACEN)
     );
 
     for (UsuarioDTO u : usuarios) {

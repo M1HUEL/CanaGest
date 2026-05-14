@@ -264,4 +264,8 @@ public class VentasControl {
     return ventasFachada.obtenerHistorialVentas();
   }
 
+  public void eliminarProveedor(ProveedorDTO proveedor) {
+    proveedoresFachada.eliminarProveedor(proveedor.getCodigo());
+  }
+
 }

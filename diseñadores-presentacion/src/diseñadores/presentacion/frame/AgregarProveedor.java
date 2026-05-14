@@ -3,6 +3,7 @@ package diseñadores.presentacion.frame;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
+import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -189,17 +190,10 @@ public class AgregarProveedor extends JDialog {
   }
 
   private JButton crearBotonGuardar() {
-    JButton btnGuardar = new JButton("Agregar Proveedor");
-    btnGuardar.setFont(Fuentes.b(14));
-    btnGuardar.setForeground(Colores.BLANCO);
-    btnGuardar.setBackground(Colores.AZUL);
-    btnGuardar.setOpaque(true);
-    btnGuardar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-
-    btnGuardar.addActionListener(e -> manejarGuardado());
-    return btnGuardar;
+    JButton btn = Botones.azulDialogo("Agregar Proveedor");
+    btn.setAlignmentX(LEFT_ALIGNMENT);
+    btn.addActionListener(e -> manejarGuardado());
+    return btn;
   }
 
   private void manejarGuardado() {

@@ -239,4 +239,10 @@ public class ProveedoresControl {
       UUID.randomUUID().toString().substring(0, 8).toUpperCase());
   }
 
+  public void eliminarProveedor(String codigo) {
+    validarCodigoRequerido(codigo);
+    validarExistenciaProveedor(codigo);
+    Proveedor.eliminar(codigo);
+  }
+
 }

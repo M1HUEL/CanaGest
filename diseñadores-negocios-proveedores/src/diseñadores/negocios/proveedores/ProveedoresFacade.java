@@ -62,4 +62,9 @@ public class ProveedoresFacade implements IProveedores {
     control.cambiarEstadoOrden(numero, nuevoEstado);
   }
 
+  @Override
+  public void eliminarProveedor(String codigo) {
+    control.eliminarProveedor(codigo);
+  }
+
 }

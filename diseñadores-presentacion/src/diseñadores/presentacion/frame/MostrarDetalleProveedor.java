@@ -1,6 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.ProveedorDTO;
+import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -31,8 +32,15 @@ public class MostrarDetalleProveedor extends JDialog {
     panel.setBackground(Colores.BLANCO);
 
     panel.add(crearEncabezado());
-    panel.add(Box.createVerticalStrut(24));
+    panel.add(Box.createVerticalStrut(4));
 
+    JLabel lblCodigo = new JLabel("Código: " + (proveedor.getCodigo() != null ? proveedor.getCodigo() : "—"));
+    lblCodigo.setFont(Fuentes.r(12));
+    lblCodigo.setForeground(Colores.GRIS_TEXTO);
+    lblCodigo.setAlignmentX(LEFT_ALIGNMENT);
+    panel.add(lblCodigo);
+
+    panel.add(Box.createVerticalStrut(24));
     panel.add(crearSeccion("INFORMACIÓN DE CONTACTO"));
     panel.add(Box.createVerticalStrut(12));
     panel.add(crearFilaInfo("Contacto", proveedor.getContacto()));
@@ -42,11 +50,22 @@ public class MostrarDetalleProveedor extends JDialog {
     panel.add(crearFilaInfo("Email", proveedor.getEmail()));
     panel.add(Box.createVerticalStrut(8));
     panel.add(crearFilaInfo("Dirección", proveedor.getDireccion()));
-
     panel.add(Box.createVerticalStrut(20));
     panel.add(crearSeccion("TÉRMINOS COMERCIALES"));
     panel.add(Box.createVerticalStrut(12));
     panel.add(crearFilaInfo("Términos de pago", proveedor.getTerminosPago()));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Precio proveedor",
+      proveedor.getPrecioProveedor() != null
+      ? "$" + String.format("%.2f", proveedor.getPrecioProveedor()) : "—"));
+    panel.add(Box.createVerticalStrut(8));
+    panel.add(crearFilaInfo("Tiempo de entrega", proveedor.getTiempoEntregaProveedor()));
+    panel.add(Box.createVerticalStrut(24));
+
+    JButton btnCerrar = Botones.azulDialogo("Cerrar");
+    btnCerrar.setAlignmentX(LEFT_ALIGNMENT);
+    btnCerrar.addActionListener(e -> dispose());
+    panel.add(btnCerrar);
 
     setContentPane(panel);
   }

@@ -25,4 +25,6 @@ public interface IProveedores {
 
   void cambiarEstadoOrden(String numero, String nuevoEstado);
 
+  void eliminarProveedor(String codigo);
+
 }

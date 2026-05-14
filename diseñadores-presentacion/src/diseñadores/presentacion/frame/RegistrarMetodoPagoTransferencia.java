@@ -27,6 +27,9 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
   private final Runnable onVentaFinalizada;
   private final String referencia;
 
+  private JLabel lblEstado;
+  private JButton btnConfirmar;
+
   public RegistrarMetodoPagoTransferencia(
     SeleccionarMetodoPago seleccionarMetodoPago,
     JFrame mainFrame,
@@ -63,65 +66,6 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     root.add(cuerpo, BorderLayout.CENTER);
     setContentPane(root);
     setVisible(true);
-  }
-
-  private JPanel crearCard() {
-    JPanel card = crearTarjetaBlanca();
-    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-    card.setBorder(new EmptyBorder(28, 32, 32, 32));
-
-    card.add(crearHeader("TR", "Transferencia Bancaria", Colores.NARANJA));
-    card.add(Box.createVerticalStrut(22));
-    card.add(crearCajaTotal());
-    card.add(Box.createVerticalStrut(20));
-    card.add(crearDatosBancarios());
-    card.add(Box.createVerticalStrut(20));
-    card.add(crearInstrucciones());
-    card.add(Box.createVerticalStrut(24));
-    card.add(crearBotonConfirmar());
-    return card;
-  }
-
-  private JButton crearBotonConfirmar() {
-    JButton btn = crearBoton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
-    btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
-    btn.addActionListener(e -> onConfirmarTransferencia());
-    return btn;
-  }
-
-  private void onConfirmarTransferencia() {
-    alternarEstadoPantalla(false);
-    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
-      @Override
-      protected ResultadoPagoDTO doInBackground() {
-        return control.procesarPagoTransferencia(new PagoTransferenciaDTO(CLABE_TIENDA, referencia));
-      }
-
-      @Override
-      protected void done() {
-        alternarEstadoPantalla(true);
-        try {
-          manejarResultado(get());
-        } catch (InterruptedException | ExecutionException ex) {
-          mostrarError(ex.getMessage());
-        }
-      }
-
-    };
-    worker.execute();
-  }
-
-  private void alternarEstadoPantalla(boolean activado) {
-    setCursor(activado ? Cursor.getDefaultCursor() : Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    setEnabled(activado);
-  }
-
-  private void manejarResultado(ResultadoPagoDTO resultado) {
-    if (resultado.isAprobado()) {
-      finalizarVenta();
-    } else {
-      mostrarRechazo(resultado.getMensaje());
-    }
   }
 
   private void finalizarVenta() {
@@ -244,44 +188,6 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
     lbl.setForeground(color);
     return lbl;
-  }
-
-  private JPanel crearPanelBotonCopiar(String texto) {
-    JButton btn = new JButton("Copiar") {
-      boolean ov = false;
-
-      {
-        aplicarEstiloBoton(this);
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        dibujarFondo(g2d, getWidth(), getHeight(), ov ? Colores.NARANJA_HOVER : Colores.NARANJA, 8);
-        super.paintComponent(g2d);
-      }
-
-    };
-    btn.setForeground(Colores.BLANCO);
-    btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-    btn.setPreferredSize(new Dimension(64, 36));
-    btn.addActionListener(e -> onCopiarDato(texto));
-
-    JPanel wrapper = new JPanel(new GridBagLayout());
-    wrapper.setOpaque(false);
-    wrapper.add(btn);
-    return wrapper;
   }
 
   private void onCopiarDato(String texto) {
@@ -508,6 +414,160 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(color);
     g.fill(new RoundRectangle2D.Float(0, 0, w, h, arc, arc));
+  }
+
+  private JPanel crearCard() {
+    JPanel card = crearTarjetaBlanca();
+    card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+    card.setBorder(new EmptyBorder(28, 32, 32, 32));
+    card.add(crearHeader("TR", "Transferencia Bancaria", Colores.NARANJA));
+    card.add(Box.createVerticalStrut(22));
+    card.add(crearCajaTotal());
+    card.add(Box.createVerticalStrut(20));
+    card.add(crearDatosBancarios());
+    card.add(Box.createVerticalStrut(20));
+    card.add(crearPanelEstado());
+    card.add(Box.createVerticalStrut(14));
+    card.add(crearInstrucciones());
+    card.add(Box.createVerticalStrut(24));
+    card.add(crearBotonConfirmar());
+    return card;
+  }
+
+  private JPanel crearPanelEstado() {
+    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0)) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new Color(248, 249, 252));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.setColor(Colores.BORDE_GRIS);
+        g.setStroke(new BasicStroke(1f));
+        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+        super.paintComponent(g2d);
+      }
+
+    };
+    panel.setOpaque(false);
+    panel.setAlignmentX(LEFT_ALIGNMENT);
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+    panel.setBorder(new EmptyBorder(10, 16, 10, 16));
+
+    lblEstado = new JLabel("● Esperando confirmación de transferencia");
+    lblEstado.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    lblEstado.setForeground(new Color(100, 116, 139));
+    panel.add(lblEstado);
+    return panel;
+  }
+
+  private JButton crearBotonConfirmar() {
+    btnConfirmar = crearBoton("Ya realicé la transferencia", Colores.NARANJA, Colores.NARANJA_HOVER);
+    btnConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+    btnConfirmar.addActionListener(e -> onConfirmarTransferencia());
+    return btnConfirmar;
+  }
+
+  private void onConfirmarTransferencia() {
+    btnConfirmar.setEnabled(false);
+    btnConfirmar.setText("Procesando...");
+    actualizarEstado("🔄 Verificando transferencia con el banco...", new Color(161, 110, 0));
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
+      @Override
+      protected ResultadoPagoDTO doInBackground() {
+        return control.procesarPagoTransferencia(
+          new PagoTransferenciaDTO(CLABE_TIENDA, referencia));
+      }
+
+      @Override
+      protected void done() {
+        setCursor(Cursor.getDefaultCursor());
+        try {
+          manejarResultado(get());
+        } catch (InterruptedException | ExecutionException ex) {
+          restaurarBoton();
+          mostrarError(ex.getMessage());
+        }
+      }
+
+    };
+    worker.execute();
+  }
+
+  private void manejarResultado(ResultadoPagoDTO resultado) {
+    if (resultado.isAprobado()) {
+      actualizarEstado("✓ Transferencia aprobada", new Color(21, 128, 61));
+      Timer pausa = new Timer(600, e -> finalizarVenta());
+      pausa.setRepeats(false);
+      pausa.start();
+    } else {
+      actualizarEstado("✗ Transferencia rechazada", Colores.ROJO);
+      mostrarRechazo(resultado.getMensaje());
+      restaurarBoton();
+    }
+  }
+
+  private void restaurarBoton() {
+    btnConfirmar.setEnabled(true);
+    btnConfirmar.setText("Ya realicé la transferencia");
+    actualizarEstado("● Esperando confirmación de transferencia", new Color(100, 116, 139));
+  }
+
+  private void actualizarEstado(String texto, Color color) {
+    lblEstado.setText(texto);
+    lblEstado.setForeground(color);
+    lblEstado.getParent().revalidate();
+    lblEstado.getParent().repaint();
+  }
+
+  private JPanel crearPanelBotonCopiar(String texto) {
+    JButton btn = new JButton("Copiar") {
+      boolean ov = false;
+
+      {
+        aplicarEstiloBoton(this);
+        addMouseListener(new MouseAdapter() {
+          public void mouseEntered(MouseEvent e) {
+            ov = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            ov = false;
+            repaint();
+          }
+
+        });
+      }
+
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        dibujarFondo(g2d, getWidth(), getHeight(),
+          ov ? Colores.NARANJA_HOVER : Colores.NARANJA, 8);
+        super.paintComponent(g2d);
+      }
+
+    };
+    btn.setForeground(Colores.BLANCO);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    btn.setPreferredSize(new Dimension(64, 36));
+    btn.addActionListener(e -> {
+      Toolkit.getDefaultToolkit()
+        .getSystemClipboard()
+        .setContents(new StringSelection(texto), null);
+
+      btn.setText("✓");
+      Timer reset = new Timer(1500, ev -> btn.setText("Copiar"));
+      reset.setRepeats(false);
+      reset.start();
+    });
+
+    JPanel wrapper = new JPanel(new GridBagLayout());
+    wrapper.setOpaque(false);
+    wrapper.add(btn);
+    return wrapper;
   }
 
   private String generarReferencia() {

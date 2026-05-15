@@ -19,6 +19,8 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
   private final JFrame mainFrame;
   private final VentasControl control;
   private final Runnable onVentaFinalizada;
+  private JLabel lblEstado;
+  private JButton btnProcesar;
 
   public RegistrarMetodoPagoTarjeta(
     SeleccionarMetodoPago seleccionarMetodoPago,
@@ -72,7 +74,9 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     JTextField campoNum = crearCampoNumeroTarjeta(card);
     JTextField campoNom = crearCampoNombreTitular(card);
 
-    card.add(Box.createVerticalStrut(24));
+    card.add(Box.createVerticalStrut(14));
+    card.add(crearPanelEstado());
+    card.add(Box.createVerticalStrut(14));
     card.add(crearBotonProcesar(campoNum, campoNom));
     return card;
   }
@@ -104,13 +108,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     return campo;
   }
 
-  private JButton crearBotonProcesar(JTextField campoNum, JTextField campoNom) {
-    JButton btn = crearBoton("Procesar Pago", Colores.AZUL, Colores.AZUL_HOVER);
-    btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
-    btn.addActionListener(e -> onProcesarPago(campoNum.getText(), campoNom.getText()));
-    return btn;
-  }
-
   private void onProcesarPago(String numRaw, String titular) {
     String numero = numRaw.replaceAll("\\s", "");
     if (validarDatos(numero, titular)) {
@@ -130,44 +127,6 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       return false;
     }
     return true;
-  }
-
-  private void ejecutarProcesoPago(String numero, String titular) {
-    alternarEstadoCarga(true);
-    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
-      @Override
-      protected ResultadoPagoDTO doInBackground() {
-        return control.procesarPagoTarjeta(new PagoTarjetaDTO(numero, titular));
-      }
-
-      @Override
-      protected void done() {
-        alternarEstadoCarga(false);
-        try {
-          manejarResultado(get());
-        } catch (InterruptedException | ExecutionException ex) {
-          JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
-            ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-
-    };
-    worker.execute();
-  }
-
-  private void alternarEstadoCarga(boolean cargando) {
-    setEnabled(!cargando);
-    setCursor(cargando ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
-  }
-
-  private void manejarResultado(ResultadoPagoDTO resultado) {
-    if (resultado.isAprobado()) {
-      finalizarVenta();
-    } else {
-      JOptionPane.showMessageDialog(this,
-        "Pago rechazado por el banco:\n\n" + resultado.getMensaje(),
-        "Pago rechazado", JOptionPane.WARNING_MESSAGE);
-    }
   }
 
   private void finalizarVenta() {
@@ -523,6 +482,96 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
     b.setFont(new Font("Segoe UI", Font.BOLD, 15));
     b.setHorizontalAlignment(SwingConstants.CENTER);
     return b;
+  }
+
+  private JButton crearBotonProcesar(JTextField campoNum, JTextField campoNom) {
+    btnProcesar = crearBoton("Procesar Pago", Colores.AZUL, Colores.AZUL_HOVER);
+    btnProcesar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
+    btnProcesar.addActionListener(e -> onProcesarPago(campoNum.getText(), campoNom.getText()));
+    return btnProcesar;
+  }
+
+  private JPanel crearPanelEstado() {
+    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0)) {
+      @Override
+      protected void paintComponent(Graphics g2d) {
+        Graphics2D g = (Graphics2D) g2d;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new Color(248, 249, 252));
+        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+        g.setColor(Colores.BORDE_GRIS);
+        g.setStroke(new BasicStroke(1f));
+        g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+        super.paintComponent(g2d);
+      }
+
+    };
+    panel.setOpaque(false);
+    panel.setAlignmentX(LEFT_ALIGNMENT);
+    panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+    panel.setBorder(new EmptyBorder(10, 16, 10, 16));
+
+    lblEstado = new JLabel("● Ingrese los datos de la tarjeta");
+    lblEstado.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    lblEstado.setForeground(new Color(100, 116, 139));
+    panel.add(lblEstado);
+    return panel;
+  }
+
+  private void actualizarEstado(String texto, Color color) {
+    lblEstado.setText(texto);
+    lblEstado.setForeground(color);
+    lblEstado.getParent().revalidate();
+    lblEstado.getParent().repaint();
+  }
+
+  private void ejecutarProcesoPago(String numero, String titular) {
+    btnProcesar.setEnabled(false);
+    btnProcesar.setText("Procesando...");
+    actualizarEstado("🔄 Conectando con el banco...", new Color(161, 110, 0));
+    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
+      @Override
+      protected ResultadoPagoDTO doInBackground() {
+        return control.procesarPagoTarjeta(new PagoTarjetaDTO(numero, titular));
+      }
+
+      @Override
+      protected void done() {
+        setCursor(Cursor.getDefaultCursor());
+        try {
+          manejarResultado(get());
+        } catch (InterruptedException | ExecutionException ex) {
+          restaurarBoton();
+          JOptionPane.showMessageDialog(RegistrarMetodoPagoTarjeta.this,
+            ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+
+    };
+    worker.execute();
+  }
+
+  private void restaurarBoton() {
+    btnProcesar.setEnabled(true);
+    btnProcesar.setText("Procesar Pago");
+    actualizarEstado("● Ingrese los datos de la tarjeta", new Color(100, 116, 139));
+  }
+
+  private void manejarResultado(ResultadoPagoDTO resultado) {
+    if (resultado.isAprobado()) {
+      actualizarEstado("✓ Pago aprobado", new Color(21, 128, 61));
+      Timer pausa = new Timer(600, e -> finalizarVenta());
+      pausa.setRepeats(false);
+      pausa.start();
+    } else {
+      actualizarEstado("✗ Pago rechazado", Colores.ROJO);
+      JOptionPane.showMessageDialog(this,
+        "Pago rechazado por el banco:\n\n" + resultado.getMensaje(),
+        "Pago rechazado", JOptionPane.WARNING_MESSAGE);
+      restaurarBoton();
+    }
   }
 
 }

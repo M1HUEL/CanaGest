@@ -113,6 +113,7 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
 
         OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, prov, "Pendiente", cant, tot);
         control.guardarOrdenCompra(nueva);
+
         if (onSuccess != null) {
           onSuccess.run();
         }

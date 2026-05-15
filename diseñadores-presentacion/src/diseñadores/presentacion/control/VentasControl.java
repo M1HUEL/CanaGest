@@ -121,7 +121,10 @@ public class VentasControl {
     if (!ventasFachada.tieneStock(dto)) {
       return ResultadoEscaneo.SIN_STOCK;
     }
-    ventasFachada.procesarProducto(ventaActual, dto);
+    ProductoDTO productoProcesado = ventasFachada.procesarProducto(ventaActual, dto);
+    if (productoProcesado == null) {
+      return ResultadoEscaneo.SIN_STOCK;
+    }
     recalcularTotales();
     return ResultadoEscaneo.OK;
   }

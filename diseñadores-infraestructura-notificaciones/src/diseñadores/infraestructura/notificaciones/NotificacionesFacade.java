@@ -17,4 +17,9 @@ public class NotificacionesFacade implements INotificaciones {
     return control.enviarNotificacionStock(email, mensaje);
   }
 
+  @Override
+  public boolean enviarNotificacionStock(String email, String mensaje, boolean esHtml) {
+    return control.enviarNotificacionStock(email, mensaje, esHtml);
+  }
+
 }

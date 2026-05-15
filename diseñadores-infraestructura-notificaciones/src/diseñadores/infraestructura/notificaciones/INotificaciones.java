@@ -4,4 +4,6 @@ public interface INotificaciones {
 
   boolean enviarNotificacionStock(String email, String mensaje);
 
+  boolean enviarNotificacionStock(String email, String mensaje, boolean esHtml);
+
 }

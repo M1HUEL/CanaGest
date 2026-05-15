@@ -310,8 +310,55 @@ public class VentasControl {
   }
 
   private void ejecutarProtocoloReabastecimiento(ProductoDTO p) {
-    String msg = "Alerta: stock bajo para " + p.getNombre() + ". Quedan " + p.getStock() + " unidades.";
-    servicioNotificaciones.enviarNotificacionStock(p.getProveedor().getEmail(), msg);
+    String proveedorNombre = p.getProveedor() != null ? p.getProveedor().getNombre() : "Desconocido";
+    String proveedorEmail = p.getProveedor() != null ? p.getProveedor().getEmail() : "sin-email@proveedor.com";
+    int stockMinimo = p.getStockMinimo();
+
+    String cuerpoHtml = """
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+                .contenedor { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+                .encabezado { background-color: #e74c3c; color: white; padding: 20px; text-align: center; }
+                .encabezado h1 { margin: 0; font-size: 24px; }
+                .cuerpo { padding: 30px; }
+                .fila { margin-bottom: 15px; }
+                .etiqueta { font-weight: bold; color: #34495e; display: inline-block; width: 140px; }
+                .valor { color: #2c3e50; }
+                .alerta { background-color: #fdecea; border-left: 4px solid #e74c3c; padding: 12px; margin: 20px 0; }
+                .btn { display: inline-block; padding: 12px 25px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+                .pie { background: #ecf0f1; padding: 15px; text-align: center; font-size: 12px; color: #7f8c8d; }
+            </style>
+        </head>
+        <body>
+            <div class="contenedor">
+                <div class="encabezado">
+                    <h1>⚠️ Stock Crítico</h1>
+                </div>
+                <div class="cuerpo">
+                    <p>Estimado proveedor <strong>%s</strong>,</p>
+                    <p>El siguiente producto ha caído por debajo del nivel mínimo de inventario y requiere reabastecimiento inmediato.</p>
+                    <div class="fila"><span class="etiqueta">Producto:</span><span class="valor">%s</span></div>
+                    <div class="fila"><span class="etiqueta">Código:</span><span class="valor">%s</span></div>
+                    <div class="fila"><span class="etiqueta">Stock actual:</span><span class="valor" style="color:#e74c3c; font-weight:bold;">%d unidades</span></div>
+                    <div class="fila"><span class="etiqueta">Stock mínimo:</span><span class="valor">%d unidades</span></div>
+                    <div class="fila"><span class="etiqueta">Proveedor actual:</span><span class="valor">%s</span></div>
+                    <div class="alerta">
+                        📦 Se recomienda generar una orden de compra a la brevedad para evitar desabasto.
+                    </div>
+                    <p>Puede comunicarse con nuestro equipo de compras a través de <a href="mailto:compras@lacanasta.com">compras@lacanasta.com</a> o al teléfono (555) 123-4567.</p>
+                    <a href="#" class="btn">Ir al portal del proveedor</a>
+                </div>
+                <div class="pie">
+                    Este mensaje fue generado automáticamente por el sistema La Canasta. No responda a este correo.
+                </div>
+            </div>
+        </body>
+        </html>
+        """.formatted(proveedorNombre, p.getNombre(), p.getCodigo(), p.getStock(), stockMinimo, proveedorNombre);
+
+    servicioNotificaciones.enviarNotificacionStock(proveedorEmail, cuerpoHtml, true);
   }
 
   private String generarFolio() {

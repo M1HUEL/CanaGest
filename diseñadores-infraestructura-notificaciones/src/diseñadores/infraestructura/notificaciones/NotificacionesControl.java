@@ -28,6 +28,29 @@ public class NotificacionesControl {
     }
   }
 
+  public boolean enviarNotificacionStock(String email, String mensajeHtml, boolean esHtml) {
+    validarDatos(email, mensajeHtml);
+    try {
+      Session session = crearSesion();
+      Message message = prepararMensajeHtml(session, email, mensajeHtml);
+      Transport.send(message);
+      System.out.println("✅ Correo HTML enviado a Mailtrap con éxito.");
+      return true;
+    } catch (MessagingException e) {
+      System.err.println("❌ Error al enviar a Mailtrap: " + e.getMessage());
+      return false;
+    }
+  }
+
+  private Message prepararMensajeHtml(Session session, String email, String mensajeHtml) throws MessagingException {
+    Message message = new MimeMessage(session);
+    message.setFrom(new InternetAddress("sistema@lacanasta.com"));
+    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+    message.setSubject("⚠️ Alerta de Stock Bajo - Acción Requerida");
+    message.setContent(mensajeHtml, "text/html; charset=utf-8");
+    return message;
+  }
+
   private void validarDatos(String email, String mensaje) {
     if (email == null || email.trim().isEmpty()) {
       throw new IllegalArgumentException("El email de destino no puede estar vacío");

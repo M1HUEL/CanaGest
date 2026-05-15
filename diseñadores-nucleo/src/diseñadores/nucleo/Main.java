@@ -4,6 +4,7 @@ import diseñadores.negocios.dto.ItemVentaDTO;
 import diseñadores.negocios.dto.OrdenCompraDTO;
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.negocios.dto.ProveedorDTO;
+import diseñadores.negocios.dto.TipoPago;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.UsuarioRol;
 import diseñadores.negocios.dto.VentaDTO;
@@ -159,6 +160,8 @@ public class Main {
     venta1.agregarProducto(frijol);
     venta1.setPagada(true);
     venta1.setFolio("TK-" + System.currentTimeMillis());
+    venta1.setTipoPago(TipoPago.EFECTIVO);
+    venta1.setCajero("erick armenta");
 
     VentaDTO venta2 = new VentaDTO();
     venta2.agregarProducto(leche);
@@ -166,6 +169,8 @@ public class Main {
     venta2.agregarProducto(cafe);
     venta2.setPagada(true);
     venta2.setFolio("TK-" + (System.currentTimeMillis() + 1));
+    venta2.setTipoPago(TipoPago.TARJETA);
+    venta2.setCajero("isaias coronado");
 
     VentaDTO venta3 = new VentaDTO();
     venta3.agregarProducto(arroz);
@@ -174,6 +179,8 @@ public class Main {
     venta3.agregarProducto(frijol);
     venta3.setPagada(true);
     venta3.setFolio("TK-" + (System.currentTimeMillis() + 2));
+    venta3.setTipoPago(TipoPago.TRANSACCION); // Transferencia
+    venta3.setCajero("miguel angel");
 
     Venta.guardar(venta1);
     Venta.guardar(venta2);

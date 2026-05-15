@@ -1,6 +1,5 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.ItemVentaDTO;
 import diseñadores.negocios.dto.TipoPago;
 import diseñadores.negocios.dto.VentaDTO;
 import diseñadores.presentacion.control.VentasControl;
@@ -225,7 +224,6 @@ public class HistorialVentas extends JFrame {
       headerTabla.add(lbl);
     }
 
-    // columna extra para acción
     JLabel lblAcc = new JLabel("Acciones");
     lblAcc.setFont(Fuentes.b(13));
     lblAcc.setForeground(Colores.TEXTO_OSCURO);
@@ -324,18 +322,14 @@ public class HistorialVentas extends JFrame {
     fila.setBorder(new EmptyBorder(14, 24, 14, 24));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 58));
 
-    // Folio
     fila.add(labelTabla(v.getFolio() != null ? v.getFolio() : "—", true));
 
-    // Fecha
     fila.add(labelTabla(v.getFecha() != null ? v.getFecha() : "—", false));
 
-    // Cantidad de productos
     int numItems = v.getItems() != null ? v.getItems().size() : 0;
     int unidades = v.getTotalUnidades();
     fila.add(labelTabla(numItems + " artículo(s)  ·  " + unidades + " ud.", false));
 
-    // Subtotal
     fila.add(labelTabla("$" + fmt(v.getSubtotal()), false));
 
     // IVA
@@ -347,10 +341,8 @@ public class HistorialVentas extends JFrame {
     lblTotal.setForeground(Colores.TEXTO_OSCURO);
     fila.add(lblTotal);
 
-    // Tipo de pago — badge
     fila.add(crearBadgePago(v.getTipoPago()));
 
-    // Acción
     JPanel wrapBtn = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     wrapBtn.setOpaque(false);
     JButton btnDetalle = Botones.azulChico("Ver detalle");

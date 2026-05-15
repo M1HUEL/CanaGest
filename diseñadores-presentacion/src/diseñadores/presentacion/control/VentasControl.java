@@ -181,7 +181,11 @@ public class VentasControl {
     return ventasFachada.procesarCalcularCambio(ventaActual, recibido);
   }
 
-  public void finalizarVenta() {
+  public void finalizarVenta(TipoPago tipoPago) {
+    if (tipoPago == null) {
+      throw new IllegalStateException("El tipo de pago no ha sido asignado antes de finalizar la venta.");
+    }
+    ventaActual.setTipoPago(tipoPago);
     ventaActual.setCajero(usuarioActivo.getNombre());
     ventasFachada.procesarFinalizarVenta(ventaActual);
   }

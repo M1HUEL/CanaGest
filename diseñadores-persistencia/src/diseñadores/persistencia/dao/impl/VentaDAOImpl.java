@@ -119,6 +119,14 @@ public class VentaDAOImpl implements IVentaDAO {
     dto.setFecha(doc.getString("fecha"));
     dto.setCajero(doc.getString("cajero"));
 
+    String tipoPagoStr = doc.getString("tipoPago");
+    if (tipoPagoStr != null) {
+      try {
+        dto.setTipoPago(diseñadores.negocios.dto.TipoPago.valueOf(tipoPagoStr));
+      } catch (IllegalArgumentException ignored) {
+      }
+    }
+
     List<ItemVentaDTO> items = new ArrayList<>();
     List<Document> itemDocs = doc.getList("items", Document.class);
     if (itemDocs != null) {
@@ -144,8 +152,6 @@ public class VentaDAOImpl implements IVentaDAO {
         .append("precioUnitario", item.getPrecioUnitario().doubleValue())
         .append("cantidad", item.getCantidad())
         .append("subtotal", item.getSubtotal().doubleValue())
-        .append("fecha", dto.getFecha())
-        .append("cajero", dto.getCajero())
       );
     }
 
@@ -156,6 +162,9 @@ public class VentaDAOImpl implements IVentaDAO {
       .append("iva", dto.getIva().doubleValue())
       .append("total", dto.getTotal().doubleValue())
       .append("totalUnidades", dto.getTotalUnidades())
+      .append("tipoPago", dto.getTipoPago() != null ? dto.getTipoPago().name() : null)
+      .append("cajero", dto.getCajero())
+      .append("fecha", dto.getFecha())
       .append("items", itemDocs);
   }
 

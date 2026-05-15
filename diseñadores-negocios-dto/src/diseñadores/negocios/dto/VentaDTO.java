@@ -134,4 +134,9 @@ public class VentaDTO {
     this.cajero = cajero;
   }
 
+  @Override
+  public String toString() {
+    return "VentaDTO{" + "items=" + items + ", subtotal=" + subtotal + ", iva=" + iva + ", total=" + total + ", totalUnidades=" + totalUnidades + ", pagada=" + pagada + ", folio=" + folio + ", tipoPago=" + tipoPago + ", fecha=" + fecha + ", cajero=" + cajero + '}';
+  }
+
 }

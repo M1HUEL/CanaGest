@@ -70,7 +70,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
 
   private void finalizarVenta() {
     try {
-      control.finalizarVenta();
+      control.finalizarVenta(TipoPago.TRANSACCION);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
       new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);

@@ -279,7 +279,7 @@ public class RegistrarMetodoPagoEfectivo extends JFrame {
   }
 
   private void finalizarVenta(JFrame mainFrame, Runnable onConfirmado) {
-    control.finalizarVenta();
+    control.finalizarVenta(TipoPago.EFECTIVO);
     TicketDTO ticketDTO = control.generarTicket(recibido);
     setVisible(false);
     new PantallaTicket(mainFrame, ticketDTO, onConfirmado, control);

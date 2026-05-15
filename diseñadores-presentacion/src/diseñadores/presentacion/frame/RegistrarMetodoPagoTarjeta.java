@@ -131,7 +131,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void finalizarVenta() {
     try {
-      control.finalizarVenta();
+      control.finalizarVenta(TipoPago.TARJETA);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
       new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);

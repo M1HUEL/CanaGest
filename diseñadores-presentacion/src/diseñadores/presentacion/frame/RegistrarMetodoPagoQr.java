@@ -512,7 +512,7 @@ public class RegistrarMetodoPagoQr extends JFrame {
   private void finalizarVenta() {
     countdown.stop();
     try {
-      control.finalizarVenta();
+      control.finalizarVenta(TipoPago.QR);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
       new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);

@@ -161,7 +161,7 @@ public class PantallaAutenticacion extends JFrame {
       new EmptyBorder(10, 16, 10, 16)));
     campo.setFont(Fuentes.r(14));
     campo.setForeground(Colores.GRIS_TEXTO);
-    campo.setPreferredSize(new Dimension(0, 50));
+    campo.setPreferredSize(new Dimension(100, 50));
   }
 
   private void dibujarFondoCampo(Graphics2D g, int w, int h) {
@@ -221,15 +221,15 @@ public class PantallaAutenticacion extends JFrame {
     JPanel fila = new JPanel();
     fila.setLayout(new BoxLayout(fila, BoxLayout.Y_AXIS));
     fila.setOpaque(false);
-    fila.setAlignmentX(LEFT_ALIGNMENT);
+    fila.setAlignmentX(Component.CENTER_ALIGNMENT);
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
     JLabel label = new JLabel(titulo);
     label.setFont(Fuentes.b(13));
     label.setForeground(Colores.TEXTO_OSCURO);
-    label.setAlignmentX(LEFT_ALIGNMENT);
+    label.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    campo.setAlignmentX(LEFT_ALIGNMENT);
+    campo.setAlignmentX(Component.CENTER_ALIGNMENT);
     campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
     fila.add(label);

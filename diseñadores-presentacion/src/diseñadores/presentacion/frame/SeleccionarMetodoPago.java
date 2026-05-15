@@ -3,6 +3,7 @@ package diseñadores.presentacion.frame;
 import diseñadores.negocios.dto.*;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Colores;
+import diseñadores.presentacion.utilidad.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,9 +16,13 @@ import java.util.Map;
 
 public class SeleccionarMetodoPago extends JFrame {
 
-  private static final Font FONT_TITULO = new Font("Segoe UI", Font.BOLD, 22);
-  private static final Font FONT_BOTON_METODO = new Font("Segoe UI", Font.BOLD, 20);
-  private static final Font FONT_BOTON_ACCION = new Font("Segoe UI", Font.BOLD, 14);
+  static {
+    Fuentes.cargar();
+  }
+
+  private static final Font FONT_TITULO = Fuentes.b(22);
+  private static final Font FONT_BOTON_METODO = Fuentes.b(20);
+  private static final Font FONT_BOTON_ACCION = Fuentes.b(14);
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
 
@@ -96,7 +101,7 @@ public class SeleccionarMetodoPago extends JFrame {
     dispose();
     new MenuPrincipal(
       control.getUsuarioActivo(),
-      this.control);
+      this.control).setVisible(true);
   }
 
   private JPanel crearCard() {
@@ -133,7 +138,7 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private JPanel crearGridMetodos() {
-    JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
+    JPanel grid = new JPanel(new GridLayout(0, 1, 0, 16));
     grid.setOpaque(false);
     COLORES_METODO.forEach((nombre, colores)
       -> grid.add(crearBotonMetodo(nombre, colores[0], colores[1]))

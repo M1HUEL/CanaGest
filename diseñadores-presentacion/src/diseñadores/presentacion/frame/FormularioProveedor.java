@@ -3,6 +3,7 @@ package diseñadores.presentacion.frame;
 import diseñadores.negocios.dto.ProveedorDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
+import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
 import diseñadores.presentacion.utilidad.Fuentes;
 
@@ -29,10 +30,12 @@ public class FormularioProveedor extends JDialog {
     this.onSuccess = onSuccess;
     this.esNuevo = proveedor == null;
 
-    setSize(540, 680);
+    Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
+    int alto = Math.min(820, pantalla.height - 80);
+    setSize(580, alto);
+
     setLocationRelativeTo(parent);
     setResizable(true);
-
     construirContenido();
   }
 
@@ -206,17 +209,10 @@ public class FormularioProveedor extends JDialog {
   }
 
   private JButton crearBotonGuardar() {
-    JButton btnGuardar = new JButton(esNuevo ? "Agregar Proveedor" : "Guardar Cambios");
-    btnGuardar.setFont(Fuentes.b(14));
-    btnGuardar.setForeground(Colores.BLANCO);
-    btnGuardar.setBackground(Colores.AZUL);
-    btnGuardar.setOpaque(true);
-    btnGuardar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    btnGuardar.setAlignmentX(LEFT_ALIGNMENT);
-    btnGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-
-    btnGuardar.addActionListener(e -> manejarGuardado());
-    return btnGuardar;
+    JButton btn = Botones.azulDialogo(esNuevo ? "Agregar Proveedor" : "Guardar Cambios");
+    btn.setAlignmentX(LEFT_ALIGNMENT);
+    btn.addActionListener(e -> manejarGuardado());
+    return btn;
   }
 
   private void manejarGuardado() {
@@ -263,10 +259,11 @@ public class FormularioProveedor extends JDialog {
   private boolean validarObligatorios() {
     String[] nombres = {"nombre", "contacto", "teléfono", "email"};
     int[] indices = {0, 2, 3, 4};
-    for (int idx : indices) {
-      if (campos[idx].getText().trim().isEmpty()) {
+
+    for (int i = 0; i < indices.length; i++) {
+      if (campos[indices[i]].getText().trim().isEmpty()) {
         JOptionPane.showMessageDialog(this,
-          "El " + nombres[idx] + " es obligatorio.",
+          "El " + nombres[i] + " es obligatorio.",
           "Error", JOptionPane.WARNING_MESSAGE);
         return false;
       }

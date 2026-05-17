@@ -5,15 +5,8 @@ import diseñadores.negocios.dto.UsuarioRol;
 import diseñadores.negocios.objetos.Usuario;
 
 import java.util.List;
-import java.util.Optional;
 
 public class UsuariosControl {
-
-  public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
-    validarCredencialesEntrada(nombre, contrasena);
-
-    return ejecutarAutenticacion(nombre, contrasena);
-  }
 
   public List<UsuarioDTO> obtenerTodos() {
     return Usuario.obtenerTodos();
@@ -118,11 +111,6 @@ public class UsuariosControl {
     if (Usuario.obtenerTodos().stream().noneMatch(u -> u.getNombre().equals(nombre))) {
       throw new IllegalStateException("No existe un usuario con el nombre: " + nombre);
     }
-  }
-
-  private Optional<UsuarioDTO> ejecutarAutenticacion(String nombre, String contrasena) {
-    String nombreNormalizado = nombre.toLowerCase().trim();
-    return Usuario.autenticar(nombreNormalizado, contrasena);
   }
 
   private void ejecutarGuardado(UsuarioDTO usuario) {

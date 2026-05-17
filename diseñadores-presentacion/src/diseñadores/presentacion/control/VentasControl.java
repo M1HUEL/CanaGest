@@ -1,5 +1,6 @@
 package diseñadores.presentacion.control;
 
+import diseñadores.negocios.autenticacion.IAutenticacion;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.proveedores.IProveedores;
@@ -19,6 +20,8 @@ public class VentasControl {
   private final IUsuarios usuariosFachada;
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
+  private final IAutenticacion autenticacionFachada;
+
   private final UsuarioDTO usuarioActivo;
 
   private VentaDTO ventaActual;
@@ -26,11 +29,13 @@ public class VentasControl {
 
   public VentasControl(IVentas ventasFachada, IUsuarios usuariosFachada,
     IInventario inventarioFachada, IProveedores proveedoresFachada,
+    IAutenticacion autenticacionFachada,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
+    this.autenticacionFachada = autenticacionFachada;
     this.usuarioActivo = usuarioActivo;
 
     inicializarEstado();
@@ -42,7 +47,7 @@ public class VentasControl {
   }
 
   public Optional<UsuarioDTO> autenticar(String nombre, String contrasena) {
-    return usuariosFachada.autenticarse(nombre, contrasena);
+    return autenticacionFachada.autenticar(nombre, contrasena);
   }
 
   public IVentas getVentasFachada() {
@@ -59,6 +64,10 @@ public class VentasControl {
 
   public IProveedores getProveedoresFachada() {
     return proveedoresFachada;
+  }
+
+  public IAutenticacion getAutenticacionFachada() {
+    return autenticacionFachada;
   }
 
   public UsuarioDTO getUsuarioActivo() {

@@ -4,7 +4,6 @@ import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.dto.UsuarioRol;
 
 import java.util.List;
-import java.util.Optional;
 
 public class UsuariosFacade implements IUsuarios {
 
@@ -16,11 +15,6 @@ public class UsuariosFacade implements IUsuarios {
 
   public UsuariosFacade(UsuariosControl control) {
     this.control = control;
-  }
-
-  @Override
-  public Optional<UsuarioDTO> autenticarse(String nombre, String contrasena) {
-    return control.autenticar(nombre, contrasena);
   }
 
   @Override

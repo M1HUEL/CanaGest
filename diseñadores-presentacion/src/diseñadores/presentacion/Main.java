@@ -1,5 +1,7 @@
 package diseñadores.presentacion;
 
+import diseñadores.negocios.autenticacion.AutenticacionFacade;
+import diseñadores.negocios.autenticacion.IAutenticacion;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.inventario.*;
 import diseñadores.negocios.proveedores.*;
@@ -21,10 +23,11 @@ public class Main {
     IUsuarios usuariosFachada = new UsuariosFacade();
     IInventario inventarioFachada = new InventarioFacade(inventarioControl);
     IProveedores proveedoresFachada = new ProveedoresFacade();
+    IAutenticacion autenticacionFachada = new AutenticacionFacade();
 
     VentasFacade ventasFachada = new VentasFacade();
 
-    VentasControl control = new VentasControl(ventasFachada, usuariosFachada, inventarioFachada, proveedoresFachada, new UsuarioDTO());
+    VentasControl control = new VentasControl(ventasFachada, usuariosFachada, inventarioFachada, proveedoresFachada, autenticacionFachada, new UsuarioDTO());
 
     SwingUtilities.invokeLater(() -> {
       new PantallaAutenticacion(control).setVisible(true);

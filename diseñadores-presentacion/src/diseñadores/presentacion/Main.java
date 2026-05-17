@@ -4,6 +4,8 @@ import diseñadores.negocios.autenticacion.AutenticacionFacade;
 import diseñadores.negocios.autenticacion.IAutenticacion;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.inventario.*;
+import diseñadores.negocios.ordenes.compras.IOrdenesCompras;
+import diseñadores.negocios.ordenes.compras.OrdenesComprasFacade;
 import diseñadores.negocios.proveedores.*;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.usuarios.UsuariosFacade;
@@ -24,10 +26,11 @@ public class Main {
     IInventario inventarioFachada = new InventarioFacade(inventarioControl);
     IProveedores proveedoresFachada = new ProveedoresFacade();
     IAutenticacion autenticacionFachada = new AutenticacionFacade();
+    IOrdenesCompras ordenesComprasFachada = new OrdenesComprasFacade();
 
     VentasFacade ventasFachada = new VentasFacade();
 
-    VentasControl control = new VentasControl(ventasFachada, usuariosFachada, inventarioFachada, proveedoresFachada, autenticacionFachada, new UsuarioDTO());
+    VentasControl control = new VentasControl(ventasFachada, usuariosFachada, inventarioFachada, proveedoresFachada, autenticacionFachada, ordenesComprasFachada, new UsuarioDTO());
 
     SwingUtilities.invokeLater(() -> {
       new PantallaAutenticacion(control).setVisible(true);

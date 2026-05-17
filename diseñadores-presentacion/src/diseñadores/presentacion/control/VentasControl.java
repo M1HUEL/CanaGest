@@ -3,6 +3,7 @@ package diseñadores.presentacion.control;
 import diseñadores.negocios.autenticacion.IAutenticacion;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
+import diseñadores.negocios.ordenes.compras.IOrdenesCompras;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
@@ -21,6 +22,7 @@ public class VentasControl {
   private final IInventario inventarioFachada;
   private final IProveedores proveedoresFachada;
   private final IAutenticacion autenticacionFachada;
+  private final IOrdenesCompras ordenesComprasFachada;
 
   private final UsuarioDTO usuarioActivo;
 
@@ -29,13 +31,14 @@ public class VentasControl {
 
   public VentasControl(IVentas ventasFachada, IUsuarios usuariosFachada,
     IInventario inventarioFachada, IProveedores proveedoresFachada,
-    IAutenticacion autenticacionFachada,
+    IAutenticacion autenticacionFachada, IOrdenesCompras ordenesComprasFachada,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
     this.inventarioFachada = inventarioFachada;
     this.proveedoresFachada = proveedoresFachada;
     this.autenticacionFachada = autenticacionFachada;
+    this.ordenesComprasFachada = ordenesComprasFachada;
     this.usuarioActivo = usuarioActivo;
 
     inicializarEstado();
@@ -70,6 +73,10 @@ public class VentasControl {
     return autenticacionFachada;
   }
 
+  public IOrdenesCompras getOrdenesComprasFachada() {
+    return ordenesComprasFachada;
+  }
+
   public UsuarioDTO getUsuarioActivo() {
     return usuarioActivo;
   }
@@ -91,15 +98,15 @@ public class VentasControl {
   }
 
   public List<OrdenCompraDTO> obtenerOrdenesCompra() {
-    return proveedoresFachada.obtenerOrdenesCompra();
+    return ordenesComprasFachada.obtenerOrdenesCompra();
   }
 
   public void guardarOrdenCompra(OrdenCompraDTO orden) {
-    proveedoresFachada.guardarOrdenCompra(orden);
+    ordenesComprasFachada.guardarOrdenCompra(orden);
   }
 
   public void cambiarEstadoOrden(String numero, String nuevoEstado) {
-    proveedoresFachada.cambiarEstadoOrden(numero, nuevoEstado);
+    ordenesComprasFachada.cambiarEstadoOrden(numero, nuevoEstado);
   }
 
   public List<ProductoDTO> obtenerProductosInventario() {

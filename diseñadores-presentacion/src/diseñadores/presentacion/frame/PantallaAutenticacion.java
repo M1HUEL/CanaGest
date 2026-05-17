@@ -311,6 +311,7 @@ public class PantallaAutenticacion extends JFrame {
       ventasControl.getInventarioFachada(),
       ventasControl.getProveedoresFachada(),
       ventasControl.getAutenticacionFachada(),
+      ventasControl.getOrdenesComprasFachada(),
       usuario
     );
   }

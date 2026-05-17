@@ -1,6 +1,7 @@
 package diseñadores.presentacion.frame;
 
 import diseñadores.negocios.dto.UsuarioDTO;
+import diseñadores.negocios.dto.UsuarioRol;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Botones;
 import diseñadores.presentacion.utilidad.Colores;
@@ -39,7 +40,6 @@ public class MenuPrincipal extends JFrame {
         g.setColor(Colores.FONDO_AMARILLO);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
     };
     root.setOpaque(false);
 
@@ -71,7 +71,6 @@ public class MenuPrincipal extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 3, getHeight() - 3, 28, 28));
         super.paintComponent(g2d);
       }
-
     };
 
     tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
@@ -80,9 +79,16 @@ public class MenuPrincipal extends JFrame {
     tarjeta.setPreferredSize(new Dimension(420, 720));
 
     agregarCabecera(tarjeta);
-    agregarSeccionVentas(tarjeta);
-    agregarSeccionInventario(tarjeta);
-    agregarSeccionProveedores(tarjeta);
+
+    UsuarioRol rol = usuarioActivo.getRol();
+    if (rol == UsuarioRol.ADMINISTRADOR || rol == UsuarioRol.CAJERO) {
+      agregarSeccionVentas(tarjeta);
+    }
+    if (rol == UsuarioRol.ADMINISTRADOR || rol == UsuarioRol.ENCARGADO_ALMACEN) {
+      agregarSeccionInventario(tarjeta);
+      agregarSeccionProveedores(tarjeta);
+    }
+
     agregarSeccionSesion(tarjeta);
 
     return tarjeta;
@@ -178,10 +184,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnAsociar = Botones.menuAzul("Asociar Productos con Proveedores");
     btnAsociar.addActionListener(e -> {
       this.setVisible(false);
-      new AsociarProveedorProducto(
-        this,
-        control
-      ).setVisible(true);
+      new AsociarProveedorProducto(this, control).setVisible(true);
     });
 
     tarjeta.add(btnProveedores);
@@ -196,9 +199,7 @@ public class MenuPrincipal extends JFrame {
     JButton btnCerrar = Botones.menuRojo("Cerrar Sesión");
     btnCerrar.addActionListener(e -> {
       dispose();
-      new PantallaAutenticacion(
-        this.control
-      ).setVisible(true);
+      new PantallaAutenticacion(this.control).setVisible(true);
     });
     tarjeta.add(btnCerrar);
   }
@@ -225,5 +226,4 @@ public class MenuPrincipal extends JFrame {
     lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 16));
     return lbl;
   }
-
 }

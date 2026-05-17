@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class ProveedoresControl {
 
-  public List<ProveedorDTO> obtenerTodos() {
+  public List<ProveedorDTO> obtenerProveedores() {
     return Proveedor.obtenerTodos();
   }
 
@@ -17,7 +17,7 @@ public class ProveedoresControl {
   }
 
   public int contarActivos() {
-    return (int) obtenerTodos().stream()
+    return (int) obtenerProveedores().stream()
       .filter(ProveedorDTO::isActivo)
       .count();
   }

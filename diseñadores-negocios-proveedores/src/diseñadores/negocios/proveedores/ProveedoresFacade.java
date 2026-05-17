@@ -17,7 +17,7 @@ public class ProveedoresFacade implements IProveedores {
 
   @Override
   public List<ProveedorDTO> obtenerProveedores() {
-    return control.obtenerTodos();
+    return control.obtenerProveedores();
   }
 
   @Override

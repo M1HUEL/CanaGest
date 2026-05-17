@@ -36,12 +36,12 @@ public class ProveedoresFacade implements IProveedores {
   }
 
   @Override
-  public int contarProveedoresActivos() {
-    return control.contarActivos();
+  public void eliminarProveedor(String codigo) {
+    control.eliminarProveedor(codigo);
   }
 
   @Override
-  public void eliminarProveedor(String codigo) {
-    control.eliminarProveedor(codigo);
+  public int contarProveedoresActivos() {
+    return control.contarActivos();
   }
 }

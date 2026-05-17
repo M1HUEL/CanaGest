@@ -13,7 +13,8 @@ public interface IProveedores {
 
   void actualizarProveedor(ProveedorDTO proveedor);
 
+  void eliminarProveedor(String codigo);
+
   int contarProveedoresActivos();
 
-  void eliminarProveedor(String codigo);
 }

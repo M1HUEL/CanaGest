@@ -4,6 +4,7 @@ import diseñadores.negocios.autenticacion.IAutenticacion;
 import diseñadores.negocios.dto.*;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.ordenes.compras.IOrdenesCompras;
+import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
@@ -23,6 +24,7 @@ public class VentasControl {
   private final IProveedores proveedoresFachada;
   private final IAutenticacion autenticacionFachada;
   private final IOrdenesCompras ordenesComprasFachada;
+  private final IProductos productosFachada;
 
   private final UsuarioDTO usuarioActivo;
 
@@ -31,7 +33,7 @@ public class VentasControl {
 
   public VentasControl(IVentas ventasFachada, IUsuarios usuariosFachada,
     IInventario inventarioFachada, IProveedores proveedoresFachada,
-    IAutenticacion autenticacionFachada, IOrdenesCompras ordenesComprasFachada,
+    IAutenticacion autenticacionFachada, IOrdenesCompras ordenesComprasFachada, IProductos productosFachada,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
@@ -39,6 +41,7 @@ public class VentasControl {
     this.proveedoresFachada = proveedoresFachada;
     this.autenticacionFachada = autenticacionFachada;
     this.ordenesComprasFachada = ordenesComprasFachada;
+    this.productosFachada = productosFachada;
     this.usuarioActivo = usuarioActivo;
 
     inicializarEstado();
@@ -85,6 +88,10 @@ public class VentasControl {
     return proveedoresFachada.obtenerProveedores();
   }
 
+  public IProductos getProductosFachada() {
+    return productosFachada;
+  }
+
   public int contarProveedoresActivos() {
     return proveedoresFachada.contarProveedoresActivos();
   }
@@ -127,7 +134,7 @@ public class VentasControl {
   }
 
   public void guardarProducto(ProductoDTO producto) {
-    ventasFachada.guardarProducto(producto);
+    productosFachada.guardarProducto(producto);
   }
 
   private ResultadoEscaneo validarYProcesarProducto(EscanearProductoDTO dto) {

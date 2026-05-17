@@ -8,7 +8,7 @@ import java.util.List;
 
 public class UsuariosControl {
 
-  public List<UsuarioDTO> obtenerTodos() {
+  public List<UsuarioDTO> obtenerUsuarios() {
     return Usuario.obtenerTodos();
   }
 
@@ -48,15 +48,6 @@ public class UsuariosControl {
     asignarNuevoRol(usuario, nuevoRol);
 
     ejecutarActualizacion(usuario);
-  }
-
-  private void validarCredencialesEntrada(String nombre, String contrasena) {
-    if (nombre == null || nombre.isBlank()) {
-      throw new IllegalArgumentException("El nombre de usuario no puede estar vacío.");
-    }
-    if (contrasena == null || contrasena.isBlank()) {
-      throw new IllegalArgumentException("La contraseña no puede estar vacía.");
-    }
   }
 
   private void validarUsuarioNoNulo(UsuarioDTO usuario) {

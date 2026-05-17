@@ -18,8 +18,8 @@ public class UsuariosFacade implements IUsuarios {
   }
 
   @Override
-  public List<UsuarioDTO> obtenerTodos() {
-    return control.obtenerTodos();
+  public List<UsuarioDTO> obtenerUsuarios() {
+    return control.obtenerUsuarios();
   }
 
   @Override

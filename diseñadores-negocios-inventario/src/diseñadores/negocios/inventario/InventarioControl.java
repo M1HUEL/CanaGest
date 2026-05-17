@@ -125,8 +125,8 @@ public class InventarioControl {
     return Inventario.verificarStock(codigo, cantidad);
   }
 
-  private void ejecutarActualizacionCompleta(String c, int s, int min, int max) {
-    Inventario.actualizarStockCompleto(c, s, min, max);
+  private void ejecutarActualizacionCompleta(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
+    Inventario.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
   }
 
 }

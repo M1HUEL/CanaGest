@@ -20,7 +20,6 @@ public class VentasControl {
   private final INotificaciones servicioNotificaciones;
   private final IPagos serviciosPagos;
   private final IProductos serviciosProductos;
-  private final IInventario serviciosInventario;
 
   private static final int STOCK_MINIMO = 3;
   private static final String NOMBRE_TIENDA = "La Canasta";
@@ -32,14 +31,12 @@ public class VentasControl {
     this.servicioNotificaciones = new NotificacionesFacade();
     this.serviciosPagos = new PagosFacade();
     this.serviciosProductos = new ProductosFacade();
-    this.serviciosInventario = new InventarioFacade();
   }
 
   public VentasControl(INotificaciones servicioNotificaciones, IPagos serviciosPagos, IProductos serviciosProductos, IInventario serviciosInventario) {
     this.servicioNotificaciones = servicioNotificaciones;
     this.serviciosPagos = serviciosPagos;
     this.serviciosProductos = serviciosProductos;
-    this.serviciosInventario = serviciosInventario;
   }
 
   public List<ProductoDTO> obtenerCatalogo() {
@@ -363,21 +360,6 @@ public class VentasControl {
 
   private String generarFolio() {
     return "TK-" + System.currentTimeMillis();
-  }
-
-  public void guardarProducto(ProductoDTO producto) {
-    validarDatosProducto(producto);
-    serviciosProductos.guardarProducto(producto);
-  }
-
-  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
-    serviciosInventario.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
-  }
-
-  private void validarDatosProducto(ProductoDTO producto) {
-    if (producto == null || producto.getCodigo() == null || producto.getCodigo().isBlank()) {
-      throw new IllegalArgumentException("Datos de producto inválidos");
-    }
   }
 
   public List<VentaDTO> obtenerHistorialVentas() {

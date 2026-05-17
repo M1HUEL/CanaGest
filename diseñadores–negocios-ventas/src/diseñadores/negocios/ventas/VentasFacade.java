@@ -72,16 +72,6 @@ public class VentasFacade implements IVentas {
   }
 
   @Override
-  public void guardarProducto(ProductoDTO producto) {
-    control.guardarProducto(producto);
-  }
-
-  @Override
-  public void actualizarStockCompleto(String codigo, int nuevoStock, int nuevoMinimo, int nuevoMaximo) {
-    control.actualizarStockCompleto(codigo, nuevoStock, nuevoMinimo, nuevoMaximo);
-  }
-
-  @Override
   public List<VentaDTO> obtenerHistorialVentas() {
     return control.obtenerHistorialVentas();
   }

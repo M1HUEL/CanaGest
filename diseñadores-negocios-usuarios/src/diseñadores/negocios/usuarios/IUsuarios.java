@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IUsuarios {
 
-  List<UsuarioDTO> obtenerTodos();
+  List<UsuarioDTO> obtenerUsuarios();
 
   void guardarUsuario(UsuarioDTO usuario);
 

@@ -22,14 +22,14 @@ import java.util.List;
 
 public class HistorialVentas extends JFrame {
 
-  private final JFrame menuOrigen;
+  private final JFrame frame;
   private final VentasControl control;
   private final List<VentaDTO> ventas = new ArrayList<>();
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
-  public HistorialVentas(JFrame menuOrigen, VentasControl control) {
-    this.menuOrigen = menuOrigen;
+  public HistorialVentas(JFrame frame, VentasControl control) {
+    this.frame = frame;
     this.control = control;
 
     setTitle("La Canasta - Historial de Ventas");
@@ -69,7 +69,7 @@ public class HistorialVentas extends JFrame {
     JButton btnMenu = Botones.amarillo("Menú Principal");
     btnMenu.addActionListener(e -> {
       dispose();
-      menuOrigen.setVisible(true);
+      frame.setVisible(true);
     });
 
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));

@@ -18,14 +18,17 @@ import java.util.List;
 
 public class ExistenciaProductos extends JFrame {
 
-  private final JFrame menuOrigen;
+  private final JFrame frame;
+
   private final VentasControl control;
+
   private final List<ProductoDTO> productos = new ArrayList<>();
+
   private JPanel panelTabla;
   private JTextField campoBusqueda;
 
-  public ExistenciaProductos(JFrame menuOrigen, VentasControl control) {
-    this.menuOrigen = menuOrigen;
+  public ExistenciaProductos(JFrame frame, VentasControl control) {
+    this.frame = frame;
     this.control = control;
 
     configurarVentana();
@@ -68,7 +71,7 @@ public class ExistenciaProductos extends JFrame {
     JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
-      menuOrigen.setVisible(true);
+      frame.setVisible(true);
     });
 
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));

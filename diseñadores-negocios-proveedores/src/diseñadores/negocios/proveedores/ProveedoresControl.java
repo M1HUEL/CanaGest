@@ -11,27 +11,27 @@ public class ProveedoresControl {
     return Proveedor.obtenerTodos();
   }
 
-  public ProveedorDTO obtenerPorCodigo(String codigo) {
+  public ProveedorDTO obtenerProveedorPorCodigo(String codigo) {
     validarCodigoRequerido(codigo);
     return ejecutarObtencionPorCodigo(codigo);
   }
 
-  public int contarActivos() {
+  public int contarProveedoresActivos() {
     return (int) obtenerProveedores().stream()
       .filter(ProveedorDTO::isActivo)
       .count();
   }
 
-  public void guardar(ProveedorDTO proveedor) {
+  public void guardarProveedor(ProveedorDTO proveedor) {
     validarProveedorNoNulo(proveedor);
     validarDatosObligatoriosProveedor(proveedor);
     asignarNuevoCodigo(proveedor);
     ejecutarGuardadoProveedor(proveedor);
   }
 
-  public void actualizar(ProveedorDTO proveedor) {
+  public void actualizarProveedor(ProveedorDTO proveedor) {
     validarProveedorNoNulo(proveedor);
-    validarCodigoObligatorio(proveedor.getCodigo());
+    validarCodigoRequerido(proveedor.getCodigo());
     validarNombreObligatorio(proveedor.getNombre());
     validarExistenciaProveedor(proveedor.getCodigo());
     ejecutarActualizacionProveedor(proveedor);
@@ -71,12 +71,6 @@ public class ProveedoresControl {
   private void validarNombreObligatorio(String nombre) {
     if (nombre == null || nombre.isBlank()) {
       throw new IllegalArgumentException("El nombre del proveedor es obligatorio.");
-    }
-  }
-
-  private void validarCodigoObligatorio(String codigo) {
-    if (codigo == null || codigo.isBlank()) {
-      throw new IllegalArgumentException("El código del proveedor es obligatorio.");
     }
   }
 

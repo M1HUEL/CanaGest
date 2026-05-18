@@ -16,6 +16,7 @@ public class MostrarDetalleProveedor extends JDialog {
 
   public MostrarDetalleProveedor(JFrame parent, ProveedorDTO proveedor) {
     super(parent, "Detalle del Proveedor", true);
+
     this.proveedor = proveedor;
 
     setSize(600, 520);

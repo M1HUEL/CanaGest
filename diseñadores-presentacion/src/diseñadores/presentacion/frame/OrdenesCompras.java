@@ -15,16 +15,18 @@ import java.util.List;
 
 public class OrdenesCompras extends JFrame {
 
-  private final JFrame menuOrigen;
   private final VentasControl control;
+
+  private final JFrame frame;
+
   private final List<OrdenCompraDTO> ordenes = new ArrayList<>();
 
   private JPanel panelOrdenes;
   private String filtroActual = "Todas";
   private JPanel tabsPanel;
 
-  public OrdenesCompras(JFrame menuOrigen, VentasControl control) {
-    this.menuOrigen = menuOrigen;
+  public OrdenesCompras(JFrame frame, VentasControl control) {
+    this.frame = frame;
     this.control = control;
 
     configurarVentana();
@@ -64,7 +66,7 @@ public class OrdenesCompras extends JFrame {
     JButton btnMenu = btnAmarillo("Menu Principal");
     btnMenu.addActionListener(e -> {
       dispose();
-      menuOrigen.setVisible(true);
+      frame.setVisible(true);
     });
 
     JPanel der = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 12));

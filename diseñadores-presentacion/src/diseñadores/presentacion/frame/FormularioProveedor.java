@@ -15,26 +15,30 @@ import java.awt.*;
 public class FormularioProveedor extends JDialog {
 
   private final VentasControl control;
+
   private final ProveedorDTO proveedor;
-  private final Runnable onSuccess;
+
+  private final Runnable onFinalizado;
 
   private final boolean esNuevo;
+
   private JTextField[] campos;
   private JCheckBox chkActivo;
 
-  public FormularioProveedor(JFrame parent, VentasControl control,
-    ProveedorDTO proveedor, Runnable onSuccess) {
-    super(parent, proveedor == null ? "Nuevo Proveedor" : "Editar Proveedor", true);
+  public FormularioProveedor(JFrame frame, VentasControl control,
+    ProveedorDTO proveedor, Runnable onFinalizado) {
+    super(frame, proveedor == null ? "Nuevo Proveedor" : "Editar Proveedor", true);
     this.control = control;
     this.proveedor = proveedor;
-    this.onSuccess = onSuccess;
+    this.onFinalizado = onFinalizado;
+
     this.esNuevo = proveedor == null;
 
     Dimension pantalla = Toolkit.getDefaultToolkit().getScreenSize();
     int alto = Math.min(820, pantalla.height - 80);
     setSize(580, alto);
 
-    setLocationRelativeTo(parent);
+    setLocationRelativeTo(frame);
     setResizable(true);
     construirContenido();
   }
@@ -243,8 +247,8 @@ public class FormularioProveedor extends JDialog {
         proveedor.setActivo(chkActivo.isSelected());
         control.actualizarProveedor(proveedor);
       }
-      if (onSuccess != null) {
-        onSuccess.run();
+      if (onFinalizado != null) {
+        onFinalizado.run();
       }
       dispose();
     } catch (IllegalArgumentException | IllegalStateException ex) {

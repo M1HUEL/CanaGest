@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
-  private final JFrame mainFrame;
+  private final JFrame frame;
   private final VentasControl control;
   private final Runnable onVentaFinalizada;
   private JLabel lblEstado;
@@ -24,13 +24,13 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   public RegistrarMetodoPagoTarjeta(
     SeleccionarMetodoPago seleccionarMetodoPago,
-    JFrame mainFrame,
+    JFrame frame,
     VentasControl control,
     Runnable onVentaFinalizada) {
 
     super("Pago con Tarjeta");
     this.seleccionarMetodoPago = seleccionarMetodoPago;
-    this.mainFrame = mainFrame;
+    this.frame = frame;
     this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
 
@@ -40,8 +40,8 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
 
   private void configurarVentana() {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
   }
 
   private void inicializarComponentes() {
@@ -134,7 +134,7 @@ public class RegistrarMetodoPagoTarjeta extends JFrame {
       control.finalizarVenta(TipoPago.TARJETA);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
-      new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
+      new PantallaTicket(frame, ticketDTO, onVentaFinalizada, control);
     } catch (Exception ex) {
       JOptionPane.showMessageDialog(this,
         "Pago aprobado, pero ocurrió un error al cerrar la venta:\n" + ex.getMessage(),

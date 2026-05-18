@@ -18,12 +18,12 @@ import java.util.List;
 public class RegistrarNuevaOrdenCompra extends JDialog {
 
   private final VentasControl control;
-  private final Runnable onSuccess;
+  private final Runnable onFinalizado;
 
-  public RegistrarNuevaOrdenCompra(JFrame parent, VentasControl control, Runnable onSuccess) {
+  public RegistrarNuevaOrdenCompra(JFrame parent, VentasControl control, Runnable onFinalizado) {
     super(parent, "Nueva Orden de Compra", true);
     this.control = control;
-    this.onSuccess = onSuccess;
+    this.onFinalizado = onFinalizado;
 
     setSize(520, 520);
     setLocationRelativeTo(parent);
@@ -114,8 +114,8 @@ public class RegistrarNuevaOrdenCompra extends JDialog {
         OrdenCompraDTO nueva = new OrdenCompraDTO(null, null, prov, "Pendiente", cant, tot);
         control.guardarOrdenCompra(nueva);
 
-        if (onSuccess != null) {
-          onSuccess.run();
+        if (onFinalizado != null) {
+          onFinalizado.run();
         }
         dispose();
 

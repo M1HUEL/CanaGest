@@ -22,7 +22,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
   private static final String BENEFICIARIO = "La Canasta SA de CV";
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
-  private final JFrame mainFrame;
+  private final JFrame frame;
   private final VentasControl control;
   private final Runnable onVentaFinalizada;
   private final String referencia;
@@ -32,13 +32,13 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
 
   public RegistrarMetodoPagoTransferencia(
     SeleccionarMetodoPago seleccionarMetodoPago,
-    JFrame mainFrame,
+    JFrame frame,
     VentasControl control,
     Runnable onVentaFinalizada) {
 
     super("Transferencia Bancaria");
     this.seleccionarMetodoPago = seleccionarMetodoPago;
-    this.mainFrame = mainFrame;
+    this.frame = frame;
     this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
     this.referencia = generarReferencia();
@@ -49,8 +49,8 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
 
   private void configurarVentana() {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
   }
 
   private void inicializarComponentes() {
@@ -73,7 +73,7 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
       control.finalizarVenta(TipoPago.TRANSACCION);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
-      new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
+      new PantallaTicket(frame, ticketDTO, onVentaFinalizada, control);
     } catch (Exception ex) {
       mostrarError("Transferencia aprobada, pero error al cerrar la venta:\n" + ex.getMessage());
     }
@@ -188,11 +188,6 @@ public class RegistrarMetodoPagoTransferencia extends JFrame {
     lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
     lbl.setForeground(color);
     return lbl;
-  }
-
-  private void onCopiarDato(String texto) {
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(texto), null);
-    JOptionPane.showMessageDialog(this, "Copiado: " + texto, "Copiado", JOptionPane.INFORMATION_MESSAGE);
   }
 
   private JPanel crearInstrucciones() {

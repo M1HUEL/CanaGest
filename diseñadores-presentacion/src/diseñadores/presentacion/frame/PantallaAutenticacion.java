@@ -30,6 +30,7 @@ public class PantallaAutenticacion extends JFrame {
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
+
   }
 
   private void iniciarComponentes() {

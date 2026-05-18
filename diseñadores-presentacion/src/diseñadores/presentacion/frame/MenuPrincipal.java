@@ -14,11 +14,13 @@ import java.awt.geom.RoundRectangle2D;
 
 public class MenuPrincipal extends JFrame {
 
-  private final UsuarioDTO usuarioActivo;
   private final VentasControl control;
+
+  private final UsuarioDTO usuarioActivo;
 
   public MenuPrincipal(UsuarioDTO usuarioActivo, VentasControl control) {
     this.usuarioActivo = usuarioActivo;
+
     this.control = control;
 
     configurarVentana();

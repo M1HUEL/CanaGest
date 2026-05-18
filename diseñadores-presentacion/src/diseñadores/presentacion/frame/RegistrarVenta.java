@@ -14,8 +14,9 @@ import java.util.List;
 
 public class RegistrarVenta extends JFrame {
 
-  private final UsuarioDTO usuarioActivo;
   private final VentasControl control;
+
+  private final UsuarioDTO usuarioActivo;
 
   private JPanel panelCarritoItems;
   private JPanel panelGrid;
@@ -496,12 +497,12 @@ public class RegistrarVenta extends JFrame {
     new SeleccionarMetodoPago(
       this,
       control,
+      usuarioActivo,
       () -> {
         control.iniciarNuevaVenta();
         actualizarVista();
         construirGrid(control.refrescarCatalogo());
-      },
-      usuarioActivo
+      }
     );
   }
 

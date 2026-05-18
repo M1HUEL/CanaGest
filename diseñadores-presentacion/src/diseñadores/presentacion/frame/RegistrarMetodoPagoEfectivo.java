@@ -17,25 +17,27 @@ import java.math.RoundingMode;
 public class RegistrarMetodoPagoEfectivo extends JFrame {
 
   private final VentasControl control;
+
   private final UsuarioDTO usuarioActivo;
 
   private BigDecimal recibido = BigDecimal.ZERO;
+
   private JLabel lblRecibido, lblCambio;
   private JButton btnCompletar;
 
   public RegistrarMetodoPagoEfectivo(
-    SeleccionarMetodoPago pantallaPago,
-    JFrame mainFrame,
+    SeleccionarMetodoPago seleccionarMetodoPago,
+    JFrame frame,
     VentasControl control,
     Runnable onConfirmado,
     UsuarioDTO usuarioActivo) {
-
     super("Pago en Efectivo");
+
     this.control = control;
     this.usuarioActivo = usuarioActivo;
 
-    configurarVentana(mainFrame);
-    inicializarComponentes(pantallaPago, mainFrame, onConfirmado);
+    configurarVentana(frame);
+    inicializarComponentes(seleccionarMetodoPago, frame, onConfirmado);
   }
 
   private void configurarVentana(JFrame mainFrame) {

@@ -22,17 +22,17 @@ public class ProveedoresFacade implements IProveedores {
 
   @Override
   public ProveedorDTO obtenerProveedorPorCodigo(String codigo) {
-    return control.obtenerPorCodigo(codigo);
+    return control.obtenerProveedorPorCodigo(codigo);
   }
 
   @Override
   public void guardarProveedor(ProveedorDTO proveedor) {
-    control.guardar(proveedor);
+    control.guardarProveedor(proveedor);
   }
 
   @Override
   public void actualizarProveedor(ProveedorDTO proveedor) {
-    control.actualizar(proveedor);
+    control.actualizarProveedor(proveedor);
   }
 
   @Override
@@ -42,6 +42,6 @@ public class ProveedoresFacade implements IProveedores {
 
   @Override
   public int contarProveedoresActivos() {
-    return control.contarActivos();
+    return control.contarProveedoresActivos();
   }
 }

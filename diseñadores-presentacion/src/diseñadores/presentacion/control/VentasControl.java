@@ -31,9 +31,14 @@ public class VentasControl {
   private VentaDTO ventaActual;
   private List<ProductoDTO> catalogoProductos;
 
-  public VentasControl(IVentas ventasFachada, IUsuarios usuariosFachada,
-    IInventario inventarioFachada, IProveedores proveedoresFachada,
-    IAutenticacion autenticacionFachada, IOrdenesCompras ordenesComprasFachada, IProductos productosFachada,
+  public VentasControl(
+    IVentas ventasFachada,
+    IUsuarios usuariosFachada,
+    IInventario inventarioFachada,
+    IProveedores proveedoresFachada,
+    IAutenticacion autenticacionFachada,
+    IOrdenesCompras ordenesComprasFachada,
+    IProductos productosFachada,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;

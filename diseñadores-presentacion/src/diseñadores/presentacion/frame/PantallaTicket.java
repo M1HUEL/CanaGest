@@ -18,15 +18,18 @@ import java.math.BigDecimal;
 public class PantallaTicket extends JFrame {
 
   private final VentasControl control;
+
   private JPanel panelTicket;
+
   private final TicketDTO ticket;
 
-  public PantallaTicket(JFrame mainFrame, TicketDTO ticket, Runnable onConfirmado, VentasControl control) {
+  public PantallaTicket(JFrame frame, TicketDTO ticket, Runnable onConfirmado, VentasControl control) {
     super("Ticket de Venta");
     this.control = control;
     this.ticket = ticket;
-    configurarVentana(mainFrame);
-    inicializarInterfaz(mainFrame, ticket, onConfirmado);
+
+    configurarVentana(frame);
+    inicializarInterfaz(frame, ticket, onConfirmado);
   }
 
   private void configurarVentana(JFrame mainFrame) {

@@ -19,7 +19,7 @@ public class RegistrarMetodoPagoQr extends JFrame {
   private static final int SEGUNDOS_EXPIRACION = 180; // 3 minutos
 
   private final SeleccionarMetodoPago seleccionarMetodoPago;
-  private final JFrame mainFrame;
+  private final JFrame frame;
   private final VentasControl control;
   private final Runnable onVentaFinalizada;
 
@@ -35,12 +35,12 @@ public class RegistrarMetodoPagoQr extends JFrame {
 
   public RegistrarMetodoPagoQr(
     SeleccionarMetodoPago seleccionarMetodoPago,
-    JFrame mainFrame,
+    JFrame frame,
     VentasControl control,
     Runnable onVentaFinalizada) {
     super("Registrar Pago CoDi");
     this.seleccionarMetodoPago = seleccionarMetodoPago;
-    this.mainFrame = mainFrame;
+    this.frame = frame;
     this.control = control;
     this.onVentaFinalizada = onVentaFinalizada;
 
@@ -52,8 +52,8 @@ public class RegistrarMetodoPagoQr extends JFrame {
 
   private void configurarVentana() {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(mainFrame.getWidth(), mainFrame.getHeight());
-    setLocation(mainFrame.getLocation());
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
   }
 
   private void generarNuevoQR() {
@@ -421,101 +421,13 @@ public class RegistrarMetodoPagoQr extends JFrame {
     return fila;
   }
 
-  private JButton crearBotonConfirmar() {
-    btnConfirmar = new JButton("Confirmar Pago CoDi") {
-      boolean ov = false;
-
-      {
-        setContentAreaFilled(false);
-        setBorderPainted(false);
-        setFocusPainted(false);
-        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        setFont(Fuentes.b(15));
-        setForeground(Colores.BLANCO);
-        setPreferredSize(new Dimension(0, 54));
-        addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) {
-            ov = true;
-            repaint();
-          }
-
-          public void mouseExited(MouseEvent e) {
-            ov = false;
-            repaint();
-          }
-
-        });
-      }
-
-      @Override
-      protected void paintComponent(Graphics g2d) {
-        Graphics2D g = (Graphics2D) g2d;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        boolean habilitado = isEnabled();
-        g.setColor(habilitado
-          ? (ov ? Colores.MORADO_HOVER : Colores.MORADO)
-          : Colores.GRIS_DISABLED);
-        g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
-        super.paintComponent(g2d);
-      }
-
-    };
-    btnConfirmar.addActionListener(e -> onConfirmarPago());
-    return btnConfirmar;
-  }
-
-  private void onConfirmarPago() {
-    if (segundosRestantes <= 0) {
-      JOptionPane.showMessageDialog(this,
-        "El código QR ha expirado. Regresa al menú anterior y vuelve a intentarlo.",
-        "QR Expirado", JOptionPane.WARNING_MESSAGE);
-      return;
-    }
-
-    btnConfirmar.setEnabled(false);
-    btnConfirmar.setText("Procesando...");
-    countdown.stop();
-
-    SwingWorker<ResultadoPagoDTO, Void> worker = new SwingWorker<>() {
-      @Override
-      protected ResultadoPagoDTO doInBackground() {
-        return control.procesarPagoCoDi(new PagoQrDTO(referencia));
-      }
-
-      @Override
-      protected void done() {
-        try {
-          manejarResultado(get());
-        } catch (java.util.concurrent.ExecutionException ex) {
-          restaurarBoton();
-          mostrarError(ex.getCause() != null
-            ? ex.getCause().getMessage() : ex.getMessage());
-        } catch (InterruptedException ex) {
-          restaurarBoton();
-          mostrarError(ex.getMessage());
-        }
-      }
-
-    };
-    worker.execute();
-  }
-
-  private void manejarResultado(ResultadoPagoDTO resultado) {
-    if (resultado.isAprobado()) {
-      finalizarVenta();
-    } else {
-      restaurarBoton();
-      mostrarRechazo(resultado.getMensaje());
-    }
-  }
-
   private void finalizarVenta() {
     countdown.stop();
     try {
       control.finalizarVenta(TipoPago.QR);
       TicketDTO ticketDTO = control.generarTicket();
       setVisible(false);
-      new PantallaTicket(mainFrame, ticketDTO, onVentaFinalizada, control);
+      new PantallaTicket(frame, ticketDTO, onVentaFinalizada, control);
     } catch (Exception ex) {
       mostrarError("Pago aprobado, pero error al cerrar la venta:\n" + ex.getMessage());
     }

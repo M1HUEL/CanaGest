@@ -20,9 +20,9 @@ public class SeleccionarMetodoPago extends JFrame {
     Fuentes.cargar();
   }
 
-  private static final Font FONT_TITULO = Fuentes.b(22);
-  private static final Font FONT_BOTON_METODO = Fuentes.b(20);
-  private static final Font FONT_BOTON_ACCION = Fuentes.b(14);
+  private static final Font FUENTE_TITULO = Fuentes.b(22);
+  private static final Font FUENTE_BOTON_METODO = Fuentes.b(20);
+  private static final Font FUENTE_BOTON_ACCION = Fuentes.b(14);
 
   private static final Map<String, Color[]> COLORES_METODO = new LinkedHashMap<>();
 
@@ -33,18 +33,23 @@ public class SeleccionarMetodoPago extends JFrame {
     COLORES_METODO.put("Transferencia", new Color[]{Colores.NARANJA, Colores.NARANJA_HOVER});
   }
 
-  private final JFrame frameAnterior;
+  private final JFrame frame;
+
   private final VentasControl control;
+
   private final UsuarioDTO usuarioActivo;
+
   private final Runnable onVentaFinalizada;
 
-  public SeleccionarMetodoPago(JFrame frameAnterior,
+  public SeleccionarMetodoPago(
+    JFrame frame,
     VentasControl control,
-    Runnable onVentaFinalizada,
-    UsuarioDTO usuarioActivo) {
-
+    UsuarioDTO usuarioActivo,
+    Runnable onVentaFinalizada
+  ) {
     super("Método de Pago");
-    this.frameAnterior = frameAnterior;
+
+    this.frame = frame;
     this.control = control;
     this.usuarioActivo = usuarioActivo;
     this.onVentaFinalizada = onVentaFinalizada;
@@ -55,8 +60,8 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private void configurarVentana() {
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    setSize(frameAnterior.getWidth(), frameAnterior.getHeight());
-    setLocation(frameAnterior.getLocation());
+    setSize(frame.getWidth(), frame.getHeight());
+    setLocation(frame.getLocation());
   }
 
   private void inicializarComponentes() {
@@ -132,7 +137,7 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private JLabel crearTituloCard() {
     JLabel titulo = new JLabel("Seleccione el método de pago", SwingConstants.CENTER);
-    titulo.setFont(FONT_TITULO);
+    titulo.setFont(FUENTE_TITULO);
     titulo.setForeground(Colores.TEXTO_OSCURO);
     return titulo;
   }
@@ -188,7 +193,7 @@ public class SeleccionarMetodoPago extends JFrame {
 
   private JLabel crearLabelNombreMetodo(String nombre) {
     JLabel lbl = new JLabel(nombre, SwingConstants.CENTER);
-    lbl.setFont(FONT_BOTON_METODO);
+    lbl.setFont(FUENTE_BOTON_METODO);
     lbl.setForeground(Colores.BLANCO);
     return lbl;
   }
@@ -239,29 +244,29 @@ public class SeleccionarMetodoPago extends JFrame {
   }
 
   private void abrirPagoEfectivo() {
-    new RegistrarMetodoPagoEfectivo(this, frameAnterior, control, onVentaFinalizada, usuarioActivo);
+    new RegistrarMetodoPagoEfectivo(this, frame, control, onVentaFinalizada, usuarioActivo);
   }
 
   private void abrirPagoTarjeta() {
-    new RegistrarMetodoPagoTarjeta(this, frameAnterior, control, onVentaFinalizada);
+    new RegistrarMetodoPagoTarjeta(this, frame, control, onVentaFinalizada);
   }
 
   private void abrirPagoCoDi() {
-    new RegistrarMetodoPagoQr(this, frameAnterior, control, onVentaFinalizada);
+    new RegistrarMetodoPagoQr(this, frame, control, onVentaFinalizada);
   }
 
   private void abrirPagoTransferencia() {
-    new RegistrarMetodoPagoTransferencia(this, frameAnterior, this.control, onVentaFinalizada);
+    new RegistrarMetodoPagoTransferencia(this, frame, this.control, onVentaFinalizada);
   }
 
   private void manejarMetodoNoDisponible() {
-    JOptionPane.showMessageDialog(frameAnterior, "Método no disponible", "Error", JOptionPane.ERROR_MESSAGE);
+    JOptionPane.showMessageDialog(frame, "Método no disponible", "Error", JOptionPane.ERROR_MESSAGE);
     setVisible(true);
   }
 
   private void volverAtras() {
     dispose();
-    frameAnterior.setVisible(true);
+    frame.setVisible(true);
   }
 
   private JButton crearBotonAccion(String texto, Color base, Color hover) {
@@ -298,7 +303,7 @@ public class SeleccionarMetodoPago extends JFrame {
 
     };
     b.setForeground(Colores.BLANCO);
-    b.setFont(FONT_BOTON_ACCION);
+    b.setFont(FUENTE_BOTON_ACCION);
     return b;
   }
 

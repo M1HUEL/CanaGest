@@ -28,7 +28,7 @@ public class ConsolidarInventario extends JFrame {
     this.control = control;
 
     initFrame();
-    sincronizarConPersistenciaMongo(); 
+    sincronizarConPersistenciaMongo();
     initComponents();
   }
 
@@ -50,24 +50,28 @@ public class ConsolidarInventario extends JFrame {
   private void sincronizarConPersistenciaMongo() {
     items.clear();
     ConteoInventarioDTO auditoriaActiva = control.obtenerAuditoriaActiva();
-    
+
     if (auditoriaActiva != null && auditoriaActiva.getTodosLosConteos() != null) {
-        this.items.addAll(auditoriaActiva.getTodosLosConteos());
+      this.items.addAll(auditoriaActiva.getTodosLosConteos());
     } else {
-        List<ProductoDTO> productos = control.obtenerProductosInventario();
-        for (ProductoDTO p : productos) {
-            ItemConteoDTO item = new ItemConteoDTO(
-                "ITM-BASE-" + p.getCodigo(),                     
-                null,                        
-                null,                        
-                p.getCodigo(),               
-                p.getNombre(),               
-                p.getStock(),                
-                p.getStock()                 
-            );
-            item.setComentario(""); 
-            items.add(item);
-        }
+      List<ProductoDTO> productos = control.obtenerProductosInventario();
+      for (ProductoDTO p : productos) {
+        ItemConteoDTO item = new ItemConteoDTO();
+
+        item.setCodigo("ITM-BASE-" + p.getCodigo());
+        item.setComentario("");
+        item.setVerificado(false);
+
+        item.setProductoCodigo(p.getCodigo());
+        item.setProductoNombre(p.getNombre());
+        item.setProductoStockSistema(p.getStock());
+        item.setProductoStockFisico(p.getStock());
+
+        item.setNombreUsuario(null);
+        item.setRolUsuario(null);
+
+        items.add(item);
+      }
     }
   }
 
@@ -254,10 +258,28 @@ public class ConsolidarInventario extends JFrame {
     fila.setBorder(new EmptyBorder(16, 24, 16, 24));
     fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 
-    fila.add(new JLabel(item.getProductoCodigo()) {{ setFont(Fuentes.r(13)); setForeground(Colores.GRIS_TEXTO); }});
-    fila.add(new JLabel(item.getProductoNombre()) {{ setFont(Fuentes.r(13)); setForeground(Colores.TEXTO_OSCURO); }});
-    fila.add(new JLabel(String.valueOf(item.getProductoStockSistema())) {{ setFont(Fuentes.b(14)); }});
-    fila.add(new JLabel(String.valueOf(item.getProductoStockFisico())) {{ setFont(Fuentes.b(14)); }});
+    fila.add(new JLabel(item.getProductoCodigo()) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.GRIS_TEXTO);
+      }
+    });
+    fila.add(new JLabel(item.getProductoNombre()) {
+      {
+        setFont(Fuentes.r(13));
+        setForeground(Colores.TEXTO_OSCURO);
+      }
+    });
+    fila.add(new JLabel(String.valueOf(item.getProductoStockSistema())) {
+      {
+        setFont(Fuentes.b(14));
+      }
+    });
+    fila.add(new JLabel(String.valueOf(item.getProductoStockFisico())) {
+      {
+        setFont(Fuentes.b(14));
+      }
+    });
 
     int diff = item.getDiferencia();
     String diffText = diff == 0 ? "0" : (diff > 0 ? "+" + diff : String.valueOf(diff));
@@ -294,39 +316,39 @@ public class ConsolidarInventario extends JFrame {
 
     JPanel wrapAccion = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     wrapAccion.setOpaque(false);
-    
+
     // Si ya está verificado, muestra una etiqueta fija verde. Si no, renderiza el botón interactivo de ajuste.
     if (verificado) {
-        JLabel lblVerificado = new JLabel("Verificado", SwingConstants.CENTER);
-        lblVerificado.setFont(Fuentes.b(12));
-        lblVerificado.setForeground(new Color(21, 128, 61));
-        lblVerificado.setOpaque(true);
-        lblVerificado.setBackground(new Color(220, 252, 231));
-        lblVerificado.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(34, 197, 94), 1),
-            new EmptyBorder(5, 12, 5, 12)
-        ));
-        wrapAccion.add(lblVerificado);
+      JLabel lblVerificado = new JLabel("Verificado", SwingConstants.CENTER);
+      lblVerificado.setFont(Fuentes.b(12));
+      lblVerificado.setForeground(new Color(21, 128, 61));
+      lblVerificado.setOpaque(true);
+      lblVerificado.setBackground(new Color(220, 252, 231));
+      lblVerificado.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(34, 197, 94), 1),
+        new EmptyBorder(5, 12, 5, 12)
+      ));
+      wrapAccion.add(lblVerificado);
     } else {
-        JButton btnAjustar = btnAzulTabla("Ajustar");
-        btnAjustar.addActionListener(e -> new AjusteInventario(
-          this, control, item, this::ejecutarRefrescoCompleto).setVisible(true));
-        wrapAccion.add(btnAjustar);
+      JButton btnAjustar = btnAzulTabla("Ajustar");
+      btnAjustar.addActionListener(e -> new AjusteInventario(
+        this, control, item, this::ejecutarRefrescoCompleto).setVisible(true));
+      wrapAccion.add(btnAjustar);
     }
-    
+
     fila.add(wrapAccion);
 
     return fila;
   }
 
   private void ejecutarRefrescoCompleto() {
-      sincronizarConPersistenciaMongo();
-      actualizarStatsYTabla();
+    sincronizarConPersistenciaMongo();
+    actualizarStatsYTabla();
   }
 
   private void actualizarStats() {
     long pendientes = items.stream().filter(i -> !i.isVerificado()).count();
-    
+
     lblAuditados.setText(String.valueOf(items.size()));
     lblPendientes.setText(String.valueOf(pendientes));
     lblDiferencias.setText(String.valueOf(items.stream().mapToInt(i -> Math.abs(i.getDiferencia())).sum()));
@@ -403,14 +425,22 @@ public class ConsolidarInventario extends JFrame {
   private JButton createStyledButton(String texto, Color bg, Color hover, Color fg) {
     JButton b = new JButton(texto) {
       boolean over = false;
+
       {
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         addMouseListener(new MouseAdapter() {
-          public void mouseEntered(MouseEvent e) { over = true; repaint(); }
-          public void mouseExited(MouseEvent e) { over = false; repaint(); }
+          public void mouseEntered(MouseEvent e) {
+            over = true;
+            repaint();
+          }
+
+          public void mouseExited(MouseEvent e) {
+            over = false;
+            repaint();
+          }
         });
       }
 
@@ -418,28 +448,31 @@ public class ConsolidarInventario extends JFrame {
       protected void paintComponent(Graphics g2d) {
         Graphics2D g = (Graphics2D) g2d;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        
+
         if (!isEnabled()) {
-            g.setColor(new Color(229, 231, 235));
-            g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
-            super.paintComponent(g2d);
-            return;
+          g.setColor(new Color(229, 231, 235));
+          g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+          super.paintComponent(g2d);
+          return;
         }
-        
+
         g.setColor(over ? hover : bg);
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
         super.paintComponent(g2d);
       }
     };
     b.setForeground(fg);
-    
+
     b.getModel().addChangeListener(e -> {
-        if (!b.isEnabled()) b.setForeground(new Color(156, 163, 175));
-        else b.setForeground(fg);
+      if (!b.isEnabled()) {
+        b.setForeground(new Color(156, 163, 175));
+      } else {
+        b.setForeground(fg);
+      }
     });
-    
+
     b.setFont(Fuentes.b(14));
     return b;
   }
-  
+
 }

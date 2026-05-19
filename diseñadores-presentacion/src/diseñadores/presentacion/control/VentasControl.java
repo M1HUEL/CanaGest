@@ -88,7 +88,7 @@ public class VentasControl {
   public IOrdenesCompras getOrdenesComprasFachada() {
     return ordenesComprasFachada;
   }
-  
+
   public IConteoInventario getConteoInventarioGeneralFacade() {
     return conteoInventarioGeneralFacade;
   }
@@ -310,18 +310,18 @@ public class VentasControl {
   public void eliminarProveedor(ProveedorDTO proveedor) {
     proveedoresFachada.eliminarProveedor(proveedor.getCodigo());
   }
-  
+
   /**
-   * Recupera la sesión de auditoría masiva que se encuentre abierta actualmente 
-   * (cuyo flag 'verificadoGlobal' sea falso). 
-   * Si no hay ninguna sesión en curso, retorna null.
+   * Recupera la sesión de auditoría masiva que se encuentre abierta actualmente
+   * (cuyo flag 'verificadoGlobal' sea falso). Si no hay ninguna sesión en
+   * curso, retorna null.
    */
   public ConteoInventarioDTO obtenerAuditoriaActiva() {
     List<ConteoInventarioDTO> historial = conteoInventarioGeneralFacade.obtenerHistorialSesiones();
     if (historial != null && !historial.isEmpty()) {
       for (ConteoInventarioDTO aud : historial) {
         if (!aud.getVerificadoGlobal()) {
-          return aud; 
+          return aud;
         }
       }
     }
@@ -329,9 +329,9 @@ public class VentasControl {
   }
 
   /**
-   * Disparador del evento "Iniciar Nuevo Conteo". 
-   * Congela el stock actual del catálogo relacional y genera un documento 
-   * borrador totalmente nuevo en MongoDB con su folio único.
+   * Disparador del evento "Iniciar Nuevo Conteo". Congela el stock actual del
+   * catálogo relacional y genera un documento borrador totalmente nuevo en
+   * MongoDB con su folio único.
    */
   public ConteoInventarioDTO inicializarNuevoConteoGeneral() {
     ConteoInventarioDTO nuevaAuditoria = new ConteoInventarioDTO();
@@ -343,15 +343,21 @@ public class VentasControl {
     List<ProductoDTO> productosSistema = obtenerProductosInventario();
     List<ItemConteoDTO> itemsIniciales = new ArrayList<>();
 
-    int secuencia = 1;
     for (ProductoDTO p : productosSistema) {
-      ItemConteoDTO item = new ItemConteoDTO(
-        "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
-        usuarioActivo.getNombre(),
-        usuarioActivo.getRol().toString(), 
-        p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
-      );
+      ItemConteoDTO item = new ItemConteoDTO();
+
+      item.setCodigo("ITM-BASE-" + p.getCodigo());
       item.setComentario("");
+      item.setVerificado(false);
+
+      item.setProductoCodigo(p.getCodigo());
+      item.setProductoNombre(p.getNombre());
+      item.setProductoStockSistema(p.getStock());
+      item.setProductoStockFisico(p.getStock());
+
+      item.setNombreUsuario(null);
+      item.setRolUsuario(null);
+
       itemsIniciales.add(item);
     }
 
@@ -364,7 +370,8 @@ public class VentasControl {
 
   /**
    * Vuelca las actualizaciones progresivas en la base de datos de MongoDB.
-   * Almacena firmas y justificaciones de forma atómica sin alterar el stock del catálogo.
+   * Almacena firmas y justificaciones de forma atómica sin alterar el stock del
+   * catálogo.
    */
   public void guardarProgresoAuditoria(ConteoInventarioDTO sesionGeneral) {
     if (sesionGeneral != null) {
@@ -374,8 +381,8 @@ public class VentasControl {
   }
 
   /**
-   * Cierre y Consolidación Final de la auditoría.
-   * Valida firmas en desajustes e impacta permanentemente el stock en el catálogo del sistema.
+   * Cierre y Consolidación Final de la auditoría. Valida firmas en desajustes e
+   * impacta permanentemente el stock en el catálogo del sistema.
    */
   public void actualizarAuditoriaGeneral(ConteoInventarioDTO sesionGeneral) {
     if (sesionGeneral != null) {
@@ -385,7 +392,8 @@ public class VentasControl {
   }
 
   /**
-   * Busca los detalles completos de una sesión de auditoría mediante su ID/Folio.
+   * Busca los detalles completos de una sesión de auditoría mediante su
+   * ID/Folio.
    */
   public ConteoInventarioDTO buscarSesionAuditoriaPorCodigo(String codigoGeneral) {
     return this.conteoInventarioGeneralFacade.buscarSesionPorCodigo(codigoGeneral);

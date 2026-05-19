@@ -67,9 +67,6 @@ public class ConsolidarInventario extends JFrame {
         item.setProductoStockSistema(p.getStock());
         item.setProductoStockFisico(p.getStock());
 
-        item.setNombreUsuario(null);
-        item.setRolUsuario(null);
-
         items.add(item);
       }
     }

@@ -354,9 +354,9 @@ public class VentasControl {
       item.setProductoNombre(p.getNombre());
       item.setProductoStockSistema(p.getStock());
       item.setProductoStockFisico(p.getStock());
-
-      item.setNombreUsuario(null);
-      item.setRolUsuario(null);
+      
+      item.setNombreUsuario(usuarioActivo.getNombre());
+      item.setRolUsuario(usuarioActivo.getRol().toString());
 
       itemsIniciales.add(item);
     }

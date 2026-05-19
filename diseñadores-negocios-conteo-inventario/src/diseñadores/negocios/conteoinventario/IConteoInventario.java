@@ -1,6 +1,6 @@
 package diseñadores.negocios.conteoinventario;
 
-import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ConteoInventarioDTO;
 import java.util.List;
 
 /**
@@ -9,32 +9,32 @@ import java.util.List;
  * 
  * @author ERICK
  */
-public interface IConteoInventarioGeneral {
+public interface IConteoInventario {
 
     /**
      * Crea y pre-registra una sesión global de auditoría en estado de borrador.
      */
-    void crearSesionAuditoria(ConteoInventarioGeneralDTO sesion);
+    void crearSesionAuditoria(ConteoInventarioDTO sesion);
 
     /**
      * Consolida la sesión de auditoría en la base de datos e impacta los
      * stocks físicos directamente en el catálogo del sistema.
      */
-    void registrarYAplicarAuditoriaGlobal(ConteoInventarioGeneralDTO sesion);
+    void registrarYAplicarAuditoriaGlobal(ConteoInventarioDTO sesion);
 
     /**
      * Recupera el historial completo de las sesiones masivas de inventario.
      */
-    List<ConteoInventarioGeneralDTO> obtenerHistorialSesiones();
+    List<ConteoInventarioDTO> obtenerHistorialSesiones();
 
     /**
      * Busca los detalles de una sesión de auditoría unificada mediante su código.
      */
-    ConteoInventarioGeneralDTO buscarSesionPorCodigo(String codigoGeneral);
+    ConteoInventarioDTO buscarSesionPorCodigo(String codigoGeneral);
     
     /**
      * Guarda modificaciones progresivas sobre los ítems (comentarios y firmas) 
      * sin cerrar la auditoría ni alterar los stocks del catálogo.
      */
-    void guardarProgresoAuditoria(ConteoInventarioGeneralDTO sesion);
+    void guardarProgresoAuditoria(ConteoInventarioDTO sesion);
 }

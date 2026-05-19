@@ -1,6 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ConteoInventarioDTO;
 import diseñadores.negocios.dto.ItemConteoDTO;
 import diseñadores.negocios.dto.ProductoDTO;
 import diseñadores.presentacion.control.VentasControl;
@@ -49,7 +49,7 @@ public class ConsolidarInventario extends JFrame {
 
   private void sincronizarConPersistenciaMongo() {
     items.clear();
-    ConteoInventarioGeneralDTO auditoriaActiva = control.obtenerAuditoriaActiva();
+    ConteoInventarioDTO auditoriaActiva = control.obtenerAuditoriaActiva();
     
     if (auditoriaActiva != null && auditoriaActiva.getTodosLosConteos() != null) {
         this.items.addAll(auditoriaActiva.getTodosLosConteos());

@@ -2,8 +2,7 @@ package diseñadores.presentacion;
 
 import diseñadores.negocios.autenticacion.AutenticacionFacade;
 import diseñadores.negocios.autenticacion.IAutenticacion;
-import diseñadores.negocios.conteoinventario.ConteoInventarioGeneralFacade;
-import diseñadores.negocios.conteoinventario.IConteoInventarioGeneral;
+import diseñadores.negocios.conteoinventario.ConteoInventarioFacade;
 import diseñadores.negocios.dto.UsuarioDTO;
 import diseñadores.negocios.inventario.*;
 import diseñadores.negocios.ordenes.compras.IOrdenesCompras;
@@ -18,6 +17,7 @@ import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.frame.*;
 import diseñadores.presentacion.utilidad.*;
 import javax.swing.SwingUtilities;
+import diseñadores.negocios.conteoinventario.IConteoInventario;
 
 public class Main {
 
@@ -26,28 +26,26 @@ public class Main {
 
     InventarioControl inventarioControl = new InventarioControl();
 
-    // 1. Inicialización de las fachadas del sistema
     IUsuarios usuariosFachada = new UsuariosFacade();
     IInventario inventarioFachada = new InventarioFacade(inventarioControl);
     IProveedores proveedoresFachada = new ProveedoresFacade();
     IAutenticacion autenticacionFachada = new AutenticacionFacade();
     IOrdenesCompras ordenesComprasFachada = new OrdenesComprasFacade();
     IProductos productosFachada = new ProductosFacade();
-    
-    IConteoInventarioGeneral conteoInventarioGeneralFacade = new ConteoInventarioGeneralFacade();
+    IConteoInventario conteoInventarioFachada = new ConteoInventarioFacade();
 
     VentasFacade ventasFachada = new VentasFacade();
 
     VentasControl control = new VentasControl(
-        ventasFachada, 
-        usuariosFachada, 
-        inventarioFachada, 
-        proveedoresFachada, 
-        autenticacionFachada, 
-        ordenesComprasFachada, 
-        productosFachada, 
-        conteoInventarioGeneralFacade,
-        new UsuarioDTO()
+      ventasFachada,
+      usuariosFachada,
+      inventarioFachada,
+      proveedoresFachada,
+      autenticacionFachada,
+      ordenesComprasFachada,
+      productosFachada,
+      conteoInventarioFachada,
+      new UsuarioDTO()
     );
 
     SwingUtilities.invokeLater(() -> {

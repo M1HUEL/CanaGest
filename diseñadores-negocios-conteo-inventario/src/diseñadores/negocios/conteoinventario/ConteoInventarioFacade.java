@@ -1,6 +1,6 @@
 package diseñadores.negocios.conteoinventario;
 
-import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ConteoInventarioDTO;
 import java.util.List;
 
 /**
@@ -12,46 +12,46 @@ import java.util.List;
  * 
  * @author ERICK
  */
-public class ConteoInventarioGeneralFacade implements IConteoInventarioGeneral {
+public class ConteoInventarioFacade implements IConteoInventario {
 
-    private final ConteoInventarioGeneralControl control;
+    private final ConteoInventarioControl control;
 
     /**
      * Constructor por defecto que inicializa el controlador correspondiente.
      */
-    public ConteoInventarioGeneralFacade() {
-        this.control = new ConteoInventarioGeneralControl();
+    public ConteoInventarioFacade() {
+        this.control = new ConteoInventarioControl();
     }
 
     /**
      * Constructor para inyección de dependencias (útil para pruebas de integración).
      */
-    public ConteoInventarioGeneralFacade(ConteoInventarioGeneralControl control) {
+    public ConteoInventarioFacade(ConteoInventarioControl control) {
         this.control = control;
     }
 
     @Override
-    public void crearSesionAuditoria(ConteoInventarioGeneralDTO sesion) {
+    public void crearSesionAuditoria(ConteoInventarioDTO sesion) {
         control.crearSesionAuditoria(sesion);
     }
 
     @Override
-    public void registrarYAplicarAuditoriaGlobal(ConteoInventarioGeneralDTO sesion) {
+    public void registrarYAplicarAuditoriaGlobal(ConteoInventarioDTO sesion) {
         control.registrarYAplicarAuditoriaGlobal(sesion);
     }
 
     @Override
-    public List<ConteoInventarioGeneralDTO> obtenerHistorialSesiones() {
+    public List<ConteoInventarioDTO> obtenerHistorialSesiones() {
         return control.obtenerHistorialSesiones();
     }
 
     @Override
-    public ConteoInventarioGeneralDTO buscarSesionPorCodigo(String codigoGeneral) {
+    public ConteoInventarioDTO buscarSesionPorCodigo(String codigoGeneral) {
         return control.buscarSesionPorCodigo(codigoGeneral);
     }
     
     @Override
-    public void guardarProgresoAuditoria(ConteoInventarioGeneralDTO sesion) {
+    public void guardarProgresoAuditoria(ConteoInventarioDTO sesion) {
         control.guardarProgresoAuditoria(sesion);
     }
 }

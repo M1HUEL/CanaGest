@@ -1,6 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ConteoInventarioDTO;
 import diseñadores.negocios.dto.ItemConteoDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
@@ -19,7 +19,7 @@ public class ConteoInventario extends JDialog {
   private final VentasControl control;
   private List<ItemConteoDTO> items; 
   private final Runnable onSuccess;
-  private ConteoInventarioGeneralDTO sesionActual;
+  private ConteoInventarioDTO sesionActual;
 
   public ConteoInventario(JFrame parent, VentasControl control, Runnable onSuccess) {
     super(parent, "Iniciar Auditoría General de Inventario", true);
@@ -40,7 +40,7 @@ public class ConteoInventario extends JDialog {
    */
   private void sincronizarSesionExistente() {
       // Intentamos recuperar una auditoría que haya quedado abierta (verificadoGlobal == false)
-      ConteoInventarioGeneralDTO auditoriaActiva = control.obtenerAuditoriaActiva();
+      ConteoInventarioDTO auditoriaActiva = control.obtenerAuditoriaActiva();
       
       if (auditoriaActiva != null) {
           // ESTADO: EDICIÓN - Recuperamos el progreso para que el usuario visualice lo que lleva

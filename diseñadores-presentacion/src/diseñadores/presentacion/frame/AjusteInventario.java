@@ -1,6 +1,6 @@
 package diseñadores.presentacion.frame;
 
-import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ConteoInventarioDTO;
 import diseñadores.negocios.dto.ItemConteoDTO;
 import diseñadores.presentacion.control.VentasControl;
 import diseñadores.presentacion.utilidad.Bordes;
@@ -18,7 +18,7 @@ public class AjusteInventario extends JDialog {
   private final VentasControl control;
   private final ItemConteoDTO item;
   private final Runnable onSuccess;
-  private ConteoInventarioGeneralDTO sesionActual;
+  private ConteoInventarioDTO sesionActual;
 
   public AjusteInventario(JFrame parent, VentasControl control, ItemConteoDTO item, Runnable onSuccess) {
     super(parent, "Ajustar Inventario", true);
@@ -34,7 +34,7 @@ public class AjusteInventario extends JDialog {
   }
 
   private void recuperarSesionGlobal() {
-      ConteoInventarioGeneralDTO activa = control.obtenerAuditoriaActiva();
+      ConteoInventarioDTO activa = control.obtenerAuditoriaActiva();
       if (activa != null) {
           this.sesionActual = activa;
       } else {

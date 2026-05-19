@@ -12,6 +12,7 @@ import diseñadores.infraestructura.dto.RespuestaBancoDTO;
 public final class BancoCliente implements IBanco {
 
   public static final int PUERTO = 8081;
+
   public static final String BASE_URL = "http://localhost:" + PUERTO + "/api";
 
   private static final Duration TIMEOUT = Duration.ofSeconds(10);

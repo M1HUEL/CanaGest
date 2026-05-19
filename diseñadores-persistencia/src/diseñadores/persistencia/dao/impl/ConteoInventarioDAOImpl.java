@@ -142,10 +142,7 @@ public class ConteoInventarioDAOImpl implements IConteoInventarioDAO {
       for (Document itemDoc : listaConteosDoc) {
         ItemConteoDTO item = new ItemConteoDTO();
 
-        // Atributos de la raíz del item
         item.setCodigo(itemDoc.getString("codigo"));
-        item.setFecha(itemDoc.getString("fecha"));
-
         item.setComentario(itemDoc.getString("comentario"));
         item.setProductoStockFisico(itemDoc.getInteger("cantidadContada", 0));
         item.setVerificado(itemDoc.getBoolean("estado", false));
@@ -161,7 +158,6 @@ public class ConteoInventarioDAOImpl implements IConteoInventarioDAO {
         // Extraer subdocumento de Usuario
         Document usrDoc = itemDoc.get("usuario", Document.class);
         if (usrDoc != null) {
-          item.setCodigoUsuario(usrDoc.getString("idUsuario"));
           item.setNombreUsuario(usrDoc.getString("nombre"));
           item.setRolUsuario(usrDoc.getString("rol"));
         }
@@ -195,7 +191,6 @@ public class ConteoInventarioDAOImpl implements IConteoInventarioDAO {
       for (ItemConteoDTO item : dto.getTodosLosConteos()) {
         Document itemDoc = new Document()
           .append("codigo", item.getCodigo())
-          .append("fecha", item.getFecha())
           .append("comentario", item.getComentario())
           .append("diferencia", item.getDiferencia())
           .append("cantidadContada", item.getProductoStockFisico())
@@ -209,7 +204,6 @@ public class ConteoInventarioDAOImpl implements IConteoInventarioDAO {
 
         // Empaquetar subdocumento Usuario
         Document usrDoc = new Document()
-          .append("idUsuario", item.getCodigoUsuario())
           .append("nombre", item.getNombreUsuario())
           .append("rol", item.getRolUsuario());
         itemDoc.append("usuario", usrDoc);

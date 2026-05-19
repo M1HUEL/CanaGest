@@ -57,8 +57,7 @@ public class ConsolidarInventario extends JFrame {
         List<ProductoDTO> productos = control.obtenerProductosInventario();
         for (ProductoDTO p : productos) {
             ItemConteoDTO item = new ItemConteoDTO(
-                "ITM-BASE-" + p.getCodigo(), 
-                null,                        
+                "ITM-BASE-" + p.getCodigo(),                     
                 null,                        
                 null,                        
                 p.getCodigo(),               

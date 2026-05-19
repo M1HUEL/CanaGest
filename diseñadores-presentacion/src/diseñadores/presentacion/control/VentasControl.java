@@ -347,9 +347,8 @@ public class VentasControl {
     for (ProductoDTO p : productosSistema) {
       ItemConteoDTO item = new ItemConteoDTO(
         "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
-        fechaActual,
         usuarioActivo.getNombre(),
-        null, 
+        usuarioActivo.getRol().toString(), 
         p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
       );
       item.setComentario("");

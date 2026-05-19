@@ -3,13 +3,11 @@ package diseñadores.negocios.dto;
 public class ItemConteoDTO {
 
   private String codigo;
-  private String fecha;
   private String comentario;
   private int diferencia;
   private int cantidadContada;
   private boolean estado;
 
-  private String codigoUsuario;
   private String nombreUsuario;
   private String rolUsuario;
 
@@ -20,11 +18,10 @@ public class ItemConteoDTO {
   public ItemConteoDTO() {
   }
 
-  public ItemConteoDTO(String codigo, String codigoUsuario, String nombreUsuario,
+  public ItemConteoDTO(String codigo, String nombreUsuario,
     String rolUsuario, String productoCodigo, String productoNombre,
     int stockSistema, int stockFisico) {
     this.codigo = codigo;
-    this.codigoUsuario = codigoUsuario;
     this.nombreUsuario = nombreUsuario;
     this.rolUsuario = rolUsuario;
     this.productoCodigo = productoCodigo;
@@ -64,28 +61,12 @@ public class ItemConteoDTO {
     this.codigo = codigo;
   }
 
-  public String getFecha() {
-    return fecha;
-  }
-
-  public void setFecha(String fecha) {
-    this.fecha = fecha;
-  }
-
   public String getComentario() {
     return comentario;
   }
 
   public void setComentario(String comentario) {
     this.comentario = comentario;
-  }
-
-  public String getCodigoUsuario() {
-    return codigoUsuario;
-  }
-
-  public void setCodigoUsuario(String codigoUsuario) {
-    this.codigoUsuario = codigoUsuario;
   }
 
   public String getNombreUsuario() {

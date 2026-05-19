@@ -4,7 +4,8 @@ import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
 import diseñadores.negocios.dto.ItemConteoDTO;
 import diseñadores.negocios.inventario.IInventario;
 import diseñadores.negocios.inventario.InventarioFacade;
-import diseñadores.negocios.objetos.ConteoInventarioGeneral;
+import diseñadores.persistencia.dao.IConteoInventarioGeneralDAO;
+import diseñadores.persistencia.dao.impl.ConteoInventarioGeneralDAOImpl;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,51 +14,49 @@ import java.util.UUID;
  * validaciones y las reglas de negocio de las sesiones de auditoría masiva de inventario.
  * 
  * Sincroniza los cierres globales con el stock actual del catálogo del sistema.
- * Propaga excepciones en tiempo de ejecución sin capturarlas.
+ * Utiliza única y exclusivamente la abstracción del DAO basada en DTOs.
  * 
  * @author ERICK
  */
 public class ConteoInventarioGeneralControl {
 
     private final IInventario serviciosInventario;
+    private final IConteoInventarioGeneralDAO conteoDAO;
 
     /**
-     * Constructor por defecto que inicializa la fachada de inventarios.
+     * Constructor por defecto que inicializa la fachada de inventarios y el DAO basado en DTOs.
      */
     public ConteoInventarioGeneralControl() {
         this.serviciosInventario = new InventarioFacade();
+        this.conteoDAO = new ConteoInventarioGeneralDAOImpl();
     }
 
     /**
      * Constructor para inyección de dependencias (ideal para pruebas unitarias).
      */
-    public ConteoInventarioGeneralControl(IInventario serviciosInventario) {
+    public ConteoInventarioGeneralControl(IInventario serviciosInventario, IConteoInventarioGeneralDAO conteoDAO) {
         this.serviciosInventario = serviciosInventario;
+        this.conteoDAO = conteoDAO;
     }
     
     /**
      * Guarda el avance progresivo de la auditoría directamente en MongoDB.
-     * Permite guardar comentarios y firmas parciales sin alterar el stock del sistema.
      */
     public void guardarProgresoAuditoria(ConteoInventarioGeneralDTO sesion) {
         validarSesionNoNula(sesion);
-        // Guarda el estado actual del JSON (con los ajustes que lleve el usuario)
-        ConteoInventarioGeneral.actualizar(sesion);
+        conteoDAO.actualizar(sesion);
     }
 
     /**
-     * CIERRE DEFINITIVO: Consolida la sesión, valida que los ítems con discrepancias 
-     * tengan su respectiva firma/justificación e impacta permanentemente el stock del sistema.
+     * CIERRE DEFINITIVO: Consolida la sesión, valida discrepancias e impacta el stock del sistema.
      */
     public void registrarYAplicarAuditoriaGlobal(ConteoInventarioGeneralDTO sesion) {
         validarSesionNoNula(sesion);
-        
-        // Ejecuta la validación inteligente enfocada solo en los cambios reales
         validarFirmasEnDiscrepancias(sesion);
 
         // 1. Forzar bandera de cierre y actualizar estado final en Mongo
         sesion.setVerificadoGlobal(true);
-        ConteoInventarioGeneral.actualizar(sesion);
+        conteoDAO.actualizar(sesion);
 
         // 2. Sincronizar el stock real del sistema
         for (ItemConteoDTO item : sesion.getTodosLosConteos()) {
@@ -75,7 +74,6 @@ public class ConteoInventarioGeneralControl {
         }
         
         for (ItemConteoDTO item : sesion.getTodosLosConteos()) {
-            // Si hay un desfase de inventario
             if (item.getProductoStockSistema() != item.getProductoStockFisico()) {
                 if (item.getNombreUsuario() == null || item.getNombreUsuario().isBlank()) {
                     throw new IllegalArgumentException("El producto " + item.getProductoCodigo() 
@@ -90,8 +88,7 @@ public class ConteoInventarioGeneralControl {
     }
 
     /**
-     * Crea y guarda una nueva sesión global de auditoría en MongoDB como borrador
-     * o ticket inicial. No altera el stock base del sistema hasta su verificación.
+     * Crea y guarda una nueva sesión global de auditoría en MongoDB como borrador.
      */
     public void crearSesionAuditoria(ConteoInventarioGeneralDTO sesion) {
         validarSesionNoNula(sesion);
@@ -100,12 +97,10 @@ public class ConteoInventarioGeneralControl {
             throw new IllegalArgumentException("No se puede aperturar una sesión de auditoría sin productos para contar.");
         }
 
-        // Generar folios automáticos si no vienen preestablecidos
         if (sesion.getCodigoGeneral() == null || sesion.getCodigoGeneral().isBlank()) {
             sesion.setCodigoGeneral(generarCodigoGeneral());
         }
 
-        // Propagar el código general a cada sub-conteo y validar consistencia básica
         for (ItemConteoDTO item : sesion.getTodosLosConteos()) {
             if (item.getProductoCodigo() == null || item.getProductoCodigo().isBlank()) {
                 throw new IllegalArgumentException("Todos los ítems auditados deben poseer un código de producto válido.");
@@ -116,27 +111,25 @@ public class ConteoInventarioGeneralControl {
             item.setCodigoConteo(sesion.getCodigoGeneral());
         }
 
-        ConteoInventarioGeneral.guardar(sesion);
+        conteoDAO.guardar(sesion);
     }
 
     /**
-     * Recupera el historial de todas las auditorías generales realizadas.
+     * Recupera el historial de todas las auditorías generales en formato DTO.
      */
     public List<ConteoInventarioGeneralDTO> obtenerHistorialSesiones() {
-        return ConteoInventarioGeneral.obtenerTodos();
+        return conteoDAO.obtenerTodos();
     }
 
     /**
-     * Busca y extrae una sesión masiva completa filtrada por su identificador/folio general.
+     * Busca una sesión masiva completa filtrada por su identificador general.
      */
     public ConteoInventarioGeneralDTO buscarSesionPorCodigo(String codigoGeneral) {
         if (codigoGeneral == null || codigoGeneral.isBlank()) {
             throw new IllegalArgumentException("El código de búsqueda provisto es inválido.");
         }
-        return ConteoInventarioGeneral.obtenerPorCodigo(codigoGeneral);
+        return conteoDAO.obtenerPorCodigoGeneral(codigoGeneral);
     }
-
-    // --- Métodos de Validación Privados ---
 
     private void validarSesionNoNula(ConteoInventarioGeneralDTO sesion) {
         if (sesion == null) {

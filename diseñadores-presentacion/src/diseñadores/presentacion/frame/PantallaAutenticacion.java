@@ -30,7 +30,6 @@ public class PantallaAutenticacion extends JFrame {
     setSize(1500, 900);
     setLocationRelativeTo(null);
     setResizable(true);
-
   }
 
   private void iniciarComponentes() {
@@ -54,7 +53,6 @@ public class PantallaAutenticacion extends JFrame {
         g.setPaint(gp);
         g.fillRect(0, 0, getWidth(), getHeight());
       }
-
     };
     root.setOpaque(false);
     return root;
@@ -72,7 +70,6 @@ public class PantallaAutenticacion extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 4, getHeight() - 4, 28, 28));
         super.paintComponent(g2d);
       }
-
     };
 
     tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
@@ -134,7 +131,6 @@ public class PantallaAutenticacion extends JFrame {
         dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
         super.paintComponent(g2d);
       }
-
     };
     configurarCampoBase(tf, placeholder);
     configurarPlaceholderTexto(tf, placeholder);
@@ -148,7 +144,6 @@ public class PantallaAutenticacion extends JFrame {
         dibujarFondoCampo((Graphics2D) g2d, getWidth(), getHeight());
         super.paintComponent(g2d);
       }
-
     };
     configurarCampoBase(pf, placeholder);
     configurarPlaceholderContrasena(pf, placeholder);
@@ -189,7 +184,6 @@ public class PantallaAutenticacion extends JFrame {
           tf.setForeground(Colores.GRIS_TEXTO);
         }
       }
-
     });
   }
 
@@ -214,7 +208,6 @@ public class PantallaAutenticacion extends JFrame {
           pf.setForeground(Colores.GRIS_TEXTO);
         }
       }
-
     });
   }
 
@@ -260,7 +253,6 @@ public class PantallaAutenticacion extends JFrame {
             hover = false;
             repaint();
           }
-
         });
       }
 
@@ -272,7 +264,6 @@ public class PantallaAutenticacion extends JFrame {
         g.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 14, 14));
         super.paintComponent(g2d);
       }
-
     };
 
     btn.setForeground(Colores.BLANCO);
@@ -293,10 +284,17 @@ public class PantallaAutenticacion extends JFrame {
     String usuario = campoUsuario.getText().trim();
     String contrasena = new String(campoContrasena.getPassword()).trim();
 
+    // Evita procesar si se envía el texto de los placeholders
+    if (usuario.equals("Ingrese su usuario") || contrasena.equals("Ingrese su contraseña")) {
+      lblError.setText("Debe ingresar sus credenciales.");
+      return;
+    }
+
     Optional<UsuarioDTO> usuarioOpt = ventasControl.autenticar(usuario, contrasena);
 
     if (usuarioOpt.isPresent()) {
       dispose();
+      // Se utiliza MenuPrincipal asumiendo su existencia en tu capa de presentación
       new MenuPrincipal(usuarioOpt.get(), crearVentasControlAutenticado(usuarioOpt.get())).setVisible(true);
     } else {
       lblError.setText("Usuario o contraseña incorrectos.");
@@ -306,6 +304,7 @@ public class PantallaAutenticacion extends JFrame {
   }
 
   private VentasControl crearVentasControlAutenticado(UsuarioDTO usuario) {
+    // Agregamos la recuperación de la fachada de conteo desde el controlador base
     return new VentasControl(
       ventasControl.getVentasFachada(),
       ventasControl.getUsuariosFachada(),
@@ -314,8 +313,8 @@ public class PantallaAutenticacion extends JFrame {
       ventasControl.getAutenticacionFachada(),
       ventasControl.getOrdenesComprasFachada(),
       ventasControl.getProductosFachada(),
+      ventasControl.getConteoInventarioGeneralFacade(),
       usuario
     );
   }
-
 }

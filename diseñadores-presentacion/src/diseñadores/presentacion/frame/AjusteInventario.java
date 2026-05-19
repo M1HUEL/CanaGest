@@ -26,25 +26,18 @@ public class AjusteInventario extends JDialog {
     this.item = item;
     this.onSuccess = onSuccess;
 
-    setSize(440, 370); // Subimos un poco el alto para evitar desbordamiento del texto explicativo
+    setSize(440, 370); 
     setLocationRelativeTo(parent);
     
-    // Vincular con el documento masivo activo de MongoDB
     recuperarSesionGlobal();
     construirContenido();
   }
 
-  /**
-   * Recupera la sesión de auditoría en curso directamente del controlador.
-   * Si por alguna anomalía de memoria no existe una activa, solicita la inicialización de una.
-   */
   private void recuperarSesionGlobal() {
       ConteoInventarioGeneralDTO activa = control.obtenerAuditoriaActiva();
-      
       if (activa != null) {
           this.sesionActual = activa;
       } else {
-          // Fallback protectivo: Inicializa un lote limpio si se abrió la ventana de forma huérfana
           this.sesionActual = control.inicializarNuevoConteoGeneral();
       }
   }
@@ -61,7 +54,6 @@ public class AjusteInventario extends JDialog {
     panel.add(titulo);
     panel.add(Box.createVerticalStrut(14));
 
-    // Fila informativa con los datos congelados del conteo anterior
     JPanel infoRow = new JPanel(new GridLayout(1, 3, 12, 0));
     infoRow.setOpaque(false);
     infoRow.setAlignmentX(LEFT_ALIGNMENT);
@@ -75,7 +67,6 @@ public class AjusteInventario extends JDialog {
     panel.add(infoRow);
     panel.add(Box.createVerticalStrut(14));
 
-    // Explicación de la acción diferida (Se aclara que se aplicará al consolidar globalmente)
     JLabel infoAjuste = new JLabel("<html>Nota: Al confirmar, la justificación y firma se guardarán en el borrador. El stock cambiará a <b>" 
         + item.getProductoStockFisico() + "</b> unidades al cerrar la auditoría global.</html>");
     infoAjuste.setFont(Fuentes.r(12));
@@ -84,7 +75,6 @@ public class AjusteInventario extends JDialog {
     panel.add(infoAjuste);
     panel.add(Box.createVerticalStrut(14));
 
-    // Campo de texto para justificar el incidente
     JLabel lblComentario = new JLabel("Motivo o Justificación del Ajuste:");
     lblComentario.setFont(Fuentes.b(13));
     lblComentario.setAlignmentX(LEFT_ALIGNMENT);
@@ -116,19 +106,18 @@ public class AjusteInventario extends JDialog {
             return;
         }
         
-        // 1. Clonar el estado previo de los datos locales (Mecanismo de reversión / Rollback)
         boolean verificadoPrevio = item.isVerificado();
         String comentarioPrevio = item.getComentario();
         String codigoUsrPrevio = item.getCodigoUsuario();
         String nombreUsrPrevio = item.getNombreUsuario();
         String rolUsrPrevio = item.getRolUsuario();
+        String fechaPrevio = item.getFecha();
         
         try {
             if (sesionActual == null) {
                 throw new IllegalStateException("No hay ninguna sesión de auditoría activa en MongoDB.");
             }
 
-            // Sincronizar datos del auditor que está firmando la discrepancia en este instante
             String nombreActivo = control.getUsuarioActivo().getNombre();
             item.setCodigoUsuario(nombreActivo); 
             item.setNombreUsuario(nombreActivo);
@@ -139,16 +128,17 @@ public class AjusteInventario extends JDialog {
                 item.setRolUsuario("ADMINISTRADOR");
             }
             
-            item.setComentario(comentario);
-            item.setVerificado(true); // Se marca como resuelto de forma individual
+            String fechaModificacion = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
+            item.setFecha(fechaModificacion); 
 
-            // 2. BUSCAR Y ACTUALIZAR el ítem correspondiente dentro del DTO maestro
+            item.setComentario(comentario);
+            item.setVerificado(true);
+
             boolean itemEncontrado = false;
             if (sesionActual.getTodosLosConteos() != null) {
                 for (int i = 0; i < sesionActual.getTodosLosConteos().size(); i++) {
                     ItemConteoDTO actual = sesionActual.getTodosLosConteos().get(i);
                     
-                    // CORRECCIÓN PROTECTIVA: Blindaje contra nulos y espacios en blanco en IDs
                     if (actual.getProductoCodigo() != null && item.getProductoCodigo() != null) {
                         String idActual = actual.getProductoCodigo().trim();
                         String idBuscado = item.getProductoCodigo().trim();
@@ -166,36 +156,28 @@ public class AjusteInventario extends JDialog {
                 throw new IllegalStateException("El producto " + item.getProductoNombre() + " no pertenece a la auditoría general actual.");
             }
 
-            // Recalculamos las métricas automáticas de la sesión (desajustes pendientes, etc.)
             sesionActual.recalcularMetricas();
 
-            // ==================================================================================
-            // SOLUCIÓN AL FLUJO EN CALIENTE:
-            // 3. PERSISTIR BORRADOR: Salvamos los metadatos y firmas unificadas en MongoDB de forma segura
-            // ==================================================================================
             control.guardarProgresoAuditoria(sesionActual);
 
-            // 4. IMPACTAR SISTEMA: Transmitimos el cambio de inventario a la base de datos del sistema 
-            // usando el DTO maestro con los datos físicos y comentarios nuevos estructurados.
             control.actualizarAuditoriaGeneral(sesionActual);
-            // ==================================================================================
 
             JOptionPane.showMessageDialog(this, 
                 "Incidente resuelto y stock sincronizado correctamente en el sistema.", 
                 "Ajuste Registrado", JOptionPane.INFORMATION_MESSAGE);
 
             if (onSuccess != null) {
-                onSuccess.run(); // Actualiza de forma reactiva la tabla de incidentes del Frame padre
+                onSuccess.run(); 
             }
             dispose();
 
-        } catch (Exception ex) {
-            // Reversión inmediata en caliente si cualquiera de las escrituras falla (Rollback manual)
+        } catch (HeadlessException | IllegalStateException ex) {
             item.setVerificado(verificadoPrevio);
             item.setComentario(comentarioPrevio);
             item.setCodigoUsuario(codigoUsrPrevio);
             item.setNombreUsuario(nombreUsrPrevio);
             item.setRolUsuario(rolUsrPrevio);
+            item.setFecha(fechaPrevio);
             
             ex.printStackTrace(); 
             

@@ -8,6 +8,7 @@ import diseñadores.negocios.productos.IProductos;
 import diseñadores.negocios.proveedores.IProveedores;
 import diseñadores.negocios.usuarios.IUsuarios;
 import diseñadores.negocios.ventas.IVentas;
+import diseñadores.negocios.conteoinventario.IConteoInventarioGeneral;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +26,7 @@ public class VentasControl {
   private final IAutenticacion autenticacionFachada;
   private final IOrdenesCompras ordenesComprasFachada;
   private final IProductos productosFachada;
+  private final IConteoInventarioGeneral conteoInventarioGeneralFacade;
 
   private final UsuarioDTO usuarioActivo;
 
@@ -39,6 +41,7 @@ public class VentasControl {
     IAutenticacion autenticacionFachada,
     IOrdenesCompras ordenesComprasFachada,
     IProductos productosFachada,
+    IConteoInventarioGeneral conteoInventarioGeneralFacade,
     UsuarioDTO usuarioActivo) {
     this.ventasFachada = ventasFachada;
     this.usuariosFachada = usuariosFachada;
@@ -47,6 +50,7 @@ public class VentasControl {
     this.autenticacionFachada = autenticacionFachada;
     this.ordenesComprasFachada = ordenesComprasFachada;
     this.productosFachada = productosFachada;
+    this.conteoInventarioGeneralFacade = conteoInventarioGeneralFacade;
     this.usuarioActivo = usuarioActivo;
 
     inicializarEstado();
@@ -83,6 +87,10 @@ public class VentasControl {
 
   public IOrdenesCompras getOrdenesComprasFachada() {
     return ordenesComprasFachada;
+  }
+  
+  public IConteoInventarioGeneral getConteoInventarioGeneralFacade() {
+    return conteoInventarioGeneralFacade;
   }
 
   public UsuarioDTO getUsuarioActivo() {
@@ -306,24 +314,18 @@ public class VentasControl {
   /**
    * Recupera la sesión de auditoría masiva que se encuentre abierta actualmente 
    * (cuyo flag 'verificadoGlobal' sea falso). 
-   * Si no hay ninguna sesión en curso, retorna null para indicarle a la vista 
-   * que debe habilitar el botón de apertura.
+   * Si no hay ninguna sesión en curso, retorna null.
    */
   public ConteoInventarioGeneralDTO obtenerAuditoriaActiva() {
-      try {
-          List<ConteoInventarioGeneralDTO> historial = conteoInventarioGeneralFacade.obtenerHistorialSesiones();
-          if (historial != null && !historial.isEmpty()) {
-              for (ConteoInventarioGeneralDTO aud : historial) {
-                  if (!aud.getVerificadoGlobal()) {
-                      return aud; 
-                  }
-              }
-          }
-          return null;
-      } catch (NegocioException e) {
-          manejarError(e);
-          return null;
+    List<ConteoInventarioGeneralDTO> historial = conteoInventarioGeneralFacade.obtenerHistorialSesiones();
+    if (historial != null && !historial.isEmpty()) {
+      for (ConteoInventarioGeneralDTO aud : historial) {
+        if (!aud.getVerificadoGlobal()) {
+          return aud; 
+        }
       }
+    }
+    return null;
   }
 
   /**
@@ -332,59 +334,44 @@ public class VentasControl {
    * borrador totalmente nuevo en MongoDB con su folio único.
    */
   public ConteoInventarioGeneralDTO inicializarNuevoConteoGeneral() {
-      try {
-          ConteoInventarioGeneralDTO nuevaAuditoria = new ConteoInventarioGeneralDTO();
-          // Genera el folio base con un prefijo y marca temporal
-          nuevaAuditoria.setCodigoGeneral("AUD-" + (System.currentTimeMillis() / 1000));
-          nuevaAuditoria.setFechaRegistro(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date()));
-          nuevaAuditoria.setVerificadoGlobal(false);
+    ConteoInventarioGeneralDTO nuevaAuditoria = new ConteoInventarioGeneralDTO();
+    nuevaAuditoria.setCodigoGeneral("AUD-" + (System.currentTimeMillis() / 1000));
+    String fechaActual = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
+    nuevaAuditoria.setFechaRegistro(fechaActual);
+    nuevaAuditoria.setVerificadoGlobal(false);
 
-          // Tomamos la foto del inventario en este instante
-          List<ProductoDTO> productosSistema = obtenerProductosInventario();
-          List<ItemConteoDTO> itemsIniciales = new ArrayList<>();
+    List<ProductoDTO> productosSistema = obtenerProductosInventario();
+    List<ItemConteoDTO> itemsIniciales = new ArrayList<>();
 
-          int secuencia = 1;
-          for (ProductoDTO p : productosSistema) {
-              // El stock físico inicial se asume igual al del sistema.
-              // Los datos de firma del usuario y comentarios se quedan vacíos/null
-              // hasta que se use la ventana de ajuste.
-              ItemConteoDTO item = new ItemConteoDTO(
-                  "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
-                  null, null, null, 
-                  p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
-              );
-              item.setComentario("");
-              itemsIniciales.add(item);
-          }
+    int secuencia = 1;
+    for (ProductoDTO p : productosSistema) {
+      ItemConteoDTO item = new ItemConteoDTO(
+        "ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++,
+        fechaActual,
+        usuarioActivo.getNombre(),
+        null, 
+        p.getCodigo(), p.getNombre(), p.getStock(), p.getStock()
+      );
+      item.setComentario("");
+      itemsIniciales.add(item);
+    }
 
-          nuevaAuditoria.setTodosLosConteos(itemsIniciales);
-          nuevaAuditoria.recalcularMetricas();
+    nuevaAuditoria.setTodosLosConteos(itemsIniciales);
+    nuevaAuditoria.recalcularMetricas();
 
-          // Persiste el contenedor inicial en Mongo
-          conteoInventarioGeneralFacade.crearSesionAuditoria(nuevaAuditoria);
-          return nuevaAuditoria;
-
-      } catch (NegocioException e) {
-          manejarError(e);
-          return null;
-      }
+    conteoInventarioGeneralFacade.crearSesionAuditoria(nuevaAuditoria);
+    return nuevaAuditoria;
   }
 
   /**
    * Vuelca las actualizaciones progresivas en la base de datos de MongoDB.
-   * Se ejecuta en caliente inmediatamente después de guardar en la ventana de ajuste,
-   * almacenando firmas y justificaciones de forma atómica sin alterar el stock del catálogo.
+   * Almacena firmas y justificaciones de forma atómica sin alterar el stock del catálogo.
    */
   public void guardarProgresoAuditoria(ConteoInventarioGeneralDTO sesionGeneral) {
-      try {
-          if (sesionGeneral != null) {
-              sesionGeneral.recalcularMetricas();
-              // Invoca de manera segura la persistencia parcial de la fachada
-              this.conteoInventarioGeneralFacade.guardarProgresoAuditoria(sesionGeneral);
-          }
-      } catch (NegocioException e) {
-          manejarError(e);
-      }
+    if (sesionGeneral != null) {
+      sesionGeneral.recalcularMetricas();
+      this.conteoInventarioGeneralFacade.guardarProgresoAuditoria(sesionGeneral);
+    }
   }
 
   /**
@@ -392,38 +379,24 @@ public class VentasControl {
    * Valida firmas en desajustes e impacta permanentemente el stock en el catálogo del sistema.
    */
   public void actualizarAuditoriaGeneral(ConteoInventarioGeneralDTO sesionGeneral) {
-      try {
-          if (sesionGeneral != null) {
-              sesionGeneral.recalcularMetricas();
-              // Aplica el cambio definitivo en el inventario y cierra la sesión
-              this.conteoInventarioGeneralFacade.registrarYAplicarAuditoriaGlobal(sesionGeneral);
-          }
-      } catch (NegocioException e) {
-          manejarError(e);
-      }
+    if (sesionGeneral != null) {
+      sesionGeneral.recalcularMetricas();
+      this.conteoInventarioGeneralFacade.registrarYAplicarAuditoriaGlobal(sesionGeneral);
+    }
   }
 
   /**
    * Busca los detalles completos de una sesión de auditoría mediante su ID/Folio.
    */
   public ConteoInventarioGeneralDTO buscarSesionAuditoriaPorCodigo(String codigoGeneral) {
-      try {
-          return this.conteoInventarioGeneralFacade.buscarSesionPorCodigo(codigoGeneral);
-      } catch (NegocioException e) {
-          manejarError(e);
-          return null;
-      }
+    return this.conteoInventarioGeneralFacade.buscarSesionPorCodigo(codigoGeneral);
   }
 
   /**
    * Recupera la lista con todo el historial de auditorías del sistema.
    */
   public List<ConteoInventarioGeneralDTO> obtenerHistorialSesionesAuditoria() {
-      try {
-          return this.conteoInventarioGeneralFacade.obtenerHistorialSesiones();
-      } catch (NegocioException e) {
-          manejarError(e);
-          return new ArrayList<>();
-      }
+    List<ConteoInventarioGeneralDTO> historial = this.conteoInventarioGeneralFacade.obtenerHistorialSesiones();
+    return historial != null ? historial : new ArrayList<>();
   }
 }

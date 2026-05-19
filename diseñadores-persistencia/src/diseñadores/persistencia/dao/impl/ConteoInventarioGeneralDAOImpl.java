@@ -4,6 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import diseñadores.negocios.dto.ConteoInventarioGeneralDTO;
+import diseñadores.negocios.dto.ItemConteoDTO;
 import diseñadores.persistencia.conexion.Conexion;
 import diseñadores.persistencia.dao.IConteoInventarioGeneralDAO;
 import org.bson.Document;
@@ -68,10 +69,6 @@ public class ConteoInventarioGeneralDAOImpl implements IConteoInventarioGeneralD
         ejecutarEliminacion(codigoGeneral);
     }
 
-    // ==========================================
-    // METODOS DE VALIDACIÓN
-    // ==========================================
-
     private void validarCodigoRequerido(String codigoGeneral) {
         if (codigoGeneral == null || codigoGeneral.isBlank()) {
             throw new IllegalArgumentException("El código del conteo general es un dato obligatorio requerido.");
@@ -103,10 +100,6 @@ public class ConteoInventarioGeneralDAOImpl implements IConteoInventarioGeneralD
         }
     }
 
-    // ==========================================
-    // METODOS DE OPERACIÓN DIRECTA MONGO
-    // ==========================================
-
     private Document buscarDocumentoPorCodigoGeneral(String codigoGeneral) {
         return coleccion.find(Filters.eq("codigoGeneral", codigoGeneral.trim())).first();
     }
@@ -127,29 +120,102 @@ public class ConteoInventarioGeneralDAOImpl implements IConteoInventarioGeneralD
         coleccion.deleteOne(Filters.eq("codigoGeneral", codigoGeneral));
     }
 
-    // ==========================================
-    // MÉTODOS DE CONVERSIÓN (DTO <-> DOCUMENT)
-    // ==========================================
-
     private ConteoInventarioGeneralDTO convertirADTO(Document doc) {
         ConteoInventarioGeneralDTO dto = new ConteoInventarioGeneralDTO();
+
+        // Mapeo de la raíz del Documento Maestro
+        dto.setId(doc.getObjectId("_id") != null ? doc.getObjectId("_id").toHexString() : null);
         dto.setCodigoGeneral(doc.getString("codigoGeneral"));
-        dto.setFechaRegistro(doc.getDate("fechaRegistro"));
-        
-        if (doc.get("todosLosConteos") != null) {
-            dto.setTodosLosConteos(doc.getList("todosLosConteos", Object.class)); 
+        dto.setFechaRegistro(doc.getString("fechaRegistro")); 
+        dto.setVerificadoGlobal(doc.getBoolean("verificadoGlobal", false));
+        dto.setCantidadVerificados(doc.getInteger("cantidadVerificados", 0));
+        dto.setCantidadNoVerificados(doc.getInteger("cantidadNoVerificados", 0));
+        dto.setDiferenciasTotales(doc.getInteger("diferenciasTotales", 0));
+
+        // Mapeo seguro del arreglo anidado 'todosLosConteos'
+        List<Document> listaConteosDoc = doc.getList("todosLosConteos", Document.class);
+        if (listaConteosDoc != null) {
+          List<ItemConteoDTO> listaItems = new ArrayList<>();
+
+          for (Document itemDoc : listaConteosDoc) {
+            ItemConteoDTO item = new ItemConteoDTO();
+
+            // Atributos de la raíz del item
+            item.setCodigoConteo(itemDoc.getString("codigo"));
+            item.setFecha(itemDoc.getString("fecha"));
+
+            item.setComentario(itemDoc.getString("comentario"));
+            item.setProductoStockFisico(itemDoc.getInteger("cantidadContada", 0));
+            item.setVerificado(itemDoc.getBoolean("estado", false));
+
+            // Extraer subdocumento de Producto
+            Document prodDoc = itemDoc.get("producto", Document.class);
+            if (prodDoc != null) {
+              item.setProductoCodigo(prodDoc.getString("idProducto"));
+              item.setProductoNombre(prodDoc.getString("nombre"));
+              item.setProductoStockSistema(prodDoc.getInteger("stockSistema", 0));
+            }
+
+            // Extraer subdocumento de Usuario
+            Document usrDoc = itemDoc.get("usuario", Document.class);
+            if (usrDoc != null) {
+              item.setCodigoUsuario(usrDoc.getString("idUsuario"));
+              item.setNombreUsuario(usrDoc.getString("nombre"));
+              item.setRolUsuario(usrDoc.getString("rol"));
+            }
+
+            listaItems.add(item);
+          }
+          dto.setTodosLosConteos(listaItems);
         }
-        
+
         return dto;
     }
 
     private Document convertirADocumento(ConteoInventarioGeneralDTO dto) {
-        Document doc = new Document()
-                .append("codigoGeneral", dto.getCodigoGeneral())
-                .append("fechaRegistro", dto.getFechaRegistro());
+        Document doc = new Document();
+
+        // Mapear id de Mongo si ya existe (evita duplicados al actualizar)
+        if (dto.getId() != null && !dto.getId().isBlank()) {
+          doc.append("_id", new org.bson.types.ObjectId(dto.getId()));
+        }
+
+        doc.append("codigoGeneral", dto.getCodigoGeneral())
+           .append("fechaRegistro", dto.getFechaRegistro())
+           .append("verificadoGlobal", dto.getVerificadoGlobal())
+           .append("cantidadVerificados", dto.getCantidadVerificados())
+           .append("cantidadNoVerificados", dto.getCantidadNoVerificados())
+           .append("diferenciasTotales", dto.getDiferenciasTotales());
 
         if (dto.getTodosLosConteos() != null) {
-            doc.append("todosLosConteos", dto.getTodosLosConteos());
+          List<Document> listaConteosDoc = new ArrayList<>();
+
+          for (ItemConteoDTO item : dto.getTodosLosConteos()) {
+            Document itemDoc = new Document()
+              .append("codigo", item.getCodigoConteo())
+              .append("fecha", item.getFecha())
+
+              .append("comentario", item.getComentario())
+              .append("diferencia", item.getDiferencia())
+              .append("cantidadContada", item.getProductoStockFisico())
+              .append("estado", item.isVerificado());
+
+            Document prodDoc = new Document()
+              .append("idProducto", item.getProductoCodigo())
+              .append("nombre", item.getProductoNombre())
+              .append("stockSistema", item.getProductoStockSistema());
+            itemDoc.append("producto", prodDoc);
+
+            // Empaquetar subdocumento Usuario
+            Document usrDoc = new Document()
+              .append("idUsuario", item.getCodigoUsuario())
+              .append("nombre", item.getNombreUsuario())
+              .append("rol", item.getRolUsuario());
+            itemDoc.append("usuario", usrDoc);
+
+            listaConteosDoc.add(itemDoc);
+          }
+          doc.append("todosLosConteos", listaConteosDoc);
         }
 
         return doc;

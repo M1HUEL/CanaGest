@@ -336,6 +336,7 @@ public class VentasControl {
   public ConteoInventarioDTO inicializarNuevoConteoGeneral() {
     ConteoInventarioDTO nuevaAuditoria = new ConteoInventarioDTO();
     nuevaAuditoria.setCodigoGeneral("AUD-" + (System.currentTimeMillis() / 1000));
+
     String fechaActual = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date());
     nuevaAuditoria.setFechaRegistro(fechaActual);
     nuevaAuditoria.setVerificadoGlobal(false);
@@ -343,20 +344,25 @@ public class VentasControl {
     List<ProductoDTO> productosSistema = obtenerProductosInventario();
     List<ItemConteoDTO> itemsIniciales = new ArrayList<>();
 
+    int secuencia = 1;
     for (ProductoDTO p : productosSistema) {
+      // Usamos el constructor vacío para evitar desajustes de parámetros
       ItemConteoDTO item = new ItemConteoDTO();
 
-      item.setCodigo("ITM-BASE-" + p.getCodigo());
+      // Identificadores base del renglón
+      item.setCodigo("ITM-" + nuevaAuditoria.getCodigoGeneral() + "-" + secuencia++);
       item.setComentario("");
       item.setVerificado(false);
 
+      // Datos del Auditor activo asignado
+      item.setNombreUsuario(usuarioActivo.getNombre());
+      item.setRolUsuario(usuarioActivo.getRol().toString());
+
+      // Datos del Producto asociado extraídos del sistema
       item.setProductoCodigo(p.getCodigo());
       item.setProductoNombre(p.getNombre());
       item.setProductoStockSistema(p.getStock());
-      item.setProductoStockFisico(p.getStock());
-
-      item.setNombreUsuario(null);
-      item.setRolUsuario(null);
+      item.setProductoStockFisico(p.getStock()); // Inicia cuadrado por defecto
 
       itemsIniciales.add(item);
     }
